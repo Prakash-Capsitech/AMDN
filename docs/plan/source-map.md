@@ -7,7 +7,7 @@ version 1.0, planning baseline 7 November 2026. The source is preserved unchange
 | --- | --- |
 | Sections 1-5 | ADRs 0001-0003 and module/deployment boundaries |
 | Sections 6-7 and 10-11 | ADRs 0004-0006, 0009 and contract backlog |
-| Section 8 | ADR 0007 and encryption feasibility plan |
+| Section 8 | ADR 0007 and [encryption feasibility assessment](../security/encryption-feasibility.md) |
 | Section 9 | ADR 0008 and authorization review items |
 | Sections 12-15 and 17-20 | ADR 0010, threat inventory and F0 backlog |
 | Section 16 | src, clients, tests, deploy and docs layout |
@@ -18,7 +18,7 @@ bootstrap integration tests, versioned Git hooks, private GitHub hosting and
 no-mistakes PR checks. These enable development; they are not blueprint claims
 that a working delivery kernel already exists.
 
-The F0 request asks for project structure and drafted decisions. Remaining F0
-experiments and approvals are explicitly pending. No production encryption,
-provider, database schema, wire contract or deployment is selected by placeholder
-folders. The React client is reserved until crypto feasibility informs its setup.
+See the [repository README](../../README.md) for current implementation status
+and the [F0 backlog](f0.md) for experiment and approval gates. Placeholder folders
+do not select production encryption, a provider, a database schema, a wire contract
+or a deployment.

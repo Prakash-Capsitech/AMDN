@@ -11,16 +11,8 @@ state objects using MLS 1.0 through pinned ts-mls 1.6.4, with cipher suite
 MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519. The spike adds no cryptographic
 primitive or key-exchange protocol. It is not imported by the backend or web app.
 
-Use Node 24.22.3 from .nvmrc, npm, Python 3 and Chrome for the browser check:
-
-```sh
-make crypto-restore
-make crypto-test
-make crypto-spike
-make crypto-browser
-```
-
-Restore uses the integrity-locked dependency graph with lifecycle scripts disabled.
+Follow the [experiment run instructions](../../clients/crypto/README.md) for
+prerequisites, locked dependency restoration and Node/browser commands.
 The local run used Node 24.22.3, npm 11.19.1 and Chrome 157.0.8103.50 on Linux.
 The browser runner serves only clients/crypto on a random loopback port, uses a
 disposable profile and leaves Chrome's sandbox enabled. This is a browser smoke
@@ -110,10 +102,10 @@ Sources: [ts-mls versioned README](https://github.com/LukaJCB/ts-mls/tree/v1.6.4
 [OpenMLS platform guidance](https://github.com/openmls/openmls), and
 [MLS standard](https://www.rfc-editor.org/rfc/rfc9420.html).
 
-The pinned runtime graph is ts-mls 1.6.4, @hpke/core 1.9.0, @hpke/common 1.13.0,
-@noble/curves 2.0.1, @noble/hashes 2.0.1 and @noble/ciphers 2.1.1. All six licenses
-are MIT; preserve their [notices](../../clients/crypto/THIRD_PARTY_NOTICES.md) with
-redistributed copies. AMDN remains private without an open-source license grant.
+The [lockfile](../../clients/crypto/package-lock.json) owns the exact runtime
+dependency graph and license metadata. Preserve the dependency
+[notices](../../clients/crypto/THIRD_PARTY_NOTICES.md) with redistributed copies;
+see the [repository licensing statement](../../README.md) for AMDN itself.
 No Signal/OpenMLS code is redistributed here.
 
 Integration finding: importing ts-mls 1.6.4's root entry point initially failed

@@ -10,8 +10,10 @@ formally accepted and no production security approval is implied.
 The Foundation supports one-to-one sealed messages across tenants, one active
 device per user, a provider-operated single-region service, durable offline inboxes
 and device acknowledgments. AI handlers, attachments, groups, multi-device sync
-and cross-provider federation are excluded. The current implementation exposes
-only process liveness; all messaging flows below describe the proposed design.
+and cross-provider federation are excluded. All messaging flows below describe
+the proposed design; see the [repository README](../../README.md) for current
+implementation status and the [F0.3 assessment](encryption-feasibility.md) for
+the isolated experiment's evidence and limitations.
 
 Objectives are tenant confidentiality, endpoint-only plaintext/key access,
 authentic identity and receipt attribution, durable accepted messages, bounded

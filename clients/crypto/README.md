@@ -4,7 +4,7 @@ Disposable MLS 1.0 feasibility code; **synthetic messages only**. No production
 library or protocol is approved. Read the
 [assessment and evidence](../../docs/security/encryption-feasibility.md).
 
-Use Node 24.22.3 from the repository .nvmrc (for example, nvm install then nvm use).
+Use the Node version selected by the repository .nvmrc (for example, nvm install then nvm use).
 From the repository root:
 
 ```sh
