@@ -8,7 +8,7 @@ bootstrap HTTP and hook tests, verifies formatting, and checks local Markdown
 file links. It does not certify F0's security or delivery gates.
 
 Package changes must regenerate and commit packages.lock.json files with
-`dotnet restore AMDN.sln --force-evaluate`; ordinary builds use locked restore.
+`dotnet restore AMDN.sln --force-evaluate`; `make build` uses locked restore.
 
 ## Git and agent instructions
 
@@ -18,7 +18,8 @@ activate hooks from a clone. The installer refuses to replace a different hooksP
 The pre-commit hook checks staged whitespace and obvious private/local filenames;
 it is not a comprehensive secret scanner. The pre-push hook permits only the
 no-mistakes remote and refuses main/master. Hooks are convenience guardrails;
-GitHub required checks and maintainer review are the remote controls.
+see [Repository administration](#repository-administration) for the current
+GitHub enforcement limitation and required maintainer configuration.
 
 ## no-mistakes setup
 

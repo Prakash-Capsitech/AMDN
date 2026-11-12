@@ -50,10 +50,8 @@ blueprint decisions from repository setup choices.
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md). Use feature branches and no-mistakes;
-Git hooks reject direct remote publication from this checkout. GitHub Actions
-builds/tests the scaffold and checks the PR's head-bound no-mistakes declaration.
-These checks do not prove encryption, delivery correctness or tenant isolation.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for feature branches, no-mistakes,
+local hooks, CI checks and the current GitHub enforcement limitation.
 
 No open-source license is granted in this initial private repository. Licensing
 is a maintainer decision before any public distribution.

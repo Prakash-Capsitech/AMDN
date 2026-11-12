@@ -1,8 +1,10 @@
 # Foundation architecture
 
-The foundation delivers sealed one-to-one messages between independently
+This proposed architecture targets sealed one-to-one delivery between independently
 authorized users in different tenants, even while the recipient is offline.
-The provider operates the shared network; devices own encryption keys.
+The provider would operate the shared network; devices would own encryption keys.
+The diagram and flows below describe that target. See the
+[repository README](../../README.md) for current implementation status.
 
 ```mermaid
 flowchart LR
