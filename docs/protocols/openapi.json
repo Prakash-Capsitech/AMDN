@@ -1040,10 +1040,10 @@
                 {
                   "properties": {
                     "status": {
-                      "const": 400
+                      "const": 415
                     },
                     "code": {
-                      "const": "invalid_request"
+                      "const": "unsupported_media_type"
                     }
                   }
                 }
@@ -1104,6 +1104,7 @@
               "cursor_expired",
               "precondition_failed",
               "payload_too_large",
+              "unsupported_media_type",
               "rate_limited",
               "unavailable"
             ]

@@ -57,7 +57,9 @@ These tests use generated synthetic identities and do not deploy a public API.
 F1.3 adds [real provisioning and owner API tests](../../docs/security/provisioning-owner-access.md)
 over HTTPS, using the separate application hosts and their actual credentials.
 They exercise grants, scope/selection checks, replay, concurrent quotas, strict
-commands, atomic audit rollback, rate limits and revocation ordering. Both hosts
+commands, atomic audit rollback, rate limits and revocation ordering. Error bodies
+and required headers are checked against the published OpenAPI problem constraints,
+including status-specific codes and canonical server-generated request IDs. Both hosts
 remain disabled by default; these tests do not create a deployed service.
 
 The following acceptance evidence remains pending:

@@ -1,3 +1,4 @@
+using AMDN.Identity.Authentication;
 using AMDN.Infrastructure.Identity;
 using System.Threading.RateLimiting;
 
@@ -13,11 +14,11 @@ internal static class OwnerEndpoints
             // against the authenticated subject on every operation. No sticky session.
             var values = context.Request.Query["tenant_id"];
             if (context.Request.Query.Count != 1 || values.Count != 1 || !IdentityHttp.CanonicalId(values[0], out var tenant))
-                return IdentityHttp.Problem(context, 400);
+                return IdentityProblem.Create(context, 400);
             var result = await store.ReadOwnerAsync(context.User, tenant, context.RequestAborted);
-            if (result is null) return IdentityHttp.Problem(context, 404);
+            if (result is null) return IdentityProblem.Create(context, 404);
             using var lease = tenantBudget.AttemptAcquire(result.TenantId);
-            if (!lease.IsAcquired) return IdentityHttp.Problem(context, 429);
+            if (!lease.IsAcquired) return IdentityProblem.Create(context, 429);
             context.Response.Headers.ETag = $"\"{result.PolicyVersion}\"";
             return Results.Json(new
             {

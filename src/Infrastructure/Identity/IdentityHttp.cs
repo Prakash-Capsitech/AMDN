@@ -70,8 +70,7 @@ public static class IdentityHttp
             });
             options.OnRejected = async (context, cancellationToken) =>
             {
-                context.HttpContext.Response.Headers.RetryAfter = "60";
-                await Problem(context.HttpContext, 429).ExecuteAsync(context.HttpContext);
+                await IdentityProblem.Create(context.HttpContext, 429).ExecuteAsync(context.HttpContext);
             };
         });
         if (provisioning) builder.Services.AddSingleton<PlatformProvisioner>();
@@ -103,35 +102,18 @@ public static class IdentityHttp
     }
 
     public static async ValueTask<object?> RequireHttps(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
-        context.HttpContext.Request.IsHttps ? await next(context) : Problem(context.HttpContext, 400);
-
-    public static IResult Problem(HttpContext context, int status)
-    {
-        var code = status switch
-        {
-            400 => "invalid_request",
-            403 => "forbidden",
-            404 => "not_found",
-            409 => "conflict",
-            413 => "request_too_large",
-            415 => "unsupported_media_type",
-            429 => "quota_exceeded",
-            _ => "unavailable"
-        };
-        if (status is 429 or 503) context.Response.Headers.RetryAfter = status == 429 ? "60" : "5";
-        return Results.Problem(statusCode: status, title: code,
-            extensions: new Dictionary<string, object?> { ["code"] = code, ["request_id"] = context.TraceIdentifier });
-    }
+        context.HttpContext.Request.IsHttps ? await next(context) : IdentityProblem.Create(context.HttpContext, 400);
 
     public static async Task Errors(HttpContext context, RequestDelegate next)
     {
+        IdentityProblem.RequestId(context);
         context.Response.Headers.CacheControl = "no-store";
         try { await next(context); }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
         catch (Exception exception) when (exception is NpgsqlException or TimeoutException or InvalidOperationException)
         {
             // Never expose SQL, connection strings or internal exception text to HTTP callers.
-            if (!context.Response.HasStarted) await Problem(context, 503).ExecuteAsync(context);
+            if (!context.Response.HasStarted) await IdentityProblem.Create(context, 503).ExecuteAsync(context);
         }
     }
 

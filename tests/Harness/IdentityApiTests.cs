@@ -1,9 +1,12 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using AMDN.Identity.Authentication;
 using AMDN.Integration.Tests;
 using AMDN.Provisioning;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Npgsql;
 using Xunit;
@@ -36,8 +39,8 @@ public sealed class IdentityApiTests
         Assert.Equal(2L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_commands WHERE actor_id=@actor"));
         var changed = await api.Send(api.Operator, "POST", "/v1/tenants", api.OperatorToken(), "{\"display_name\": \"Synthetic\"}", key);
         Assert.Equal(409, changed.Status); // Different exact bytes, same semantic fields.
-        Assert.Equal(404, (await api.Send(api.Owner, "POST", "/v1/tenants", api.OperatorToken(), "{}", key)).Status);
-        Assert.Equal(404, (await api.Send(api.Operator, "GET", "/v1/postman?tenant_id=" + tenant, api.Token("alice"))).Status);
+        Assert.Equal(404, (await api.Send(api.Owner, "POST", "/v1/tenants", api.OperatorToken(), "{}", key, expectProblem: false)).Status);
+        Assert.Equal(404, (await api.Send(api.Operator, "GET", "/v1/postman?tenant_id=" + tenant, api.Token("alice"), expectProblem: false)).Status);
         Assert.Equal(400, (await api.Send(api.Owner, "GET", "/v1/postman", api.Token("alice"), tenantHeader: tenant)).Status);
         Assert.Equal(200, (await api.Send(api.Owner, "GET", "/v1/postman?tenant_id=" + tenant, api.Token("alice"), tenantHeader: Guid.NewGuid())).Status);
     }
@@ -132,8 +135,15 @@ public sealed class IdentityApiTests
         var valid = "{\"display_name\":\"Synthetic\"}";
         Assert.Equal(400, (await api.Send(api.Operator, "POST", "/v1/tenants", api.OperatorToken(), valid)).Status);
         Assert.Equal(400, (await api.Send(api.Operator, "POST", "/v1/tenants", api.OperatorToken(), valid, "short")).Status);
-        Assert.Equal(413, (await api.Send(api.Operator, "POST", "/v1/tenants", api.OperatorToken(), new string('x', 17000), Guid.NewGuid().ToString("N"))).Status);
-        Assert.Equal(415, (await api.Send(api.Operator, "POST", "/v1/tenants", api.OperatorToken(), valid, Guid.NewGuid().ToString("N"), compressed: true)).Status);
+        foreach (var path in new[] { "/v1/tenants", $"/v1/tenants/{tenant}/memberships" })
+        {
+            Assert.Equal(401, (await api.Send(api.Operator, "POST", path, null, valid, Guid.NewGuid().ToString("N"))).Status);
+            Assert.Equal(401, (await api.Send(api.Operator, "POST", path, "invalid.synthetic.token", valid, Guid.NewGuid().ToString("N"))).Status);
+            Assert.Equal(403, (await api.Send(api.Operator, "POST", path, api.Token(api.Subject, "postman.read"), valid, Guid.NewGuid().ToString("N"))).Status);
+            foreach (var chunked in new[] { false, true })
+                Assert.Equal(413, (await api.Send(api.Operator, "POST", path, api.OperatorToken(), new string('x', 17000), Guid.NewGuid().ToString("N"), chunked: chunked)).Status);
+            Assert.Equal(415, (await api.Send(api.Operator, "POST", path, api.OperatorToken(), valid, Guid.NewGuid().ToString("N"), compressed: true)).Status);
+        }
         var foreign = JsonSerializer.Serialize(new { issuer = "https://foreign.invalid", subject = "alice" });
         Assert.Equal(400, (await api.Send(api.Operator, "POST", $"/v1/tenants/{tenant}/memberships", api.OperatorToken(), foreign, Guid.NewGuid().ToString("N"))).Status);
         Assert.Equal(400, (await api.Send(api.Owner, "GET", $"/v1/postman?tenant_id={tenant}&tenant_id={tenant}", api.Token("alice"))).Status);
@@ -228,8 +238,8 @@ public sealed class IdentityApiTests
         await using var disabledProvisioner = api.Oidc.Application<ProvisioningProgram>();
         using var owner = api.Oidc.Client(disabledOwner);
         using var provisioner = api.Oidc.Client(disabledProvisioner);
-        Assert.Equal(404, (await api.Send(owner, "GET", "/v1/postman?tenant_id=" + tenant, api.Token("alice"))).Status);
-        Assert.Equal(404, (await api.Send(provisioner, "POST", "/v1/tenants", api.OperatorToken(), "{}", Guid.NewGuid().ToString("N"))).Status);
+        Assert.Equal(404, (await api.Send(owner, "GET", "/v1/postman?tenant_id=" + tenant, api.Token("alice"), expectProblem: false)).Status);
+        Assert.Equal(404, (await api.Send(provisioner, "POST", "/v1/tenants", api.OperatorToken(), "{}", Guid.NewGuid().ToString("N"), expectProblem: false)).Status);
     }
 
     [Fact]
@@ -251,6 +261,24 @@ public sealed class IdentityApiTests
         Assert.Equal(404, (await read.WaitAsync(TimeSpan.FromSeconds(10))).Status);
     }
 
+    [Fact]
+    public void ProblemCorrelationIsStableWithinOneRequestAndFreshAcrossRequests()
+    {
+        var context = new DefaultHttpContext { TraceIdentifier = "transport-identifier" };
+        context.Request.Headers["X-Request-ID"] = Guid.NewGuid().ToString("D");
+        var first = Assert.IsAssignableFrom<IValueHttpResult>(IdentityProblem.Create(context, 401));
+        var second = Assert.IsAssignableFrom<IValueHttpResult>(IdentityProblem.Create(context, 503));
+        var firstBody = JsonSerializer.SerializeToElement(first.Value);
+        var secondBody = JsonSerializer.SerializeToElement(second.Value);
+        var id = firstBody.GetProperty("request_id").GetString();
+        Assert.Equal(id, secondBody.GetProperty("request_id").GetString());
+        Assert.Equal(id, context.TraceIdentifier);
+        Assert.Equal(id, IdentityProblem.RequestId(context));
+        Assert.True(Guid.TryParseExact(id, "D", out _));
+        Assert.NotEqual(context.Request.Headers["X-Request-ID"].ToString(), id);
+        Assert.NotEqual(id, IdentityProblem.RequestId(new DefaultHttpContext()));
+    }
+
     private sealed record Response(int Status, JsonElement Json, string? ETag, string? RetryAfter, string? ContentType)
     {
         public Guid Id(string name) => Json.GetProperty(name).GetGuid();
@@ -267,6 +295,7 @@ public sealed class IdentityApiTests
         public HttpClient Operator { get; private set; } = null!;
         public HttpClient Owner { get; private set; } = null!;
         private int OwnerLimit { get; set; }
+        private readonly ConcurrentDictionary<string, byte> _requestIds = new();
 
         public static async Task<Api> Start(int tenantLimit = 8, int memberLimit = 8, int ownerActorLimit = 1000)
         {
@@ -310,7 +339,7 @@ public sealed class IdentityApiTests
             JsonSerializer.Serialize(new { issuer = Oidc.Issuer, subject }), key ?? Guid.NewGuid().ToString("N"));
         public Task<Response> Read(string subject, Guid tenant, string scope = "postman.read") => Send(Owner, "GET", "/v1/postman?tenant_id=" + tenant, Token(subject, scope));
 
-        public async Task<Response> Send(HttpClient client, string method, string path, string? token, string? body = null, string? key = null, bool compressed = false, Guid? tenantHeader = null)
+        public async Task<Response> Send(HttpClient client, string method, string path, string? token, string? body = null, string? key = null, bool compressed = false, Guid? tenantHeader = null, bool chunked = false, bool expectProblem = true)
         {
             using var request = new HttpRequestMessage(new HttpMethod(method), path);
             if (token is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -318,9 +347,19 @@ public sealed class IdentityApiTests
             if (tenantHeader is not null) request.Headers.Add("X-Tenant-ID", tenantHeader.ToString());
             if (body is not null) request.Content = new StringContent(body, Encoding.UTF8, "application/json");
             if (compressed) request.Content!.Headers.ContentEncoding.Add("gzip");
+            if (chunked) request.Headers.TransferEncodingChunked = true;
+            var callerId = Guid.NewGuid().ToString("D");
+            request.Headers.Add("X-Request-ID", callerId);
             using var response = await client.SendAsync(request);
             var text = await response.Content.ReadAsStringAsync();
             using var document = JsonDocument.Parse(text.Length == 0 ? "null" : text);
+            if ((int)response.StatusCode >= 400 && expectProblem)
+            {
+                HttpProblemContract.AssertResponse(response, document.RootElement);
+                var requestId = document.RootElement.GetProperty("request_id").GetString()!;
+                Assert.NotEqual(callerId, requestId);
+                Assert.True(_requestIds.TryAdd(requestId, 0), "Each HTTP request must receive a fresh server-generated ID.");
+            }
             return new((int)response.StatusCode, document.RootElement.Clone(), response.Headers.ETag?.ToString(), response.Headers.RetryAfter?.ToString(), response.Content.Headers.ContentType?.MediaType);
         }
 
