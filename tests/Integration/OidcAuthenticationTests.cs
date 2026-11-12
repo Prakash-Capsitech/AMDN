@@ -4,7 +4,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AMDN.Identity.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
@@ -188,8 +190,19 @@ public sealed class OidcAuthenticationTests : IClassFixture<OidcFixture>
     [InlineData("https://issuer.example.invalid", "")]
     public async Task InvalidConfigurationFailsStartup(string issuer, string audience)
     {
-        await using var gateway = _issuer.Gateway(issuer: issuer, audience: audience);
-        Assert.Throws<OptionsValidationException>(() => gateway.CreateClient());
+        // Own startup directly: WebApplicationFactory's deferred entry point can
+        // dispose the failed host before its caller observes the validation error.
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Authentication:Oidc:Enabled"] = "true",
+            ["Authentication:Oidc:Issuer"] = issuer,
+            ["Authentication:Oidc:Audience"] = audience
+        });
+        builder.Services.AddAmdnIdentityAuthentication(builder.Configuration);
+        using var host = builder.Build();
+        var error = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
+        Assert.Equal(typeof(OidcSettings), error.OptionsType);
     }
 
     [Fact]

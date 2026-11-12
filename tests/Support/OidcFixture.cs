@@ -90,7 +90,7 @@ public sealed class OidcFixture : IAsyncLifetime
         });
     }
 
-    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, string? audience = null, Action<IServiceCollection>? configure = null)
+    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, Action<IServiceCollection>? configure = null)
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -98,7 +98,7 @@ public sealed class OidcFixture : IAsyncLifetime
             {
                 ["Authentication:Oidc:Enabled"] = enabled.ToString(),
                 ["Authentication:Oidc:Issuer"] = issuer ?? (enabled ? Issuer : ""),
-                ["Authentication:Oidc:Audience"] = audience ?? (enabled ? Audience : "")
+                ["Authentication:Oidc:Audience"] = enabled ? Audience : ""
             }));
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureServices(services =>
