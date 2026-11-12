@@ -22,3 +22,7 @@ See the [repository README](../../README.md) for current implementation status
 and the [F0 backlog](f0.md) for experiment and approval gates. Placeholder folders
 do not select production encryption, a provider, a database schema, a wire contract
 or a deployment.
+
+The [F1 slices](f1.md) decompose the blueprint's tenant/identity work package.
+F1.1 implements a provider-neutral API token validator; it does not complete
+membership, device identity, tenant authorization or the F1 exit gate.

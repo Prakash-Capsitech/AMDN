@@ -4,7 +4,7 @@
 
 Use the SDK selected by global.json, Python 3.12 with venv support and GNU Make. `make setup` installs
 versioned hooks and restores locked dependencies. `make verify` builds, runs the
-bootstrap HTTP, hook, synthetic crypto and contract tests, verifies formatting, and checks
+bootstrap HTTP, OIDC authentication, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 
 Run `make harness-test` separately before submission using the
@@ -17,6 +17,11 @@ For harness dependency changes regenerate its lock file with
 
 Package changes must regenerate and commit packages.lock.json files with
 `dotnet restore AMDN.sln --force-evaluate`; `make build` uses locked restore.
+
+The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and
+in-memory signing keys. They require no external provider, secret, certificate
+installation or database. Read [authentication evidence](docs/security/oidc-authentication.md#evidence-and-remaining-gates)
+for the boundary between token validation and pending production integration.
 
 ## Git and agent instructions
 
