@@ -74,7 +74,8 @@ device/key IDs, client-created timestamp, expiry and opaque encrypted payload.
 Admission resolves the address under policy, compares the expected device/key
 snapshot, derives the sender, and stores immutable accepted metadata. Clients
 must not treat a declared sender in a directory, job or ciphertext wrapper as
-proof. The accepted response contains only server envelope ID and accepted_at.
+proof. The admission response is defined by the `Accepted` schema in
+[OpenAPI](openapi.json); it is distinct from subsequent delivery status.
 
 Before any production profile can be enabled, E01–E06 must specify authenticated
 binding of protocol/version, message and conversation IDs, sender and recipient

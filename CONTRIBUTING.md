@@ -4,7 +4,7 @@
 
 Use the SDK selected by global.json, Python 3.12 with venv support and GNU Make. `make setup` installs
 versioned hooks and restores locked dependencies. `make verify` builds, runs the
-bootstrap HTTP, hook and synthetic crypto tests, verifies formatting, and checks
+bootstrap HTTP, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 
 Package changes must regenerate and commit packages.lock.json files with

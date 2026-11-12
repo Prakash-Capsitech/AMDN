@@ -39,7 +39,9 @@ first-contact identity. E01–E06 remain open.
 This is a constraint inventory for the future PostgreSQL migration. `T` denotes
 the owning tenant; participant records have their own tenant context. Every
 tenant-owned reference uses a composite tenant key, not a bare cross-tenant FK.
-All timestamps are server-assigned unless explicitly named client timestamps.
+Lifecycle/event timestamps are server-assigned. Submitted message timestamps
+follow the [HTTP envelope rules](http-api.md); they are not evidence of server
+admission or delivery time.
 
 | Record | Key / uniqueness | Essential columns and constraints |
 | --- | --- | --- |
