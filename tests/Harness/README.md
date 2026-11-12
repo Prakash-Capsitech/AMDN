@@ -1,4 +1,4 @@
-# F0.5 real-service fixture harness
+# PostgreSQL and JetStream harness
 
 Run `make harness-test` from the repository root with the
 [prerequisites](../../README.md#start-locally). The default Docker context must
@@ -45,10 +45,22 @@ design. Its opaque byte array is not encryption evidence. A caller able to issue
 arbitrary SQL with the fixture login can set its own context; production must bind
 context to authenticated membership before granting access to these operations.
 
+F1.2 adds [actual identity persistence tests](../../docs/security/identity-persistence.md)
+in addition to this delivery model. They apply the embedded application migration,
+use separate migration/provisioning/runtime roles, and exercise registration,
+identity constraints, lifecycle changes, RLS and the actual Npgsql pool. The
+size-one pool is reused after success, denial, rollback, SQL error and cancellation.
+A disposable HTTPS issuer and test-only Gateway route connect validated tokens to
+current database membership. Database process restart checks committed identities.
+These tests use generated synthetic identities and do not deploy a public API.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,
   migrations, authenticated API and worker adapters when F1-F3 implement them.
+  F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
+  authenticated HTTP probe; deployed API policies, worker and routing integration
+  are still pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
   reconnect cursors, retention/expiry races, quotas and noisy-neighbor backlog load.
 - **P03:** multi-node broker/database failover, host power loss and recovery objectives.
@@ -64,12 +76,13 @@ this harness does not change its incompatible crypto pins.
 
 ## Recorded local validation
 
-On 12 November 2026, `make harness-test` executed all 11 service scenarios with
-zero skips on Linux x86_64, .NET SDK 10.0.115, Docker Engine 29.9.3 and Compose
-5.7.0. Cleanup verified removal of the run's containers, volumes and network.
-The separate `make verify` passed 2 Gateway checks, 13 repository checks (including
-runner failure/cleanup cases), 12 crypto checks and 13 contract checks. These
-results are fixture evidence only; CI must rerun them for each submitted head.
+On 12 November 2026, `make harness-test` executed all 21 service cases (11 delivery
+fixture cases and 10 F1.2 identity cases) with zero skips on Linux x86_64, .NET SDK
+10.0.115, Docker Engine 29.9.3 and Compose 5.7.0. Cleanup verified removal of the
+run's containers, volumes and network. The separate `make verify` passed 64
+Gateway/authentication checks, 13 repository checks, 12 crypto checks and 13
+contract checks, plus formatting and documentation checks. This is local subset
+evidence; CI must rerun the checks for each submitted head and P01–P03 remain open.
 
 ## Lifecycle, credentials and failures
 
@@ -77,7 +90,8 @@ Each invocation generates a unique `amdn-f05-<run-id>` Compose project, isolated
 named volumes, random loopback-only published ports and disposable credentials.
 No arbitrary database URL, existing deployment or external broker is accepted.
 Bootstrap SQL runs inside only the newly created PostgreSQL container; tests get
-only the restricted fixture login. No production data, host directories other than
+the restricted fixture login plus separate migration, provisioning and runtime
+identity logins. They never receive the PostgreSQL administrator password. No production data, host directories other than
 run configuration, Docker socket mounts or privileged containers are used.
 
 Private configuration is mode 0600 inside an ignored mode 0700 directory under

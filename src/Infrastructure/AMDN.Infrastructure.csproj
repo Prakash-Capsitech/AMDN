@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <EmbeddedResource Include="Identity/Migrations/001_identity.sql" LogicalName="Identity.001.sql" />
     <ProjectReference Include="../Identity/AMDN.Identity.csproj" />
     <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
     <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />

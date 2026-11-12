@@ -90,7 +90,7 @@ public sealed class OidcFixture : IAsyncLifetime
         });
     }
 
-    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, string? audience = null)
+    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, string? audience = null, Action<IServiceCollection>? configure = null)
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -104,6 +104,7 @@ public sealed class OidcFixture : IAsyncLifetime
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<IStartupFilter, ProbeEndpoints>();
+                configure?.Invoke(services);
                 if (trustCertificate)
                 {
                     services.PostConfigure<JwtBearerOptions>(IdentityAuthentication.Scheme, options =>
