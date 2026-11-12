@@ -1,0 +1,1669 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "AMDN Foundation contract proposal",
+    "version": "0.1.0-draft",
+    "description": "F0.4 review artifact only. No messaging endpoints or production crypto profile are implemented/approved. See http-api.md and authorization.md; A01\u2013A07, E01\u2013E06 and N01/N02 remain pending."
+  },
+  "servers": [
+    {
+      "url": "https://api.amdn.invalid",
+      "description": "Non-routable documentation placeholder, not a deployment."
+    }
+  ],
+  "security": [
+    {
+      "accessToken": []
+    }
+  ],
+  "paths": {
+    "/v1/tenants": {
+      "post": {
+        "operationId": "provisionTenant",
+        "summary": "provisionTenant",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "tenant.provision",
+        "x-authorization": "Separate platform provisioning identity/grant; tenant owners denied.",
+        "x-idempotency": "Atomic platform actor/operation/key replay",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "201": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tenant"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ]
+      }
+    },
+    "/v1/devices": {
+      "post": {
+        "operationId": "registerDevice",
+        "summary": "registerDevice",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Own active membership; step-up, proof of possession and expected identity version; one active device.",
+        "x-idempotency": "Atomic owner/operation/key replay",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "201": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ]
+      }
+    },
+    "/v1/directory/{address}": {
+      "get": {
+        "operationId": "resolveDirectory",
+        "summary": "resolveDirectory",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "directory.resolve",
+        "x-authorization": "Active member allowed to resolve this address; public projection only; hidden and missing both 404.",
+        "x-idempotency": "Safe query",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectoryEntry"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/messages": {
+      "post": {
+        "operationId": "submitMessage",
+        "summary": "submitMessage",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "message.send",
+        "x-authorization": "Authenticated active sender device, own postman and send grant; recipient receive policy and expected key/device snapshot.",
+        "x-idempotency": "Atomic sender/operation/key replay; client_message_id also unique per sender",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "202": {
+            "description": "Envelope and outbox committed; not device delivery.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accepted"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Sender-authorized status URI for the accepted envelope."
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitMessage"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ]
+      }
+    },
+    "/v1/messages/{id}/status": {
+      "get": {
+        "operationId": "getMessageStatus",
+        "summary": "getMessageStatus",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "message.status",
+        "x-authorization": "Authenticated sender envelope view only; missing and foreign IDs both 404.",
+        "x-idempotency": "Safe query",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/inbox": {
+      "get": {
+        "operationId": "getInbox",
+        "summary": "getInbox",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "inbox.read",
+        "x-authorization": "Own active membership and addressed device; cursor bound to the same view.",
+        "x-idempotency": "Safe query",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ]
+      }
+    },
+    "/v1/deliveries/{id}/ack": {
+      "post": {
+        "operationId": "acknowledgeDelivery",
+        "summary": "acknowledgeDelivery",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "delivery.ack",
+        "x-authorization": "Active credential matches exact recipient user/tenant/device/key lifecycle; conditional state and server-expiry decision.",
+        "x-idempotency": "Naturally idempotent by delivery and receipt kind for the same still-authorized device",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AckRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/postman": {
+      "get": {
+        "operationId": "getPostman",
+        "summary": "getPostman",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "postman.read",
+        "x-authorization": "Own personal postman only.",
+        "x-idempotency": "Safe query",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postman"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/v1/postman/policy": {
+      "patch": {
+        "operationId": "updatePostmanPolicy",
+        "summary": "updatePostmanPolicy",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "policy.manage",
+        "x-authorization": "Own postman only; expected policy version, defined Foundation preferences only, atomic audit and version increment.",
+        "x-idempotency": "Conditional replacement: a completed retry with old ETag returns 412",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postman"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "412": {
+            "$ref": "#/components/responses/Error412"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Policy"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ]
+      }
+    },
+    "/v1/postman/audit": {
+      "get": {
+        "operationId": "getPostmanAudit",
+        "summary": "getPostmanAudit",
+        "description": "Proposed contract only; this endpoint is not implemented.",
+        "x-required-scope": "audit.read",
+        "x-authorization": "Own postman audit projection only; no global/operator feed.",
+        "x-idempotency": "Safe query",
+        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "responses": {
+          "200": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "accessToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Access token; issuer/provider and device binding pending A02",
+        "description": "Verify identity and active membership, then enforce each operation scope and object grant. Documentation is not enforcement."
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[!-~]+$"
+        },
+        "description": "Scoped to authenticated actor/operation; retries must use identical request bytes. Conflict returns 409."
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^\"[1-9][0-9]*\"$"
+        },
+        "description": "Strong ETag for expected policy version. Missing or malformed is 400; stale is 412."
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "description": "Opaque token bound to tenant, user, device/view and snapshot; expired tokens return 410."
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      }
+    },
+    "responses": {
+      "Error400": {
+        "description": "Invalid request shape, encoding or semantic fields.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 400
+                    },
+                    "code": {
+                      "const": "invalid_request"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error401": {
+        "description": "Authentication missing or invalid.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 401
+                    },
+                    "code": {
+                      "const": "unauthenticated"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "WWW-Authenticate": {
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Error403": {
+        "description": "Authenticated actor lacks the required action.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 403
+                    },
+                    "code": {
+                      "const": "forbidden"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error404": {
+        "description": "Resource missing or hidden; indistinguishable.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 404
+                    },
+                    "code": {
+                      "const": "not_found"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error409": {
+        "description": "Idempotency, device/key snapshot or delivery-state conflict.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 409
+                    },
+                    "code": {
+                      "const": "conflict"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error410": {
+        "description": "Cursor no longer retained; restart scoped snapshot.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 410
+                    },
+                    "code": {
+                      "const": "cursor_expired"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error412": {
+        "description": "Policy If-Match precondition failed.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 412
+                    },
+                    "code": {
+                      "const": "precondition_failed"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error413": {
+        "description": "Encoded or decoded request size limit exceeded.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 413
+                    },
+                    "code": {
+                      "const": "payload_too_large"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Error429": {
+        "description": "Configured actor/tenant quota exceeded.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 429
+                    },
+                    "code": {
+                      "const": "rate_limited"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Retry-After": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
+          }
+        }
+      },
+      "Error503": {
+        "description": "Transient inability to perform the operation.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 503
+                    },
+                    "code": {
+                      "const": "unavailable"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "Retry-After": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Id": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      },
+      "UtcTime": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "Address": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 254,
+        "description": "Verified delivery alias; normalization/reassignment require A02 review. Not an authorization key."
+      },
+      "Profile": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]{0,63}/[1-9][0-9]{0,3}$",
+        "description": "Syntactic identifier only. No production profile is approved; server admission requires a reviewed allowlist."
+      },
+      "Problem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "invalid_request",
+              "unauthenticated",
+              "forbidden",
+              "not_found",
+              "conflict",
+              "cursor_expired",
+              "precondition_failed",
+              "payload_too_large",
+              "rate_limited",
+              "unavailable"
+            ]
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "request_id"
+        ],
+        "description": "RFC 9457 problem with safe stable code. No private resource details or internal exception text."
+      },
+      "TenantRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "display_name"
+        ]
+      },
+      "Tenant": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tenant_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active"
+            ]
+          }
+        },
+        "required": [
+          "tenant_id",
+          "status"
+        ]
+      },
+      "DeviceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "encryption_profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "public_key_package": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32768,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Unpadded canonical base64url. Semantic validation must decode strictly and enforce byte limits."
+          },
+          "expected_identity_version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "replace_device_id": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Id"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "encryption_profile",
+          "public_key_package",
+          "expected_identity_version",
+          "replace_device_id"
+        ],
+        "description": "Owner enrollment requires step-up and proof of possession using the reviewed E02 credential design, not just these JSON fields."
+      },
+      "Device": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "key_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "identity_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active"
+            ]
+          }
+        },
+        "required": [
+          "device_id",
+          "key_id",
+          "identity_version",
+          "status"
+        ]
+      },
+      "DirectoryEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "tenant_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "postman_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "key_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "identity_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "encryption_profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "public_key_package": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32768,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Unpadded canonical base64url. Semantic validation must decode strictly and enforce byte limits."
+          }
+        },
+        "required": [
+          "address",
+          "tenant_id",
+          "user_id",
+          "postman_id",
+          "device_id",
+          "key_id",
+          "identity_version",
+          "encryption_profile",
+          "public_key_package"
+        ],
+        "description": "Authorized public projection. Clients still need independent first-contact/key-change verification."
+      },
+      "Recipient": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "expected_device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "expected_key_id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "address",
+          "expected_device_id",
+          "expected_key_id"
+        ]
+      },
+      "Payload": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content_type": {
+            "const": "application/octet-stream"
+          },
+          "encryption_profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "ciphertext": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 174763,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Unpadded canonical base64url. Semantic validation must decode strictly and enforce byte limits."
+          }
+        },
+        "required": [
+          "content_type",
+          "encryption_profile",
+          "ciphertext"
+        ]
+      },
+      "SubmitMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "amdn-envelope/1"
+          },
+          "client_message_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "conversation_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/Recipient"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Payload"
+          }
+        },
+        "required": [
+          "version",
+          "client_message_id",
+          "conversation_id",
+          "recipient",
+          "created_at",
+          "expires_at",
+          "payload"
+        ],
+        "description": "Sender identity and envelope ID are server-derived. Validate expiry against server admission time and recipient snapshot under current policy. Proposed wire shape, not an approved crypto adapter."
+      },
+      "Accepted": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "envelope_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "state": {
+            "const": "ACCEPTED"
+          },
+          "accepted_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          }
+        },
+        "required": [
+          "envelope_id",
+          "state",
+          "accepted_at"
+        ]
+      },
+      "Sender": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tenant_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "postman_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "key_id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "user_id",
+          "postman_id",
+          "device_id",
+          "key_id"
+        ]
+      },
+      "Envelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "envelope_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/Sender"
+          },
+          "submission": {
+            "$ref": "#/components/schemas/SubmitMessage"
+          },
+          "accepted_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          }
+        },
+        "required": [
+          "envelope_id",
+          "sender",
+          "submission",
+          "accepted_at"
+        ],
+        "description": "Immutable server-derived identity plus submitted sealed data. Server metadata is not retrospectively authenticated sender data."
+      },
+      "DeliveryState": {
+        "type": "string",
+        "enum": [
+          "ACCEPTED",
+          "QUEUED",
+          "INBOX_STORED",
+          "DEVICE_ACKED",
+          "EXPIRED",
+          "FAILED"
+        ]
+      },
+      "MessageStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "envelope_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/DeliveryState"
+          },
+          "state_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "accepted_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "delivered": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "none",
+              "expired",
+              "policy_denied",
+              "identity_changed",
+              "retry_exhausted",
+              "routing_unavailable"
+            ]
+          }
+        },
+        "required": [
+          "envelope_id",
+          "state",
+          "state_version",
+          "accepted_at",
+          "updated_at",
+          "delivered",
+          "reason"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "DEVICE_ACKED"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "delivered": {
+                  "const": true
+                },
+                "reason": {
+                  "const": "none"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "delivered": {
+                  "const": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "EXPIRED"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "const": "expired"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "FAILED"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "enum": [
+                    "policy_denied",
+                    "identity_changed",
+                    "retry_exhausted",
+                    "routing_unavailable"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "enum": [
+                    "ACCEPTED",
+                    "QUEUED",
+                    "INBOX_STORED"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "const": "none"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "InboxItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "delivery_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "recipient_device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "recipient_key_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "INBOX_STORED",
+              "DEVICE_ACKED"
+            ]
+          },
+          "state_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Envelope"
+          }
+        },
+        "required": [
+          "delivery_id",
+          "recipient_device_id",
+          "recipient_key_id",
+          "state",
+          "state_version",
+          "envelope"
+        ]
+      },
+      "AckRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "receipt_kind": {
+            "const": "device_stored"
+          }
+        },
+        "required": [
+          "device_id",
+          "receipt_kind"
+        ],
+        "description": "Device ID must match authenticated active credential and addressed delivery. Ack claims durable sealed-record storage, not decryption or reading."
+      },
+      "Receipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "receipt_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "delivery_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "receipt_kind": {
+            "const": "device_stored"
+          },
+          "received_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          }
+        },
+        "required": [
+          "receipt_id",
+          "delivery_id",
+          "device_id",
+          "receipt_kind",
+          "received_at"
+        ]
+      },
+      "Policy": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "receive_enabled": {
+            "type": "boolean"
+          },
+          "dispatch_enabled": {
+            "type": "boolean"
+          },
+          "retry_enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "receive_enabled",
+          "dispatch_enabled",
+          "retry_enabled"
+        ]
+      },
+      "Postman": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "postman_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "policy_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "policy": {
+            "$ref": "#/components/schemas/Policy"
+          }
+        },
+        "required": [
+          "postman_id",
+          "policy_version",
+          "policy"
+        ]
+      },
+      "AuditEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "audit_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "actor_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "resource_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "policy_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "recorded_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          }
+        },
+        "required": [
+          "audit_id",
+          "actor_id",
+          "action",
+          "resource_id",
+          "outcome",
+          "policy_version",
+          "recorded_at"
+        ]
+      },
+      "InboxPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxItem"
+            },
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "AuditPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      }
+    }
+  }
+}

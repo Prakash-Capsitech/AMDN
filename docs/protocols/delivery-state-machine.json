@@ -1,0 +1,66 @@
+{
+  "status": "proposed",
+  "initial": "ACCEPTED",
+  "states": [
+    "ACCEPTED",
+    "QUEUED",
+    "INBOX_STORED",
+    "DEVICE_ACKED",
+    "EXPIRED",
+    "FAILED"
+  ],
+  "terminal": [
+    "DEVICE_ACKED",
+    "EXPIRED",
+    "FAILED"
+  ],
+  "delivered_state": "DEVICE_ACKED",
+  "ack_meaning": "durable_sealed_record_storage_not_decryption_or_read",
+  "transitions": [
+    {
+      "source": "ACCEPTED",
+      "event": "publication_confirmed",
+      "target": "QUEUED"
+    },
+    {
+      "source": "ACCEPTED",
+      "event": "inbox_committed",
+      "target": "INBOX_STORED"
+    },
+    {
+      "source": "QUEUED",
+      "event": "inbox_committed",
+      "target": "INBOX_STORED"
+    },
+    {
+      "source": "INBOX_STORED",
+      "event": "authorized_device_stored",
+      "target": "DEVICE_ACKED"
+    },
+    {
+      "source": "ACCEPTED",
+      "event": "expiry_due",
+      "target": "EXPIRED"
+    },
+    {
+      "source": "QUEUED",
+      "event": "expiry_due",
+      "target": "EXPIRED"
+    },
+    {
+      "source": "INBOX_STORED",
+      "event": "expiry_due",
+      "target": "EXPIRED"
+    },
+    {
+      "source": "ACCEPTED",
+      "event": "permanent_failure",
+      "target": "FAILED"
+    },
+    {
+      "source": "QUEUED",
+      "event": "permanent_failure",
+      "target": "FAILED"
+    }
+  ]
+}

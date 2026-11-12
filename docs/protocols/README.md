@@ -1,25 +1,33 @@
-# Foundation contract backlog
+# F0.4 domain and API contracts
 
-Status: F0.4 draft ownership and decision checklist. No wire schema is frozen.
+Status: Proposed review package. The ten blueprint endpoints, identity/data
+constraints and delivery graph are drafted; no wire contract is frozen, ADR is
+accepted, or messaging endpoint implemented. F0.3 E01–E06 and F0.4 A01–A07 remain
+open. Native agent checks N01/N02 remain pending.
 
-| Contract | Decisions to close |
+| Artifact | Review responsibility |
 | --- | --- |
-| Identity | Immutable tenant/user/postman/device IDs, OIDC issuer and subject mapping, active membership, one active device |
-| Envelope v1 | Versioning, limits, canonicalization, encoding, sender derivation, crypto binding, timestamps and expiry |
-| Idempotency | Sender scope, request digest, same-key/different-payload conflict, retention, unique constraints |
-| Delivery | Legal states, rejected/expired/failed outcomes, attempt events, retry ceilings and expiry races |
-| Device ack | Authorized device binding, receipt meaning, persistence/decryption boundary, rekey, duplicate and late ack |
-| Synchronization | Tenant/user cursors, paging, retention gaps, sequence allocation and out-of-order reconciliation |
-| Routing | Narrow cross-tenant privileges, independently authorized participant records, policy race handling |
-| API | OpenAPI schemas, auth scopes, authorization, error taxonomy and rate limits for every endpoint |
-| Audit | Participant/operator visibility, immutable history, sensitive decision coverage, retention and redaction |
+| [Identity and logical data model](identity-and-data.md) | Immutable IDs, membership, device/key lifecycle, table constraints and transaction boundaries |
+| [Authorization matrix](authorization.md) | Endpoint and worker actions, resource grants, defaults and revocation |
+| [HTTP/envelope contract](http-api.md) | OpenAPI semantics, limits, replay, errors, crypto dependencies and approval register |
+| [OpenAPI 3.1.1 draft](openapi.json) | Ten proposed routes with strict request/response schemas and authorization requirements |
+| [Delivery protocol](delivery.md) | Device-storage ack meaning, terminal states, expiry/ack races and reconnect |
+| [State graph](delivery-state-machine.json) | Machine-readable proposed transitions, checked against status schemas |
+| [Synthetic examples](examples/submit-message.json) | Non-production request data for schema review; not valid production cryptography |
 
-The blueprint proposes tenant/device registration, directory lookup, send, status,
-inbox, acknowledgment, postman configuration, policy and audit APIs. None is
-implemented by this scaffold. In particular, `/v1/messages` must not accept requests
-until authentication and policy enforcement exist.
+The maintainer chose DEVICE_ACKED to mean durable sealed-record storage on the
+authorized recipient device. Decryption is separate and READ is excluded.
+The rest of this package remains a proposal awaiting design review.
 
-Foundation state vocabulary: CREATED (client), ACCEPTED (durable sender commit),
-QUEUED, INBOX_STORED (durable recipient record), DEVICE_ACKED (authenticated device
-confirmation). READ is excluded. Terminal failure branches and legal races must
-be specified before implementation.
+Run `make contracts-restore contracts-test`. Standards validation, invalid input
+fixtures and transition graph checks run under `make verify` as well. These checks
+cannot establish authorization, RLS, database durability, broker delivery or device
+storage. F0.5 must provide actual two-tenant integration and failure-injection
+coverage. `/v1/messages` continues to return 404 in the current scaffold.
+
+The original [blueprint](../../AMDN_Foundation_Phase_Implementation_Plan.docx)
+sections 4–11 and 17–20 are the source. See [traceability](../plan/source-map.md),
+[threat model](../security/threat-model.md), and
+[encryption gates](../security/encryption-feasibility.md#remaining-gates).
+PR #10 remains deferred because ts-mls 1.6.4 requires curves 2.0.1; this work changes
+no crypto dependency or native hook trust setting.

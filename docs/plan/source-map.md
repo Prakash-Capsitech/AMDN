@@ -6,7 +6,7 @@ version 1.0, planning baseline 7 November 2026. The source is preserved unchange
 | Blueprint | Repository interpretation |
 | --- | --- |
 | Sections 1-5 | ADRs 0001-0003 and module/deployment boundaries |
-| Sections 6-7 and 10-11 | ADRs 0004-0006, 0009 and contract backlog |
+| Sections 6-7 and 10-11 | ADRs 0004-0006, 0009 and [F0.4 contract draft](../protocols/README.md) |
 | Section 8 | ADR 0007 and [encryption feasibility assessment](../security/encryption-feasibility.md) |
 | Section 9 | ADR 0008 and authorization review items |
 | Sections 12-15 and 17-20 | ADR 0010, threat inventory and F0 backlog |

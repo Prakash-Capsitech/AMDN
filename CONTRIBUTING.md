@@ -2,9 +2,9 @@
 
 ## Build and check
 
-Use the SDK selected by global.json, Python 3 and GNU Make. `make setup` installs
+Use the SDK selected by global.json, Python 3.12 with venv support and GNU Make. `make setup` installs
 versioned hooks and restores locked dependencies. `make verify` builds, runs the
-bootstrap HTTP, hook and synthetic crypto tests, verifies formatting, and checks
+bootstrap HTTP, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 
 Package changes must regenerate and commit packages.lock.json files with
@@ -14,6 +14,18 @@ Package changes must regenerate and commit packages.lock.json files with
 
 Use the Node version selected by .nvmrc. Run `make crypto-restore` before `make verify`;
 `make crypto-browser` separately tests the synthetic exchange in Chrome.
+Run `make contracts-restore` with Python 3.12 and venv support before `make verify`.
+It installs hash-locked, wheel-only development validators into ignored .tools/contracts.
+`make contracts-test` validates the proposed OpenAPI, examples and transition graph;
+it is not a live API or tenant-isolation test. For a reviewed validator upgrade,
+edit tests/Contracts/requirements.in and regenerate requirements.txt with
+pip-tools 7.5.2 on Python 3.12:
+
+```sh
+pip-compile --generate-hashes --strip-extras --output-file tests/Contracts/requirements.txt tests/Contracts/requirements.in
+```
+
+Commit both files and validate through no-mistakes; do not bypass hash checks.
 Ensure no-mistakes subprocesses can use the same Node version: its daemon resolves
 the login-shell environment, which may differ from the calling terminal's PATH.
 No global Node default or shell profile is changed by this repository.
