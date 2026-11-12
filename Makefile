@@ -35,6 +35,7 @@ security:
 
 crypto-restore:
 	npm ci --prefix clients/crypto --ignore-scripts --no-fund --no-audit
+	npm ls --all --prefix clients/crypto
 
 crypto-test:
 	npm test --prefix clients/crypto

@@ -73,6 +73,15 @@ Native checks N01/N02 remain pending in agent-safety.md. For F0.3 CI, the allowl
 was extended only with actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
 and read back on 12 November 2026. Read-only defaults and full-SHA policy remain.
 
+For the post-F0.3 Dependabot adoption, the allowlist also permits only the exact
+reviewed setup-node v7.1.0 commit
+`actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1`. The existing v4 pin
+remains allowed while main and other open PRs still use it; retire that old pin
+only after migration. The selected-actions API was read back on 12 November 2026:
+no broader GitHub-owned or verified-publisher allowance was enabled. The workflow
+explicitly disables automatic package-manager caching to preserve its previous
+behavior. Native checks N01/N02 remain pending in [agent safety](agent-safety.md).
+
 ## Bot updates and credentials
 
 Dependabot PRs receive no exemption. Adopt a bot update onto a normal feature

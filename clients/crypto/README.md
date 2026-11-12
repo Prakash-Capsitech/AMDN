@@ -8,7 +8,7 @@ Use the Node version selected by the repository .nvmrc (for example, nvm install
 From the repository root:
 
 ```sh
-make crypto-restore  # locked npm install, dependency scripts disabled
+make crypto-restore  # locked install without scripts, then dependency-tree validation
 make crypto-test     # behavioral/negative scenarios
 make crypto-spike    # safe status-only offline exchange
 make crypto-browser  # Chrome required; CHROME_BIN may specify its executable
@@ -31,3 +31,13 @@ The harness holds synthetic private state in memory to exercise serialization.
 Do not bypass a browser/agent sandbox to make a probe run.
 
 Dependency licenses are retained in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Dependabot PR #10's curves 2.4.0 / hashes 2.4.0 update is deferred: pinned
+ts-mls 1.6.4 declares an optional peer dependency on exactly
+`@noble/curves` 2.0.1. The experiment retains curves 2.0.1 and its transitive
+hashes 2.0.1 dependency. `make crypto-restore` runs `npm ls --all` after
+installation so an invalid installed peer relationship fails the restore target.
+No peer overrides or compatibility relaxations are applied. PR #10 remains open;
+this replacement supersedes only setup-node PR #9. Execution of the pinned
+setup-node action still requires hosted CI. Production crypto approval and
+native agent checks N01/N02 remain pending.
