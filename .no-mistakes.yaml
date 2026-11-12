@@ -23,7 +23,7 @@ test:
     Run make test for the bootstrap health endpoint and hook behavior.
     Start the Gateway with dotnet run --project src/Gateway --no-launch-profile
     --urls http://127.0.0.1:5080 and check /health/live returns HTTP 200.
-    No messaging, authentication or cryptography is implemented yet.
+    No application messaging, authentication or production cryptography is implemented yet; the isolated F0.3 experiment is separate.
     Do not treat the F0 scaffold as satisfying delivery or isolation tests.
     For F0.3, also run make crypto-test and make crypto-spike with Node from .nvmrc.
     The experiment uses only disposable synthetic data; never log client state.
