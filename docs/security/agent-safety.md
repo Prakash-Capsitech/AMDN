@@ -103,6 +103,20 @@ publishing; this setup has not created a separate least-privileged bot identity.
 no-mistakes launches separate agent processes and worktrees: verify their effective
 sandbox and hook trust too; a green pipeline does not prove hooks were active.
 
+## Pending native checks
+
+These remain open after PR #2's authorized merge. Publication/merge approval was
+not validation or activation approval. Track them separately from F0.3 crypto tests.
+
+| Check | Status and required evidence |
+| --- | --- |
+| N01 Native filesystem integration | Pending: ordinary work, synthetic secret-read denials and protected-write denials in the actual Claude/Codex execution context; nested probes stopped at bubblewrap startup |
+| N02 Trusted native hook interception | Pending: human trust of the exact Codex hook, new-session activation and a synthetic interception test; Claude integration also needs a live compatible-session test |
+
+Successful direct Codex profile probes and Claude fail-closed startup are distinct
+from these incomplete checks. Do not disable restrictions, fabricate trust or
+mark them complete because CI or Chrome crypto tests pass.
+
 ## Validation and sources
 
 Run `python3 -m unittest discover -s tests/Repository -v` for fake-file/tool-payload

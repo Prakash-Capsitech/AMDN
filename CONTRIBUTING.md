@@ -4,13 +4,19 @@
 
 Use the SDK selected by global.json, Python 3 and GNU Make. `make setup` installs
 versioned hooks and restores locked dependencies. `make verify` builds, runs the
-bootstrap HTTP and hook tests, verifies formatting, and checks local Markdown
-file links. It does not certify F0's security or delivery gates.
+bootstrap HTTP, hook and synthetic crypto tests, verifies formatting, and checks
+local Markdown file links. It does not certify F0's security or delivery gates.
 
 Package changes must regenerate and commit packages.lock.json files with
 `dotnet restore AMDN.sln --force-evaluate`; `make build` uses locked restore.
 
 ## Git and agent instructions
+
+Use the Node version selected by .nvmrc. Run `make crypto-restore` before `make verify`;
+`make crypto-browser` separately tests the synthetic exchange in Chrome.
+Ensure no-mistakes subprocesses can use the same Node version: its daemon resolves
+the login-shell environment, which may differ from the calling terminal's PATH.
+No global Node default or shell profile is changed by this repository.
 
 Agent hooks that protect sensitive tool access are separate from Git hooks.
 Read [agent safety](docs/security/agent-safety.md) to activate the Codex/Claude

@@ -7,15 +7,19 @@ The foundation must work without AI models.
 This repository starts **F0 architecture and feasibility**. It contains proposed
 ADRs, module boundaries, a buildable .NET backend scaffold, repository checks,
 and a no-mistakes contribution workflow. It does not implement authentication,
-message delivery, encryption, persistence, a web client or production deployment.
+message delivery, production encryption, persistence, a web client or deployment.
+An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
+Chrome; it is not an application encryption adapter.
 
 ## Start locally
 
-Prerequisites: the .NET SDK selected by global.json, Python 3, Git and GNU Make.
+Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3,
+Git and GNU Make. Chrome is needed for the separate browser smoke check.
 GitHub CLI and no-mistakes are needed to submit changes, not to build.
 
 ```sh
 make setup
+make crypto-restore
 make verify
 dotnet run --project src/Gateway --no-launch-profile --urls http://127.0.0.1:5080
 # In another terminal:
@@ -37,7 +41,7 @@ It has no delivery handlers yet.
 | src/Infrastructure | Database, broker and telemetry adapters |
 | src/Contracts | Shared reviewed contracts |
 | src/Workers | Separate delivery and outbox process host |
-| clients/web and clients/crypto | Reserved React/TypeScript and E2EE adapter boundaries |
+| clients/web and clients/crypto | Reserved web client and isolated MLS feasibility experiment |
 | tests | Integration, unit, isolation, reliability, performance and hook checks |
 | deploy | Future local integration and deployment manifests |
 | docs | Architecture, decisions, security, protocols and F0 acceptance |
@@ -53,8 +57,10 @@ blueprint decisions from repository setup choices.
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for feature branches, no-mistakes,
 local hooks, CI checks and the current GitHub enforcement limitation.
 For agent hooks and restricted file access, start with
-[agent safety](docs/security/agent-safety.md). For the next F0 task, review the
-[threat model](docs/security/threat-model.md).
+[agent safety](docs/security/agent-safety.md). Review the
+[threat model](docs/security/threat-model.md) and
+[encryption feasibility evidence](docs/security/encryption-feasibility.md) before
+fixing domain and wire contracts.
 
 No open-source license is granted in this initial private repository. Licensing
 is a maintainer decision before any public distribution.

@@ -26,3 +26,7 @@ A provider-controlled key directory can substitute keys; visible warnings alone 
 Prove offline session initiation, sender authentication, metadata binding, tamper/replay rejection, rekey behavior and crash-safe client state. Review browser compatibility, licensing, maintenance and audit evidence. Record human security review before accepting the protocol and library.
 
 Approval: Not recorded. Record reviewer, date and evidence before changing status.
+
+F0.3 now has a [candidate experiment and assessment](../security/encryption-feasibility.md).
+The Node/Chrome exchange is feasibility evidence only; ts-mls is not selected for
+production. Audit, secure persistence and human review remain open.
