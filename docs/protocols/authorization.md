@@ -16,13 +16,13 @@ audit. Never log the token, raw request body, ciphertext or keys.
 The [OpenAPI draft](openapi.json) uses bearer authentication and records the
 required scope in `x-required-scope` and the object rule in `x-authorization`.
 These extensions document enforcement requirements; OpenAPI validation does not
-implement them. OIDC provider and device-bound credential format remain pending.
+implement them. OIDC provider and device-bound execution credential format remain pending.
 
 | Operation | Scope / actor | Resource rule and additional checks |
 | --- | --- | --- |
 | provisionTenant | tenant.provision / platform provisioner | Separate platform grant, quota and audited provisioning; ordinary tenant owners denied |
 | provisionMembership | membership.provision / platform provisioner | Current platform grant that created the tenant, exact owner issuer and member quota; audited atomic enrollment |
-| registerDevice | device.manage / owner | Own verified membership only; step-up, key-possession proof, expected identity version, one active device |
+| registerDevice (superseded draft) | device.manage / owner | See the [staged credential design](../security/enrollment-credential-design.md#credential-and-authority) for enrollment authority and ceremony requirements |
 | resolveDirectory | directory.resolve / active member | Policy permits resolving this address; public projection only; unknown and hidden records both 404; throttle enumeration |
 | submitMessage | message.send / owner device | Derive sender from active membership/device; own postman; send grant and recipient receive policy; immutable expected recipient key/device |
 | getMessageStatus | message.status / sender | Only authenticated sender's envelope view; foreign and missing IDs both 404 |

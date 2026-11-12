@@ -41,10 +41,8 @@ operations; completing the former alone grants no messaging authority:
 3. Possession of the new authentication credential during enrollment, followed by
    a separately reviewed messaging-key possession/binding operation before
    messaging activation. Proving one key does not prove another.
-4. A single-use, expiring ceremony bound to tenant, user, operation, expected
-   identity version, replacement target, exact public material and originating
-   client context. These cannot change after challenge issuance. Retrying a
-   consumed proof must not authorize a new operation.
+4. The [staged ceremony's immutable context and candidate binding](enrollment-credential-design.md#ceremony-and-proposed-http-responsibilities),
+   with [single-use proofs and expiry enforcement](enrollment-credential-design.md#validation-and-durable-effects).
 
 | Candidate | Useful property | Remaining problem / disposition |
 | --- | --- | --- |
@@ -146,7 +144,8 @@ revocation during lock waits, lost-response retries and audit/commit failure.
 Client evidence must show blocked unverified first contact, visible replacement
 and preserved old-key attribution.
 
-This slice tests only signed step-up evidence, configuration, freshness, scope
-and default denial. [Native N01/N02](agent-safety.md#pending-native-checks) and
+See the [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisite)
+for its implemented checks and the [verifier experiment](../../experiments/Enrollment/README.md#evidence-and-limits)
+for the follow-up credential evidence and limits. [Native N01/N02](agent-safety.md#pending-native-checks) and
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
 pending. Dependabot #10 stays deferred; crypto pins are unchanged.

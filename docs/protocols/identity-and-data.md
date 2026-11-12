@@ -23,15 +23,10 @@ implementation. Operator provisioning uses a separate platform identity.
 Each active user has one primary logical postman and at most one active logical
 device identity. The maintainer selected this server-side invariant without a
 hardware-binding or key non-copyability guarantee in the [E02 review](../security/device-enrollment-review.md).
-An enrollment transaction locks the user's identity version, verifies ownership,
-step-up authentication and proof of key possession, and atomically replaces the
-old device if explicitly requested. The draft's expected identity version detects
-concurrent enrollment; stale requests fail. Revoked device/key rows remain as
-tombstones for attribution. Public key records are immutable; private keys never
-enter the provider. The [WebAuthn credential design](../security/enrollment-credential-design.md)
-now specifies enrollment possession evidence. Credential-only activation does
-not publish a messaging key or authorize delivery/acknowledgment; messaging-key
-binding and execution credentials still require E02 review.
+The [WebAuthn credential design](../security/enrollment-credential-design.md)
+owns staged enrollment, replacement, revocation and credential-only activation
+requirements. Public key records are immutable; private keys never enter the
+provider.
 
 Replacement does not recover old ciphertext or move old deliveries to a new key.
 Clients must independently verify the first-contact binding before sending any
