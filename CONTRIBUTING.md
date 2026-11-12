@@ -12,6 +12,11 @@ Package changes must regenerate and commit packages.lock.json files with
 
 ## Git and agent instructions
 
+Agent hooks that protect sensitive tool access are separate from Git hooks.
+Read [agent safety](docs/security/agent-safety.md) to activate the Codex/Claude
+controls and understand their limits. They are not automatically active in this
+chat or in every no-mistakes subprocess.
+
 Work on a feature branch. Read AGENTS.md; CLAUDE.md imports the same guidance.
 Run `bash scripts/install-hooks.sh` in every new clone. Git does not automatically
 activate hooks from a clone. The installer refuses to replace a different hooksPath.
@@ -69,6 +74,18 @@ protection for this private repository, requiring GitHub Pro or public visibilit
 The repository remains private. CI and local hooks are configured, but required
 checks and PR-only merging are not enforced by GitHub until an eligible plan is
 available and a maintainer enables protection.
+
+The owner is staying on the current plan. Follow the exact-head, explicitly
+authorized [review and merge procedure](docs/security/review-and-merge.md).
+It records the live Actions allowlist/SHA policy, Dependabot settings and current
+enforcement gaps. Automatic merging remains disabled.
+
+Before publication on Linux x86_64, run `make security-tools` and `make security`.
+The installer verifies pinned release archive SHA-256 hashes before extraction.
+Gitleaks scans Git history (not uncommitted files or every binary format), with
+findings redacted. If a secret is found, rotate it before remediation; never
+disable the rule just to pass CI. actionlint validates the workflow files.
+Scanner upgrades change both version and reviewed checksum in a normal PR.
 
 The setup follows kunchenguid's [shared agent guidance](https://github.com/kunchenguid/dotfiles/blob/main/home/AGENTS.md),
 [CLAUDE import](https://github.com/kunchenguid/no-mistakes/blob/v1.106.1/CLAUDE.md),

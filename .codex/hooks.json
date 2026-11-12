@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/agent-guards/pre_tool_use.py\" || { printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"AMDN secret guard could not run; request blocked.\"}}'; }",
+            "timeout": 5,
+            "statusMessage": "Checking sensitive-data access"
+          }
+        ]
+      }
+    ]
+  }
+}

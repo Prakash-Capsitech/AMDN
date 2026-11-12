@@ -52,6 +52,9 @@ blueprint decisions from repository setup choices.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for feature branches, no-mistakes,
 local hooks, CI checks and the current GitHub enforcement limitation.
+For agent hooks and restricted file access, start with
+[agent safety](docs/security/agent-safety.md). For the next F0 task, review the
+[threat model](docs/security/threat-model.md).
 
 No open-source license is granted in this initial private repository. Licensing
 is a maintainer decision before any public distribution.

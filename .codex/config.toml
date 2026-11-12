@@ -1,0 +1,46 @@
+# Requires a current Codex client with permission profiles and hooks.
+# Select Custom/amdn-dev and inspect effective permissions; legacy --sandbox
+# settings in any higher-priority layer can override this profile.
+default_permissions = "amdn-dev"
+approval_policy = "on-request"
+approvals_reviewer = "user"
+allow_login_shell = false
+
+[features]
+hooks = true
+
+[shell_environment_policy]
+inherit = "core"
+
+[permissions.amdn-dev]
+description = "AMDN editing with credential read denials and offline shell execution"
+extends = ":workspace"
+
+[permissions.amdn-dev.filesystem]
+glob_scan_max_depth = 8
+"~/.ssh" = "deny"
+"~/.aws" = "deny"
+"~/.kube" = "deny"
+"~/.gnupg" = "deny"
+"~/.config/gh" = "deny"
+"~/.config/gcloud" = "deny"
+"~/.codex/auth.json" = "deny"
+"~/.docker/config.json" = "deny"
+"~/.npmrc" = "deny"
+"~/.netrc" = "deny"
+"~/.git-credentials" = "deny"
+
+[permissions.amdn-dev.filesystem.":workspace_roots"]
+".env" = "deny"
+".env.*" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"secrets" = "deny"
+".secrets" = "deny"
+".claude" = "read"
+"scripts/agent-guards" = "read"
+
+[permissions.amdn-dev.network]
+enabled = false

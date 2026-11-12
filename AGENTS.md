@@ -20,5 +20,7 @@ Makefile for authoritative commands. CLAUDE.md imports this file.
 - Run no-mistakes with the user's full intent and drive its findings to a terminal result or review-ready PR. Follow CONTRIBUTING.md for the isolated local setup.
 - While a no-mistakes run owns a branch, send fixes through its respond command; do not edit its worktree or bypass its gate.
 - Never bypass hooks, forge pipeline attestations, push directly to main, or force-push shared history.
+- Follow docs/security/review-and-merge.md for reviews and merges. Merge only with explicit user authorization, fresh successful checks and the reviewed head SHA; never use --admin or treat another agent on this account as an independent approver.
 - Keep credentials, private keys, generated output and local tool state out of Git.
+- Read docs/security/agent-safety.md before changing hooks or requesting access to a denied file. Use synthetic fixtures; never disable a guard or print credentials to diagnose it. Agent instructions and Git hooks do not replace filesystem restrictions.
 - Report what was tested and what remains unimplemented. Do not add agent co-author trailers automatically.
