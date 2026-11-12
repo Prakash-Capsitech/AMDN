@@ -50,4 +50,5 @@ sender-visible delivery state. No provider component decrypts content.
 
 The exact routing transaction, policy races, state machine and crypto binding
 remain review items in [ADRs](../adr/README.md). The
-[threat-model draft](../security/threat-model.md) records their security evidence.
+[threat-model draft](../security/threat-model.md) records the security evidence
+still required.

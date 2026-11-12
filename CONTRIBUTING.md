@@ -63,22 +63,10 @@ is a contributor guardrail, not a cryptographically signed security boundary.
 ## Repository administration
 
 The initial main commit bootstraps the repository and trusted gate configuration.
-Subsequent work goes through PRs. Configure main protection to require
-`Build test and lint` and `PR must be raised via no-mistakes`, disallow force pushes
-and deletion, and require conversations to be resolved. Private-repository branch
-protection depends on GitHub account entitlements; verify the actual server setting
-rather than claiming the workflow files alone enforce it.
-
-Setup result on 12 November 2026: GitHub returned HTTP 403 when enabling main
-protection for this private repository, requiring GitHub Pro or public visibility.
-The repository remains private. CI and local hooks are configured, but required
-checks and PR-only merging are not enforced by GitHub until an eligible plan is
-available and a maintainer enables protection.
-
-The owner is staying on the current plan. Follow the exact-head, explicitly
-authorized [review and merge procedure](docs/security/review-and-merge.md).
-It records the live Actions allowlist/SHA policy, Dependabot settings and current
-enforcement gaps. Automatic merging remains disabled.
+Subsequent work goes through PRs. Follow the
+[review and merge procedure](docs/security/review-and-merge.md) for required
+checks, merge authorization, current GitHub settings and enforcement limitations,
+and protection requirements if an eligible plan becomes available.
 
 Before publication on Linux x86_64, run `make security-tools` and `make security`.
 The installer verifies pinned release archive SHA-256 hashes before extraction.
