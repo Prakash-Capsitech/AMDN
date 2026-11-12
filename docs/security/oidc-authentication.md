@@ -70,7 +70,13 @@ vendor-specific OIDC token format. The provider must issue API access tokens wit
 - If present, a single space-delimited OAuth `scope` string with valid scope tokens.
 - Optional `acr` must be a nonempty visible-ASCII string of at most 256 characters.
   Optional `auth_time` must be a nonnegative integer no later than `iat`. Duplicate
-  top-level payload claim names are rejected before principal projection.
+  top-level payload claim names, including unknown claims and equivalent
+  JSON-escaped names, are rejected before principal projection.
+
+These are strict token-profile rules even when device step-up is disabled:
+malformed optional claims or duplicate claim names fail authentication. Missing
+`acr` or `auth_time` does not invalidate an otherwise valid token for existing
+APIs; the step-up policy separately requires both claims.
 
 Unsigned tokens, symmetric algorithms, unexpected issuers/audiences, expired or
 premature tokens and bearer headers over 16 KiB are rejected. Tokens are accepted
