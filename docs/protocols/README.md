@@ -22,8 +22,9 @@ The rest of this package remains a proposal awaiting design review.
 Run `make contracts-restore contracts-test`. Standards validation, invalid input
 fixtures and transition graph checks run under `make verify` as well. These checks
 cannot establish authorization, RLS, database durability, broker delivery or device
-storage. F0.5 must provide actual two-tenant integration and failure-injection
-coverage. `/v1/messages` continues to return 404 in the current scaffold.
+storage. See the [F0.5 harness](../../tests/Harness/README.md) for separate
+real-service fixture evidence and pending production integration.
+`/v1/messages` continues to return 404 in the current scaffold.
 
 The original [blueprint](../../AMDN_Foundation_Phase_Implementation_Plan.docx)
 sections 4–11 and 17–20 are the source. See [traceability](../plan/source-map.md),

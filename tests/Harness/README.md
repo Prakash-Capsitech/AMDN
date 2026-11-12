@@ -1,14 +1,15 @@
 # F0.5 real-service fixture harness
 
-Run `make harness-test` from the repository root on Linux with the SDK from
-[global.json](../../global.json), Python 3 and a local Docker Engine with Compose
-v2. The default Docker context must use a local Unix socket. The runner needs
+Run `make harness-test` from the repository root with the
+[prerequisites](../../README.md#start-locally). The default Docker context must
+use a local Unix socket. The runner needs
 permission to create disposable containers; it does not alter Docker permissions
 or agent sandboxes. A missing prerequisite fails the command, never skips tests.
 
 The runner restores locked NuGet dependencies, builds and verifies formatting of
-the standalone test project, then runs xUnit against real PostgreSQL 18.6 and NATS
-2.15.3 with JetStream file storage. Images are pinned by OCI digest. This project
+the standalone test project, then runs xUnit against real PostgreSQL and NATS
+with JetStream file storage. [compose.yaml](compose.yaml) owns the image versions
+and OCI digest pins. This project
 is deliberately outside AMDN.sln so `make verify` stays usable without Docker;
 the separate **PostgreSQL and JetStream harness** CI job is required by the merge
 procedure. It has read-only GitHub permissions and no persisted checkout credentials.
@@ -91,13 +92,15 @@ Sanitized stage logs and the xUnit TRX report are retained under the ignored
 .local/harness-evidence/<run-id> path printed by the runner. They are not uploaded
 as CI artifacts. Inspect the test-stage log and harness.trx for failed assertions.
 A successful result requires every discovered test to execute and pass, and cleanup
-to verify that no owned containers or volumes remain.
+to verify that no owned containers, volumes or networks remain.
 
 Normal failures, timeouts, SIGINT and SIGTERM trigger cleanup. SIGKILL of the runner
 or host loss cannot run a finally handler. If cleanup fails, the error names the
 exact project; inspect containers and volumes with
 `docker --context default ps -a --filter label=com.docker.compose.project=<project>`
-and `docker --context default volume ls --filter label=com.docker.compose.project=<project>`.
+and `docker --context default volume ls --filter label=com.docker.compose.project=<project>`;
+also inspect networks with
+`docker --context default network ls --filter label=com.docker.compose.project=<project>`.
 Verify each resource's `amdn.harness.run` label matches the run ID before manually
 removing it and its private directory. Never use a global prune or reset another
 project to repair a harness run. Run again only after prerequisites are restored.

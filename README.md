@@ -19,7 +19,8 @@ It is a fixture baseline, not a production persistence or authorization adapter.
 Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3.12 with venv support,
 Git and GNU Make. Chrome is needed for the separate browser smoke check.
 GitHub CLI and no-mistakes are needed to submit changes, not to build.
-The separate required CI harness uses Linux, local Docker Engine and Compose v2;
+The separate required CI harness uses Linux, local Docker Engine and the Docker
+Compose plugin (`docker compose`);
 run `make harness-test` to reproduce it. It fails if those prerequisites are absent.
 
 ```sh

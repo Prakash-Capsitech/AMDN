@@ -104,8 +104,9 @@ adapter around the candidate. PR #10 remains deferred; no crypto pin changes.
 
 No architecture approval, production encryption selection or F0 completion is
 recorded by these artifacts. [N01/N02](../security/agent-safety.md#pending-native-checks)
-remain pending. The next integration work must use real PostgreSQL and JetStream,
-actual roles/pooling, and failure injection; mocks are not isolation evidence.
+remain pending. The [F0.5 harness](../../tests/Harness/README.md#evidence-and-scope)
+records fixture evidence and the remaining production integration requirements;
+it does not validate these HTTP contracts against an application implementation.
 
 References: [OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html),
 [JSON Schema 2020-12](https://json-schema.org/draft/2020-12),
