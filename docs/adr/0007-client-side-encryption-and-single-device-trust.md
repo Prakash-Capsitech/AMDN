@@ -30,3 +30,9 @@ Approval: Not recorded. Record reviewer, date and evidence before changing statu
 F0.3 now has a [candidate experiment and assessment](../security/encryption-feasibility.md).
 The Node/Chrome exchange is feasibility evidence only; ts-mls is not selected for
 production. Audit, secure persistence and human review remain open.
+
+The [E02 assessment](../security/device-enrollment-review.md) records the
+maintainer's 2026-11-12 product choices: one active logical device identity with
+no hardware/non-copyability claim, and independent peer-key verification before
+first send and after replacement. Credential design, client distribution and
+independent crypto review remain open; these choices do not accept this ADR.

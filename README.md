@@ -10,7 +10,9 @@ and a no-mistakes contribution workflow. F1 adds
 [provider-neutral JWT access-token authentication](docs/security/oidc-authentication.md).
 [Identity persistence](docs/security/identity-persistence.md) adds tenant membership,
 personal postmen, migrations and scoped PostgreSQL reads. [F1.3](docs/security/provisioning-owner-access.md) adds separate, opt-in provisioning
-and owner-read APIs with scopes, grants, quotas, replay and audit. Device enrollment,
+and owner-read APIs with scopes, grants, quotas, replay and audit. F1.4 begins with
+an [E02 review and step-up prerequisite](docs/security/device-enrollment-review.md).
+Device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and

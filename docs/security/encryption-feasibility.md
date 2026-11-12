@@ -118,7 +118,7 @@ upstream install example alone was insufficient in this environment.
 | ID | Required before production selection |
 | --- | --- |
 | E01 | Independent protocol/implementation review and exact-version audit evidence |
-| E02 | Identity enrollment, first-contact verification, key replacement UX and client-distribution trust |
+| E02 | [Initial review and open decisions](device-enrollment-review.md): identity enrollment, first-contact verification, key replacement UX and client-distribution trust; not approved |
 | E03 | Secure browser storage, atomic crash recovery, rollback policy, cross-tab locking and key lifecycle |
 | E04 | React/TypeScript adapter, Firefox/Safari/mobile tests, bundle sizing and dependency maintenance plan |
 | E05 | Cross-implementation interop, malformed-input fuzzing, epoch/rekey/expiry tests and performance evidence |
