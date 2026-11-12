@@ -10,7 +10,7 @@ open. Native agent checks N01/N02 remain pending.
 | [Identity and logical data model](identity-and-data.md) | Immutable IDs, membership, device/key lifecycle, table constraints and transaction boundaries |
 | [Authorization matrix](authorization.md) | Endpoint and worker actions, resource grants, defaults and revocation |
 | [HTTP/envelope contract](http-api.md) | OpenAPI semantics, limits, replay, errors, crypto dependencies and approval register |
-| [OpenAPI 3.1.1 draft](openapi.json) | Ten proposed routes with strict request/response schemas and authorization requirements |
+| [OpenAPI 3.1.1 draft](openapi.json) | Route inventory, strict request/response schemas and authorization requirements |
 | [Delivery protocol](delivery.md) | Device-storage ack meaning, terminal states, expiry/ack races and reconnect |
 | [State graph](delivery-state-machine.json) | Machine-readable proposed transitions, checked against status schemas |
 | [Synthetic examples](examples/submit-message.json) | Non-production request data for schema review; not valid production cryptography |

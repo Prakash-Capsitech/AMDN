@@ -18,11 +18,12 @@ remain proposed and unimplemented.
 
 ## Common contract
 
-Require HTTPS and a validated access token. Derive tenant/user/postman from a
-verified active membership and device from the authenticated device binding.
-Never use the submitted body to establish identity. An ordinary member cannot
-invoke platform tenant provisioning. Object checks and per-operation scopes are
-listed in OpenAPI; a bearer scheme declaration does not enforce any of them.
+Require HTTPS and a validated access token. Derive tenant/user/postman for tenant
+operations from a verified active membership and device from the authenticated
+device binding. Never use the submitted body to establish the caller's identity.
+Platform provisioning uses the separate authority described in the
+[authorization matrix](authorization.md). Object checks and per-operation scopes
+are listed in OpenAPI; a bearer scheme declaration does not enforce any of them.
 
 Requests are strict UTF-8 JSON with no duplicate object keys or unknown fields;
 reject compressed command bodies in this draft. IDs use canonical lowercase UUID
@@ -45,14 +46,17 @@ cannot access, tokens, ciphertext and internal exception text. Missing and hidde
 resources share 404 `not_found`. Authentication failures use 401 plus
 WWW-Authenticate; authorized callers may receive generic 403 `forbidden` for a
 disallowed action. 409 signals conflicting idempotency/state/key snapshots, 410
-an expired cursor, 412 a stale policy precondition, 413 a size bound, 429 a quota,
+an expired cursor, 412 a stale policy precondition, 413 a size bound, 415 an
+unsupported media type or content encoding, 429 a quota,
 and 503 transient inability to accept. Retry-After accompanies 429/503.
 
 ## Commands and replay
 
-Provision tenant, register device and submit message require Idempotency-Key.
-Scope the key to authenticated tenant/actor/operation (platform actor for tenant
-provisioning). Compute the request digest over the exact decompressed-free UTF-8
+Commands marked with the required Idempotency-Key parameter in [OpenAPI](openapi.json)
+use the replay contract below. See the [F1.3 provisioning contract](../security/provisioning-owner-access.md#atomic-provisioning-grants-and-audit)
+for platform actor scoping and target-tenant binding.
+Scope other command keys to authenticated tenant/actor/operation.
+Compute the request digest over the exact decompressed-free UTF-8
 JSON bytes and operation, not a client-supplied digest. No JSON canonicalization
 scheme is selected for crypto here. Clients retry identical bytes with the same
 key; any byte difference with that key returns 409. Reserve key, effect and result

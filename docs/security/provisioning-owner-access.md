@@ -45,8 +45,10 @@ device, policy-mutation, delegated worker grants and audit-query APIs remain
 unimplemented. Their routes still return 404. No content-access grant is created.
 
 Requests reject unknown/duplicate properties, malformed UTF-8, compressed bodies,
-invalid idempotency keys and bodies over 16 KiB. HTTPS is enforced at each API;
-there is no environment-based HTTP exception. Configure Kestrel TLS or a separately
+invalid idempotency keys and bodies over 16 KiB. A supplied JSON charset must be
+UTF-8, quoted or unquoted; duplicate charset parameters are rejected.
+HTTPS is enforced at each API; there is no environment-based HTTP exception.
+Configure Kestrel TLS or a separately
 reviewed trusted proxy integration; the repository does not trust arbitrary
 forwarded headers. Tests pin only their disposable TLS certificate. Responses use
 no-store and generic problem details without SQL, tokens or internal errors.
@@ -153,4 +155,5 @@ recovery scheme has been introduced. Dependabot #10 remains deferred.
 Implementation references: [ASP.NET Core rate limiting](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-10.0)
 and [PostgreSQL row locks](https://www.postgresql.org/docs/18/explicit-locking.html).
 
-Recorded locally on 12 November 2026: all 37 service cases and 71 Gateway/authentication/configuration cases passed, with zero skips and verified disposable-resource cleanup. Repository (13), crypto (12) and contract (13) checks, formatting and documentation validation also passed. Hosted CI must validate each submitted head.
+See the harness's [recorded local validation](../../tests/Harness/README.md#recorded-local-validation)
+for the run results and their limits. Hosted CI must validate each submitted head.

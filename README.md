@@ -17,8 +17,8 @@ An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node an
 Chrome; it is not an application encryption adapter. The separate
 [F0.5 harness](tests/Harness/README.md) exercises real PostgreSQL and JetStream
 with synthetic identities, forced RLS, connection reuse and process crashes.
-The delivery model remains a fixture baseline; additional F1.2 cases exercise the
-actual identity persistence library. Production integration checks remain pending.
+The delivery model remains a fixture baseline; see the harness guide for application
+API coverage and pending production integration checks.
 
 ## Start locally
 

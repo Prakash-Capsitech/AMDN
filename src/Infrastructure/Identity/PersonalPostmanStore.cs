@@ -8,7 +8,7 @@ namespace AMDN.Infrastructure.Identity;
 public sealed class PersonalPostmanStore(NpgsqlDataSource runtimeDatabase) : IPersonalPostmanStore
 {
     // This library trusts only the principal produced by the configured authentication pipeline.
-    // It is not an operation authorization policy; F1.3 must gate each exposed API.
+    // ReadAsync is membership-only; exposed owner APIs must use ReadOwnerAsync.
     public Task<PersonalPostman?> ReadAsync(ClaimsPrincipal caller, Guid? selectedTenant = null, CancellationToken cancellationToken = default) =>
         Read(caller, selectedTenant, false, cancellationToken);
 

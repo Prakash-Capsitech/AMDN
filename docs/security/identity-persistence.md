@@ -39,11 +39,11 @@ own scopes, object grants and revocation conditions.
 | Role | Authority |
 | --- | --- |
 | `amdn_identity_owner` | Non-login schema/migration owner; trusted definer functions |
-| `amdn_identity_runtime` | Non-login group: scoped SELECT and narrow membership resolution only |
+| `amdn_identity_runtime` | Non-login group: scoped SELECT, narrow membership resolution and owner-grant checks |
 | `amdn_identity_provisioner` | Non-login group: trusted cross-tenant SELECT/INSERT and status updates; no ID rebinding, delete, truncate or DDL |
 
-All four identity tables have enabled and forced RLS. The owner and provisioner
-have explicit policies for their privileged work; neither role is superuser or
+The identity data and access-control tables have enabled and forced RLS. The owner
+and provisioner have explicit policies for their privileged work; neither role is superuser or
 BYPASSRLS. Runtime policies require transaction-local tenant, user, issuer and
 subject values consistent with an active database membership. Missing, partial or
 mismatched context returns no rows. Runtime cannot assume owner/provisioner roles.
@@ -51,7 +51,9 @@ mismatched context returns no rows. Runtime cannot assume owner/provisioner role
 The narrow `resolve_membership` security-definer function bridges an authenticated
 external subject to local IDs before RLS context exists. It uses fixed SQL, a pinned
 search path, no public execute grant, active-state checks and at most two results.
-The RLS helper likewise has a pinned search path and explicit execute grants.
+The RLS helper and owner-grant function likewise have pinned search paths and
+explicit execute grants. See the [owner-grant boundary](provisioning-owner-access.md#atomic-provisioning-grants-and-audit)
+for the additional authorization required by owner reads.
 The owner policy prevents recursion while the helper examines membership.
 
 **The service process and runtime credential are a trust boundary.** A caller

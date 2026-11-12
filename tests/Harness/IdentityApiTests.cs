@@ -10,11 +10,85 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Npgsql;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AMDN.Harness.Tests;
 
-public sealed class IdentityApiTests
+public sealed class IdentityApiTests(ITestOutputHelper output)
 {
+    [Fact]
+    public async Task ReplayRechecksTargetLifecycleAndRevokedMembersRetainCapacity()
+    {
+        await using var api = await Api.Start(memberLimit: 1);
+        var createKey = Guid.NewGuid().ToString("N");
+        var tenant = (await api.Create(createKey)).Id("tenant_id");
+        var other = (await api.Create()).Id("tenant_id");
+        var key = Guid.NewGuid().ToString("N");
+        Assert.Equal(201, (await api.Enroll(tenant, "alice", key)).Status);
+        Assert.Equal(409, (await api.Enroll(other, "alice", key)).Status);
+        await api.Admin("UPDATE amdn_identity.memberships SET status='revoked' WHERE tenant_id=@tenant", tenant);
+        Assert.Equal(403, (await api.Enroll(tenant, "alice", key)).Status);
+        Assert.Equal(429, (await api.Enroll(tenant, "bob")).Status);
+        await api.Admin("UPDATE amdn_identity.tenants SET status='suspended' WHERE tenant_id=@tenant", tenant);
+        Assert.Equal(404, (await api.Create(createKey)).Status);
+        Assert.Equal(404, (await api.Enroll(tenant, "alice", key)).Status);
+        Assert.Equal(3L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_audit WHERE actor_id=@actor"));
+        Assert.Equal(3L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_commands WHERE actor_id=@actor"));
+        Assert.Equal(1L, await api.Admin("SELECT count(*) FROM amdn_identity.memberships WHERE tenant_id=@tenant", tenant));
+        output.WriteLine("HTTPS: enrollment=201; same key with another target=409; revoked membership replay=403; retained capacity rejects replacement=429; suspended tenant create/enroll replay=404. PostgreSQL retains 3 effects/audits/replay records and 1 membership.");
+    }
+
+    [Fact]
+    public async Task ExpiredPlatformGrantDeniesNewCommandsAndReplayWithoutNewEffects()
+    {
+        await using var api = await Api.Start();
+        var key = Guid.NewGuid().ToString("N");
+        var tenant = (await api.Create(key)).Id("tenant_id");
+        await api.Admin("UPDATE amdn_identity.platform_grants SET expires_at=clock_timestamp()-interval '1 second' WHERE actor_id=@actor");
+        Assert.Equal(403, (await api.Create(key)).Status);
+        Assert.Equal(403, (await api.Create()).Status);
+        Assert.Equal(403, (await api.Enroll(tenant, "alice")).Status);
+        Assert.Equal(1L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_audit WHERE actor_id=@actor"));
+        Assert.Equal(1L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_commands WHERE actor_id=@actor"));
+        output.WriteLine("HTTPS: tenant creation=201; after platform expiry, replay/new creation/enrollment=403. PostgreSQL audit and replay counts remain 1.");
+    }
+
+    [Fact]
+    public async Task ProvisioningRejectsHttpAndEnforcesItsIndependentAudienceAndEndpointBudget()
+    {
+        await using var api = await Api.Start();
+        var settings = new Dictionary<string, string?>
+        {
+            ["ProvisioningApi:Enabled"] = "true",
+            ["ProvisioningApi:ConnectionString"] = api.State.IdentityConnection("provisioner"),
+            ["ProvisioningApi:RequestsPerMinute"] = "2",
+            ["ProvisioningApi:ActorRequestsPerMinute"] = "2",
+            ["ProvisioningApi:TenantMemberLimit"] = "1",
+            ["ProvisioningApi:OwnerIssuer"] = api.Oidc.Issuer,
+            ["Authentication:Oidc:Audience"] = "synthetic-operator-only"
+        };
+        string Token(string subject) => api.Oidc.Token(claims =>
+        {
+            claims["sub"] = subject;
+            claims["scope"] = "tenant.provision membership.provision";
+            claims["aud"] = "synthetic-operator-only";
+        });
+        await using var secure = api.Oidc.Application<ProvisioningProgram>(settings);
+        using var client = api.Oidc.Client(secure);
+        var body = "{\"display_name\":\"Synthetic\"}";
+        Assert.Equal(401, (await api.Send(client, "POST", "/v1/tenants", api.OperatorToken(), body, Guid.NewGuid().ToString("N"))).Status);
+        var created = await api.Send(client, "POST", "/v1/tenants", Token(api.Subject), body, Guid.NewGuid().ToString("N"));
+        Assert.Equal(201, created.Status);
+        Assert.Equal(403, (await api.Send(client, "POST", "/v1/tenants", Token("ungranted-operator"), body, Guid.NewGuid().ToString("N"))).Status);
+        Assert.Equal(429, (await api.Send(client, "POST", "/v1/tenants", Token("another-ungranted-operator"), body, Guid.NewGuid().ToString("N"))).Status);
+        Assert.Equal(200, (await api.Send(client, "GET", "/health/live", null)).Status);
+        await using var insecure = api.Oidc.Application<ProvisioningProgram>(settings, https: false);
+        using var http = insecure.CreateClient();
+        foreach (var path in new[] { "/v1/tenants", $"/v1/tenants/{created.Id("tenant_id")}/memberships" })
+            Assert.Equal(400, (await api.Send(http, "POST", path, Token(api.Subject), body, Guid.NewGuid().ToString("N"))).Status);
+        output.WriteLine("Separate operator audience: owner-audience token=401; operator token=201; ungranted operator=403; different actor over endpoint budget=429; liveness=200. Both provisioning commands over HTTP=400.");
+    }
+
     [Fact]
     public async Task ActualHttpsApisProvisionReplayAndReadOnlyTheSelectedOwner()
     {
