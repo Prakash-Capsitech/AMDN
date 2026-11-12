@@ -6,8 +6,10 @@ The foundation must work without AI models.
 
 This repository starts **F0 architecture and feasibility**. It contains proposed
 ADRs, module boundaries, a buildable .NET backend scaffold, repository checks,
-and a no-mistakes contribution workflow. It does not implement authentication,
-message delivery, production encryption, persistence, a web client or deployment.
+and a no-mistakes contribution workflow. The first F1 slice adds
+[provider-neutral JWT access-token authentication](docs/security/oidc-authentication.md).
+Tenant membership, object authorization, message delivery, production encryption,
+persistence, a web client and deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate
 [F0.5 harness](tests/Harness/README.md) exercises real PostgreSQL and JetStream
@@ -33,6 +35,10 @@ dotnet run --project src/Gateway --no-launch-profile --urls http://127.0.0.1:508
 curl --fail http://127.0.0.1:5080/health/live
 ```
 
+OIDC validation is disabled until explicitly configured; see the
+[configuration and supported token profile](docs/security/oidc-authentication.md#configuration).
+The Gateway currently exposes no identity or messaging endpoints.
+
 The health response is process liveness only; it does not certify delivery readiness.
 The separate worker host can be started with `dotnet run --project src/Workers`.
 It has no delivery handlers yet.
@@ -54,7 +60,7 @@ It has no delivery handlers yet.
 | docs | Architecture, decisions, security, protocols and F0 acceptance |
 
 Start with the [ADR register](docs/adr/README.md),
-[architecture](docs/architecture/overview.md), and [F0 backlog](docs/plan/f0.md).
+[architecture](docs/architecture/overview.md), and [F0 backlog](docs/plan/f0.md), and [F1 implementation slices](docs/plan/f1.md).
 The [F0.4 contract draft](docs/protocols/README.md) adds identity, authorization,
 OpenAPI and delivery-state proposals with executable consistency checks. It does
 not expose new Gateway endpoints or close the architecture/crypto review gates.

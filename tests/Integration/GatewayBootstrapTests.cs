@@ -29,4 +29,16 @@ public sealed class GatewayBootstrapTests : IClassFixture<WebApplicationFactory<
         using var response = await _client.PostAsJsonAsync("/v1/messages", new { ciphertext = "placeholder" });
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("/__test/token")]
+    [InlineData("/__test/default")]
+    [InlineData("/__test/fallback")]
+    [InlineData("/unimplemented.json")]
+    public async Task TestProbesAreNotDeployedAndUnknownRoutesRemainNotFound(string path)
+    {
+        using var response = await _client.GetAsync(path);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
 }

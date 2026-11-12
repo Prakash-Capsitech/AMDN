@@ -23,7 +23,7 @@ test:
     Run make test for the bootstrap health endpoint and hook behavior.
     Start the Gateway with dotnet run --project src/Gateway --no-launch-profile
     --urls http://127.0.0.1:5080 and check /health/live returns HTTP 200.
-    No application messaging, authentication or production cryptography is implemented yet; the isolated F0.3 experiment is separate.
+    No application messaging, tenant membership or production cryptography is implemented yet; the isolated F0.3 experiment is separate.
     Do not treat the F0 scaffold as satisfying delivery or isolation tests.
     For F0.3, also run make crypto-test and make crypto-spike with Node from .nvmrc.
     The experiment uses only disposable synthetic data; never log client state.
@@ -37,6 +37,10 @@ test:
     Do not substitute mocks or disable sandbox restrictions to run Docker.
     Fixture identities/roles/pooling are not production integration evidence.
     Native N01/N02 remain pending even when the service harness passes.
+    For F1.1 run the integration tests: real loopback Gateway and HTTPS OIDC
+    discovery/JWKS fixtures validate signed access tokens and negative cases.
+    Test-only probe routes are never deployed. Do not install fixture certificates
+    or weaken production TLS. Membership/provider rollout and P01-P03 remain pending.
 
 pr:
   base_branch: main
