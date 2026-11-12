@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Npgsql;
 
 namespace AMDN.Infrastructure.Identity;
@@ -122,8 +123,10 @@ public static class IdentityHttp
     public static async Task<(byte[] Bytes, Dictionary<string, string> Fields, int Error)> Body(HttpRequest request, string[] fields, CancellationToken ct)
     {
         if (request.Headers.ContentEncoding.Count != 0 || !request.HasJsonContentType()
-            || (request.ContentType?.Contains("charset=", StringComparison.OrdinalIgnoreCase) == true
-                && !request.ContentType.EndsWith("charset=utf-8", StringComparison.OrdinalIgnoreCase))) return ([], [], 415);
+            || !MediaTypeHeaderValue.TryParse(request.ContentType, out var contentType)) return ([], [], 415);
+        var charsets = contentType.Parameters.Where(parameter => parameter.Name.Equals("charset", StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (charsets.Length > 1 || (charsets.Length == 1
+            && !HeaderUtilities.RemoveQuotes(charsets[0].Value).Equals("utf-8", StringComparison.OrdinalIgnoreCase))) return ([], [], 415);
         if (request.ContentLength > 16384) return ([], [], 413);
         using var buffer = new MemoryStream();
         var chunk = new byte[4096];

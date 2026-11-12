@@ -150,6 +150,49 @@ public sealed class IdentityApiTests
         Assert.Equal(400, (await api.Send(api.Owner, "GET", $"/v1/postman?tenant_id={tenant}&postman_id={Guid.NewGuid()}", api.Token("alice"))).Status);
     }
 
+    [Theory]
+    [InlineData("application/json", 201)]
+    [InlineData("application/json; charset=utf-8", 201)]
+    [InlineData("application/json; charset=\"utf-8\"", 201)]
+    [InlineData("application/json; CHARSET=\"UTF-8\"", 201)]
+    [InlineData("application/json; charset=\"utf-8\"; profile=synthetic", 201)]
+    [InlineData("application/json; profile=synthetic; charset=utf-8", 201)]
+    [InlineData("application/json; charset=iso-8859-1", 415)]
+    [InlineData("application/json; charset=\"utf-16\"", 415)]
+    [InlineData("application/json; charset=\"\"", 415)]
+    [InlineData("application/json; charset=utf-8; charset=utf-16", 415)]
+    [InlineData("application/json; charset=utf-16; charset=utf-8", 415)]
+    public async Task BothCommandsHonorParsedUtf8CharsetDeclarations(string contentType, int expected)
+    {
+        await using var api = await Api.Start();
+        var tenant = (await api.Create()).Id("tenant_id");
+        var commands = new[]
+        {
+            (Path: "/v1/tenants", Body: "{\"display_name\":\"Synthétique\"}", Id: "tenant_id"),
+            (Path: $"/v1/tenants/{tenant}/memberships", Body: JsonSerializer.Serialize(new { issuer = api.Oidc.Issuer, subject = "alice" }), Id: "postman_id")
+        };
+        foreach (var command in commands)
+        {
+            var key = Guid.NewGuid().ToString("N");
+            var response = await api.Send(api.Operator, "POST", command.Path, api.OperatorToken(), command.Body, key, contentType: contentType);
+            Assert.Equal(expected, response.Status);
+            if (expected == 201)
+            {
+                var replay = await api.Send(api.Operator, "POST", command.Path, api.OperatorToken(), command.Body, key);
+                Assert.Equal(201, replay.Status);
+                Assert.Equal(response.Id(command.Id), replay.Id(command.Id));
+            }
+            var malformed = Encoding.UTF8.GetBytes(command.Body);
+            malformed[Array.IndexOf(malformed, (byte)':') + 2] = 0xff;
+            Assert.Equal(400, (await api.Send(api.Operator, "POST", command.Path, api.OperatorToken(), key: Guid.NewGuid().ToString("N"),
+                contentType: "application/json; charset=\"utf-8\"", rawBody: malformed)).Status);
+        }
+        Assert.Equal(expected == 201 ? 3L : 1L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_audit WHERE actor_id=@actor"));
+        Assert.Equal(expected == 201 ? 3L : 1L, await api.Admin("SELECT count(*) FROM amdn_identity.provisioning_commands WHERE actor_id=@actor"));
+        Assert.Equal(expected == 201 ? 2L : 1L, await api.Admin("SELECT count(*) FROM amdn_identity.tenants WHERE provisioner_actor=@actor"));
+        Assert.Equal(expected == 201 ? 1L : 0L, await api.Admin("SELECT count(*) FROM amdn_identity.memberships WHERE tenant_id=@tenant", tenant));
+    }
+
     [Fact]
     public async Task FailedAuditInsertRollsBackEffectQuotaAndReplayThenRetrySucceeds()
     {
@@ -339,13 +382,15 @@ public sealed class IdentityApiTests
             JsonSerializer.Serialize(new { issuer = Oidc.Issuer, subject }), key ?? Guid.NewGuid().ToString("N"));
         public Task<Response> Read(string subject, Guid tenant, string scope = "postman.read") => Send(Owner, "GET", "/v1/postman?tenant_id=" + tenant, Token(subject, scope));
 
-        public async Task<Response> Send(HttpClient client, string method, string path, string? token, string? body = null, string? key = null, bool compressed = false, Guid? tenantHeader = null, bool chunked = false, bool expectProblem = true)
+        public async Task<Response> Send(HttpClient client, string method, string path, string? token, string? body = null, string? key = null, bool compressed = false, Guid? tenantHeader = null, bool chunked = false, bool expectProblem = true, string? contentType = null, byte[]? rawBody = null)
         {
             using var request = new HttpRequestMessage(new HttpMethod(method), path);
             if (token is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             if (key is not null) request.Headers.Add("Idempotency-Key", key);
             if (tenantHeader is not null) request.Headers.Add("X-Tenant-ID", tenantHeader.ToString());
             if (body is not null) request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            if (rawBody is not null) request.Content = new ByteArrayContent(rawBody);
+            if (contentType is not null) request.Content!.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             if (compressed) request.Content!.Headers.ContentEncoding.Add("gzip");
             if (chunked) request.Headers.TransferEncodingChunked = true;
             var callerId = Guid.NewGuid().ToString("D");
