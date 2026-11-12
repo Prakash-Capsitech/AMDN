@@ -18,7 +18,7 @@ not substitutes for that server boundary.
 | Full action SHA policy | Enabled and read back from GitHub |
 | Checkout credentials | Not persisted in build/security workflows |
 | Dependabot | Vulnerability alerts and security-fix PRs enabled; weekly NuGet/Actions/npm version-update config |
-| Publication checks | Build test and lint; PR must be raised via no-mistakes; Secrets and workflow checks |
+| Publication checks | Build test and lint; PostgreSQL and JetStream harness; PR must be raised via no-mistakes; Secrets and workflow checks |
 | Independent reviewer | No separate reviewer nominated; same-account agents are not independent approvals |
 | Agent secret access | Project hooks and permission profiles; activation/limits in agent-safety.md |
 
@@ -30,7 +30,7 @@ change workflows or settings; these safeguards reduce mistakes, not hostile-owne
 
 ## Required contribution procedure
 
-1. Work on a feature branch. Run `make verify`, then `make security-tools` and
+1. Work on a feature branch. Run `make verify` and `make harness-test`, then `make security-tools` and
    `make security` on the supported Linux x86_64 toolchain. Commit only task files.
 2. Run no-mistakes with the complete intent and drive fixes through the pipeline.
    Stop at checks-passed. Do not forge attestations or exempt bot PRs from the gate.
@@ -95,7 +95,7 @@ session. Distinct agents sharing a token have the same authority.
 
 If the owner later chooses an eligible GitHub plan or an appropriate private
 organization, require a PR, one independent approval, dismissal of stale reviews,
-approval after the latest push, resolved conversations and all three checks from
+approval after the latest push, resolved conversations and all four checks from
 the expected GitHub Actions app. Enforce for admins, disallow force push/deletion,
 and avoid bypass actors. Name a real second reviewer before requiring their review.
 Verify with a negative test; do not infer enforcement from CODEOWNERS alone.

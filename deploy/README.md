@@ -1,3 +1,5 @@
 # deploy
 
-F0.5 will add a pinned Docker Compose integration environment for PostgreSQL and NATS JetStream after topology and credentials are specified. This scaffold deploys no services.
+The disposable F0.5 integration environment lives in the
+[test harness](../tests/Harness/README.md). This directory remains reserved for
+future deployment manifests; the harness is not a production deployment.

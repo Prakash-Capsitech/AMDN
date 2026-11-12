@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test
 
 setup:
 	bash scripts/install-hooks.sh
@@ -53,3 +53,6 @@ contracts-restore:
 
 contracts-test:
 	.tools/contracts/bin/python -m unittest discover -s tests/Contracts -v
+
+harness-test:
+	python3 tests/Harness/run.py

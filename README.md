@@ -9,13 +9,19 @@ ADRs, module boundaries, a buildable .NET backend scaffold, repository checks,
 and a no-mistakes contribution workflow. It does not implement authentication,
 message delivery, production encryption, persistence, a web client or deployment.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
-Chrome; it is not an application encryption adapter.
+Chrome; it is not an application encryption adapter. The separate
+[F0.5 harness](tests/Harness/README.md) exercises real PostgreSQL and JetStream
+with synthetic identities, forced RLS, connection reuse and process crashes.
+It is a fixture baseline, not a production persistence or authorization adapter.
 
 ## Start locally
 
 Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3.12 with venv support,
 Git and GNU Make. Chrome is needed for the separate browser smoke check.
 GitHub CLI and no-mistakes are needed to submit changes, not to build.
+The separate required CI harness uses Linux, local Docker Engine and the Docker
+Compose plugin (`docker compose`);
+run `make harness-test` to reproduce it. It fails if those prerequisites are absent.
 
 ```sh
 make setup
