@@ -20,3 +20,6 @@
 !.codex/config.toml
 !.codex/hooks.json
 .claude/settings.local.json
+
+*.pdf
+*.PDF

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AMDN.Harness.Tests;
 
-// All identities and payloads in this assembly are synthetic. No production auth adapter exists yet.
+// All identities and payloads in this assembly are synthetic. The delivery model remains a fixture; IdentityPersistenceTests exercise the F1.2 store.
 internal sealed record Principal(Guid Tenant, Guid User)
 {
     public static readonly Principal Alice = new(Guid.Parse("10000000-0000-0000-0000-000000000001"), Guid.Parse("00000000-0000-0000-0000-000000000001"));
@@ -28,7 +28,8 @@ internal sealed record Job(Guid Event, Guid Envelope, Principal Sender, Principa
 }
 
 internal sealed record RunState(string RunId, int PostgresPort, int NatsPort, string AppPassword,
-    string NatsToken, string PostgresContainer, string NatsContainer)
+    string NatsToken, string PostgresContainer, string NatsContainer,
+    string IdentityRuntimePassword, string IdentityProvisionerPassword, string IdentityMigrationPassword)
 {
     public static RunState Load()
     {
@@ -55,6 +56,25 @@ internal sealed record RunState(string RunId, int PostgresPort, int NatsPort, st
         IncludeErrorDetail = false,
         ApplicationName = "amdn-f05-fixture"
     }.ConnectionString);
+
+    public string IdentityConnection(string role) => new NpgsqlConnectionStringBuilder
+    {
+        Host = "127.0.0.1",
+        Port = PostgresPort,
+        Database = "amdn_harness",
+        Username = "harness_identity_" + role,
+        Password = role switch
+        {
+            "runtime" => IdentityRuntimePassword,
+            "provisioner" => IdentityProvisionerPassword,
+            "migrator" => IdentityMigrationPassword,
+            _ => throw new ArgumentException("Unknown identity role")
+        },
+        Timeout = 5,
+        CommandTimeout = 5,
+        IncludeErrorDetail = false,
+        Pooling = false
+    }.ConnectionString;
 
     public NatsClient Broker() => new(new NatsOpts
     {

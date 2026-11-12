@@ -35,7 +35,7 @@ class Run:
         self.private = Path(tempfile.mkdtemp(prefix=self.run_id + "-", dir=local))
         self.evidence = ROOT / ".local/harness-evidence" / self.run_id
         self.evidence.mkdir(parents=True, mode=0o700)
-        self.secrets = [secrets.token_hex(32) for _ in range(3)]
+        self.secrets = [secrets.token_hex(32) for _ in range(6)]
         self.env = dict(os.environ, HARNESS_RUN_ID=self.run_id,
                         HARNESS_PRIVATE_DIR=str(self.private),
                         AMDN_HARNESS_STATE=str(self.private / "state.json"),
@@ -116,8 +116,25 @@ class Run:
             "__APP_PASSWORD__", self.secrets[1]).replace("__RUN_ID__", self.run_id)
         self.command(self.docker + ["exec", "-i", ids["postgres"], "psql", "-X", "-v",
                      "ON_ERROR_STOP=1", "-U", "postgres", "-d", "amdn_harness"], "bootstrap", data=sql)
+        roles = (ROOT / "src/Infrastructure/Identity/Migrations/roles.sql").read_text()
+        for suffix, group, secret in (("runtime", "runtime", self.secrets[3]),
+                                      ("provisioner", "provisioner", self.secrets[4]),
+                                      ("migrator", "owner", self.secrets[5])):
+            # All values are fixed role names or generated hex, never caller input.
+            roles += (f"CREATE ROLE harness_identity_{suffix} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS "
+                      f"NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '{secret}';\n")
+            inherit = "FALSE" if suffix == "migrator" else "TRUE"
+            assume = "TRUE" if suffix == "migrator" else "FALSE"
+            roles += (f"GRANT amdn_identity_{group} TO harness_identity_{suffix} "
+                      f"WITH INHERIT {inherit}, SET {assume};\n")
+            roles += f"GRANT CONNECT ON DATABASE amdn_harness TO harness_identity_{suffix};\n"
+        roles += "GRANT CREATE ON DATABASE amdn_harness TO amdn_identity_owner;\n"
+        self.command(self.docker + ["exec", "-i", ids["postgres"], "psql", "-X", "-v",
+                     "ON_ERROR_STOP=1", "-U", "postgres", "-d", "amdn_harness"], "identity-roles", data=roles)
         state = dict(RunId=self.run_id, PostgresPort=ports["postgres"], NatsPort=ports["nats"],
                      AppPassword=self.secrets[1], NatsToken=self.secrets[2],
+                     IdentityRuntimePassword=self.secrets[3], IdentityProvisionerPassword=self.secrets[4],
+                     IdentityMigrationPassword=self.secrets[5],
                      PostgresContainer=ids["postgres"], NatsContainer=ids["nats"])
         (self.private / "state.json").write_text(json.dumps(state))
         (self.private / "state.json").chmod(0o600)
@@ -125,6 +142,8 @@ class Run:
     def test(self):
         self.command(["dotnet", "restore", str(PROJECT), "--locked-mode"], "restore", timeout=180)
         self.command(["dotnet", "build", str(PROJECT), "--no-restore", "-c", "Release"], "build")
+        self.command(["dotnet", str(ROOT / "tests/Harness/bin/Release/net10.0/AMDN.Harness.Tests.dll"),
+                      "identity-migrate"], "identity-migrate")
         self.command(["dotnet", "format", str(PROJECT), "--verify-no-changes", "--no-restore"], "format")
         self.command(["dotnet", "test", str(PROJECT), "--no-restore", "--no-build", "-c", "Release",
                       "--logger", "trx;LogFileName=harness.trx", "--results-directory", str(self.evidence),
@@ -195,7 +214,7 @@ def main():
              help="Inspect evidence, check prerequisites in tests/Harness/README.md, then run make harness-test")
         return 1
     emit(result="passed", tests=total, cleanup="complete", evidence=str(run.evidence),
-         pending="production role/pool integration; native N01/N02")
+         pending="production integration P01-P03; native N01/N02")
     return 0
 
 

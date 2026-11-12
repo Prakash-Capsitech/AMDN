@@ -12,6 +12,21 @@ internal static class CrashProbe
     // Invoked only by this test assembly. A killed child cannot run disposal/finally handlers.
     public static async Task<int> Main(string[] args)
     {
+        if (args is ["identity-migrate"])
+        {
+            try
+            {
+                await AMDN.Infrastructure.Identity.IdentityMigrations.ApplyAsync(RunState.Load().IdentityConnection("migrator"));
+                return 0;
+            }
+            catch (Exception exception)
+            {
+                // Message/detail may contain sensitive values. Type and SQLSTATE are safe diagnostics.
+                Console.Error.WriteLine("Identity migration failed: " + exception.GetType().Name +
+                    (exception is Npgsql.PostgresException postgres ? " " + postgres.SqlState : ""));
+                return 1;
+            }
+        }
         if (args.Length != 4 || args[0] != "crash-probe") return 2;
         try
         {

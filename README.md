@@ -6,15 +6,18 @@ The foundation must work without AI models.
 
 This repository starts **F0 architecture and feasibility**. It contains proposed
 ADRs, module boundaries, a buildable .NET backend scaffold, repository checks,
-and a no-mistakes contribution workflow. The first F1 slice adds
+and a no-mistakes contribution workflow. F1 adds
 [provider-neutral JWT access-token authentication](docs/security/oidc-authentication.md).
-Tenant membership, object authorization, message delivery, production encryption,
-persistence, a web client and deployment are not implemented.
+[Identity persistence](docs/security/identity-persistence.md) adds tenant membership,
+personal postmen, migrations and scoped PostgreSQL reads. Public provisioning/owner
+APIs, object authorization, message delivery, production encryption, a web client
+and deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate
 [F0.5 harness](tests/Harness/README.md) exercises real PostgreSQL and JetStream
 with synthetic identities, forced RLS, connection reuse and process crashes.
-It is a fixture baseline, not a production persistence or authorization adapter.
+The delivery model remains a fixture baseline; additional F1.2 cases exercise the
+actual identity persistence library. Production integration checks remain pending.
 
 ## Start locally
 

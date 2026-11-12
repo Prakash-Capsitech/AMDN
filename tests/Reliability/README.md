@@ -3,7 +3,8 @@
 The [F0.5 harness](../Harness/README.md) uses real JetStream file storage and
 PostgreSQL transactions to exercise writer/publisher/consumer process kills,
 outbox duplicates, deduplicated inbox effects and an offline consumer after
-service process restarts. Run `make harness-test`.
+service process restarts. F1.2 also checks committed application identity records
+after a PostgreSQL process restart. Run `make harness-test`.
 
 Production worker integration, reconnect cursors, authenticated device receipts,
 receipt reordering, expiry/retention races, noisy-neighbor backlog load, multi-node
