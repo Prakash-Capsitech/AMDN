@@ -1,2 +1,3 @@
-# Architecture, delivery and security changes require maintainer review.
+# Ownership routing only; not an enforced approval rule on the current plan.
+# An author cannot approve their own PR. Add a real independent reviewer when available.
 * @Prakash-Capsitech

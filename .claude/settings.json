@@ -1,0 +1,77 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(./secrets/**)",
+      "Read(./.secrets/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.codex/auth.json)",
+      "Bash(gh auth token*)",
+      "Bash(git credential fill*)",
+      "Bash(printenv*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.kube",
+        "~/.gnupg",
+        "~/.config/gh",
+        "~/.config/gcloud",
+        "~/.codex/auth.json",
+        "~/.docker/config.json",
+        "~/.npmrc",
+        "~/.netrc",
+        "~/.git-credentials",
+        ".env",
+        ".env.*",
+        "**/.env",
+        "**/.env.*",
+        "**/*.pem",
+        "**/*.key",
+        "secrets",
+        ".secrets"
+      ],
+      "denyWrite": [
+        ".claude",
+        "scripts/agent-guards"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "api.nuget.org",
+        "github.com",
+        "api.github.com",
+        "release-assets.githubusercontent.com"
+      ]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/scripts/agent-guards/pre_tool_use.py\"",
+            "timeout": 5,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify
+.PHONY: setup restore build test lint format verify security-tools security
 
 setup:
 	bash scripts/install-hooks.sh
@@ -18,9 +18,16 @@ lint: restore
 	dotnet format AMDN.sln --verify-no-changes --no-restore
 	git diff --check
 	python3 scripts/check-docs.py
-	bash -n scripts/install-hooks.sh .githooks/pre-commit .githooks/pre-push
+	bash -n scripts/install-hooks.sh scripts/install-security-tools.sh .githooks/pre-commit .githooks/pre-push
 
 format:
 	dotnet format AMDN.sln
 
 verify: test lint
+
+security-tools:
+	bash scripts/install-security-tools.sh
+
+security:
+	.tools/actionlint -shellcheck= -pyflakes=
+	.tools/gitleaks git --redact --no-banner --log-opts=--all

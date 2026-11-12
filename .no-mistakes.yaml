@@ -1,7 +1,7 @@
 agent: codex
 
 commands:
-  prepare: "dotnet restore AMDN.sln"
+  prepare: "dotnet restore AMDN.sln --locked-mode"
   lint: "make lint"
   format: "dotnet format AMDN.sln --no-restore"
 
