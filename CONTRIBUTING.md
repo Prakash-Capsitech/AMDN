@@ -12,6 +12,12 @@ Package changes must regenerate and commit packages.lock.json files with
 
 ## Git and agent instructions
 
+F0.3 adds Node 24.22.3 from .nvmrc. Run `make crypto-restore` before `make verify`;
+`make crypto-browser` separately tests the synthetic exchange in Chrome.
+Ensure no-mistakes subprocesses can use the same Node version: its daemon resolves
+the login-shell environment, which may differ from the calling terminal's PATH.
+No global Node default or shell profile is changed by this repository.
+
 Agent hooks that protect sensitive tool access are separate from Git hooks.
 Read [agent safety](docs/security/agent-safety.md) to activate the Codex/Claude
 controls and understand their limits. They are not automatically active in this

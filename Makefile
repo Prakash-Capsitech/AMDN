@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser
 
 setup:
 	bash scripts/install-hooks.sh
@@ -13,6 +13,7 @@ build: restore
 test: build
 	dotnet test AMDN.sln --no-build --configuration Release
 	python3 -m unittest discover -s tests/Repository -v
+	$(MAKE) crypto-test
 
 lint: restore
 	dotnet format AMDN.sln --verify-no-changes --no-restore
@@ -31,3 +32,15 @@ security-tools:
 security:
 	.tools/actionlint -shellcheck= -pyflakes=
 	.tools/gitleaks git --redact --no-banner --log-opts=--all
+
+crypto-restore:
+	npm ci --prefix clients/crypto --ignore-scripts --no-fund --no-audit
+
+crypto-test:
+	npm test --prefix clients/crypto
+
+crypto-spike:
+	npm run spike --prefix clients/crypto
+
+crypto-browser:
+	python3 clients/crypto/browser-smoke.py

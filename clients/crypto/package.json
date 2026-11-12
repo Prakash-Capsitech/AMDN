@@ -1,0 +1,17 @@
+{
+  "name": "amdn-f0-encryption-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.3 <25"
+  },
+  "scripts": {
+    "test": "node --test spike.test.mjs",
+    "spike": "node run-spike.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "2.0.1",
+    "ts-mls": "1.6.4"
+  }
+}

@@ -1,7 +1,7 @@
 agent: codex
 
 commands:
-  prepare: "dotnet restore AMDN.sln --locked-mode"
+  prepare: "dotnet restore AMDN.sln --locked-mode && make crypto-restore"
   lint: "make lint"
   format: "dotnet format AMDN.sln --no-restore"
 
@@ -25,6 +25,9 @@ test:
     --urls http://127.0.0.1:5080 and check /health/live returns HTTP 200.
     No messaging, authentication or cryptography is implemented yet.
     Do not treat the F0 scaffold as satisfying delivery or isolation tests.
+    For F0.3, also run make crypto-test and make crypto-spike with Node from .nvmrc.
+    The experiment uses only disposable synthetic data; never log client state.
+    Native agent hook/sandbox validation remains separately pending per agent-safety.md.
 
 pr:
   base_branch: main

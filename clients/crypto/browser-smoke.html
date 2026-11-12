@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMDN F0 encryption experiment</title>
+<script type="importmap">
+{
+  "imports": {
+    "ts-mls": "./node_modules/ts-mls/dist/src/index.js",
+    "ts-mls/": "./node_modules/ts-mls/dist/src/",
+    "@hpke/core": "./node_modules/@hpke/core/esm/mod.js",
+    "@hpke/common": "./node_modules/@hpke/common/esm/mod.js",
+    "@noble/curves/": "./node_modules/@noble/curves/",
+    "@noble/hashes/": "./node_modules/@noble/hashes/",
+    "@noble/ciphers/": "./node_modules/@noble/ciphers/"
+  }
+}
+</script>
+<h1>F0 encryption experiment</h1>
+<p>Synthetic data only. This experiment is not approved for real messages.</p>
+<pre id="result" data-status="running">Running two disposable MLS clients…</pre>
+<script type="module">
+  const result = document.getElementById('result');
+  try {
+    const { offlineExchange } = await import('./spike.mjs');
+    result.textContent = JSON.stringify(await offlineExchange(), null, 2);
+    result.dataset.status = 'pass';
+  } catch {
+    result.textContent = 'Experiment failed. No client state is logged.';
+    result.dataset.status = 'fail';
+  }
+</script>
+</html>

@@ -14,10 +14,10 @@ not substitutes for that server boundary.
 | Main branch protection | Unavailable on current plan; not enabled |
 | Automatic merging | Disabled |
 | Actions default token | Read only; workflows cannot approve PRs |
-| Actions allowlist | actions/checkout, actions/setup-dotnet, and pinned no-mistakes action only |
+| Actions allowlist | actions/checkout, actions/setup-dotnet, pinned actions/setup-node and pinned no-mistakes action only |
 | Full action SHA policy | Enabled and read back from GitHub |
 | Checkout credentials | Not persisted in build/security workflows |
-| Dependabot | Vulnerability alerts and security-fix PRs enabled; weekly version-update config in this PR |
+| Dependabot | Vulnerability alerts and security-fix PRs enabled; weekly NuGet/Actions/npm version-update config |
 | Publication checks | Build test and lint; PR must be raised via no-mistakes; Secrets and workflow checks |
 | Independent reviewer | No separate reviewer nominated; same-account agents are not independent approvals |
 | Agent secret access | Project hooks and permission profiles; activation/limits in agent-safety.md |
@@ -65,6 +65,13 @@ PR #1 was reviewed and merged at head de05bb90faa8142226aca6dd52fa708461e469f2
 with explicit user authorization, green checks and an exact-head merge. Its merge
 commit is e9c8b3c9e09fe39aab4bb1e15c55d9b0f34c49a4. This did not approve the
 Proposed ADRs or declare F0 security complete.
+
+PR #2 was reviewed and merged at head bc2cb73a60d91fa7b2466ed04bb0064edeacda80
+with explicit user authorization, successful expected checks and no unresolved
+review threads. Merge commit: bbcfd2bffcae0166199b229e043c54ce4bcd4b0c.
+Native checks N01/N02 remain pending in agent-safety.md. For F0.3 CI, the allowlist
+was extended only with actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+and read back on 12 November 2026. Read-only defaults and full-SHA policy remain.
 
 ## Bot updates and credentials
 
