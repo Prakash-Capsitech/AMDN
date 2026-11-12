@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Infrastructure/AMDN.Infrastructure.csproj" />
+    <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
+    <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />
+  </ItemGroup>
+</Project>

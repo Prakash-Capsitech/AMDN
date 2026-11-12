@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" != "no-mistakes" ]]; then
+  printf 'Publish through no-mistakes axi run with an explicit intent; direct remote pushes are blocked.\n' >&2
+  exit 1
+fi
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/master)
+      printf 'Protected branches require a reviewed pull request.\n' >&2; exit 1 ;;
+  esac
+done

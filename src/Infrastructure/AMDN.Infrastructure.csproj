@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Identity/AMDN.Identity.csproj" />
+    <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
+    <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />
+  </ItemGroup>
+</Project>
