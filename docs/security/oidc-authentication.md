@@ -9,8 +9,11 @@ selection/rollout and tenant membership remain later F1 work.
 ## Configuration
 
 The Gateway starts with authentication disabled when this section is absent.
-Health remains public and unimplemented routes return 404. Configuring the adapter
-requires all three values; partial, inconsistent or unknown settings fail startup.
+Explicit `Enabled: false` also disables validation when issuer and audience are
+omitted or empty. Health remains public and unimplemented routes return 404.
+Enabling the adapter requires all three values below. Partial enabled configuration,
+nonempty issuer/audience values while disabled, and malformed or unknown settings
+fail startup.
 These are configuration examples, not usable credentials:
 
 ```json
@@ -54,10 +57,15 @@ vendor-specific OIDC token format. The provider must issue API access tokens wit
 - A valid asymmetric signature using RS256 and an issuer-published key.
 - `typ` equal to `at+jwt` or `application/at+jwt`. OIDC ID tokens and generic
   `JWT` tokens are rejected even if their signature and audience otherwise match.
-- Exact issuer and audience, required expiry, valid `nbf` if present, and a
-  30-second clock skew allowance.
-- Single nonempty `sub`, `client_id` and `jti`, plus integer `iat` no later than
-  the skew allowance and earlier than expiry. Missing or ambiguous subject claims fail.
+- A string `iss` matching the configured issuer exactly. `aud` must be a string
+  or a nonempty array containing only strings, with at least one exact match for
+  the configured audience. Null or non-string array elements fail even alongside
+  a matching audience.
+- Required integer `exp`, valid integer `nbf` if present, and a 30-second clock
+  skew allowance for lifetime validation.
+- Single nonempty strings for `sub`, `client_id` and `jti`, plus integer `iat`
+  no later than the skew allowance and earlier than expiry. Missing or ambiguous
+  subject claims fail.
 - If present, a single space-delimited OAuth `scope` string with valid scope tokens.
 
 Unsigned tokens, symmetric algorithms, unexpected issuers/audiences, expired or

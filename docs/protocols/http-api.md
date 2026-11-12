@@ -1,8 +1,8 @@
 # F0.4 HTTP and envelope draft
 
 Status: Proposed, version `0.1.0-draft`. The [OpenAPI 3.1.1 description](openapi.json)
-covers the ten blueprint endpoints. None is implemented. The Gateway still
-returns 404 for `/v1/messages`; only process liveness exists.
+covers the ten blueprint endpoints. See the [repository README](../../README.md)
+for current implementation status.
 
 The source JSON is the schema authority for this draft. The
 [identity model](identity-and-data.md), [authorization matrix](authorization.md)
