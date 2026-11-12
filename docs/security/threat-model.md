@@ -91,10 +91,15 @@ likelihood. The evidence column is work to perform, not passing test evidence.
 
 ## Development controls already exercised
 
-The shared agent guard is tested with synthetic payloads. The installed Codex
-sandbox has been tested against a fake .env and a symlink. Native Codex hook trust
-still requires the user; Claude integration is unverified because its CLI is absent.
-See [agent safety](agent-safety.md) for exact coverage and limitations.
+The shared agent guard is tested with synthetic payloads. Direct parent-session
+Codex sandbox checks passed twice: README access succeeded, while direct and
+symlink reads of a fake .env were denied. Claude Code 2.1.322 is available on the
+pipeline PATH. Nested pipeline Codex and Claude probes failed during bubblewrap
+startup before tool execution; Claude refused unsandboxed startup. Those probes
+do not establish native filesystem enforcement or hook interception. Native
+Codex hook trust and new-session activation still require human action; Claude
+native integration remains incomplete. See [agent safety](agent-safety.md) for
+exact coverage and limitations.
 
 The owner requested keeping the private repository on its current plan. GitHub
 branch protection remains unavailable, so T18 has no mandatory server-side

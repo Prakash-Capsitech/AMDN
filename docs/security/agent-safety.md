@@ -44,9 +44,13 @@ restrictive native filesystem policy wins where active.
 4. Keep human approval for escalation. Do not approve reading denied credentials
    or unrestricted retries merely to make a command succeed. Network-dependent
    restore/publication belongs in a separately reviewed trusted operation.
-5. Test using synthetic files only. The local validation explicitly selected
-   `codex sandbox -P amdn-dev -C <repo> -- <command>`; direct and symlink reads
-   of a fake .env were denied and README was readable.
+5. Test using synthetic files only. Direct parent-session validation explicitly
+   selected `codex sandbox -P amdn-dev -C <repo> -- <command>` twice; both runs
+   denied direct and symlink reads of a fake .env and allowed README access.
+   Nested no-mistakes pipeline probes failed during bubblewrap startup with
+   `loopback: Failed RTM_NEWADDR: Operation not permitted`, before tool execution;
+   they do not establish filesystem enforcement in that context. Native Codex
+   hook trust and new-session activation remain pending human action.
 
 Codex pre-tool errors/timeouts may fail open, and hooks cover only supported tool
 paths. The configured shell wrapper converts script launch failures into an
@@ -70,9 +74,15 @@ Inspect `/hooks`, `/permissions` and `/sandbox` before using sensitive workspace
 The sandbox must be available: it is configured to fail rather than silently run
 without it, and unsandboxed retries are disabled. Linux needs bubblewrap and socat.
 
-Claude Code is not installed on this setup host. JSON syntax and the shared guard
-were tested; native Claude hook and sandbox integration remain unverified. Test
-with fake .env files and a missing-hook failure before relying on these settings.
+Claude Code 2.1.322 is available at `/home/prakash/.local/bin/claude` when the
+pipeline PATH is used. JSON syntax and the shared guard were tested. The nested
+pipeline native probe failed during bubblewrap startup with
+`loopback: Failed RTM_NEWADDR: Operation not permitted`; Claude returned
+`sandbox_required_unavailable` and refused unsandboxed startup before any tool
+execution. This verifies refusal when the required sandbox is unavailable, but
+leaves native hook interception and filesystem enforcement unverified. Test with
+fake .env files and a missing-hook failure on a compatible host before relying on
+these settings. No sandbox restriction or hook-trust requirement was bypassed.
 The sandbox domain list permits package/release retrieval, not arbitrary hosts;
 a permitted destination is still a possible exfiltration route. Do not rely on
 network allowlists to make readable secrets safe.
