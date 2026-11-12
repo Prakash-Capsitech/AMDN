@@ -20,7 +20,9 @@ tenant headers, route fields and job labels cannot establish this context.
 OIDC provider selection and enrollment remain F1 prerequisites, not this draft's
 implementation. Operator provisioning uses a separate platform identity.
 
-Each active user has one primary logical postman and at most one active device.
+Each active user has one primary logical postman and at most one active logical
+device identity. The maintainer selected this server-side invariant without a
+hardware-binding or key non-copyability guarantee in the [E02 review](../security/device-enrollment-review.md).
 An enrollment transaction locks the user's identity version, verifies ownership,
 step-up authentication and proof of key possession, and atomically replaces the
 old device if explicitly requested. The draft's expected identity version detects
@@ -30,7 +32,8 @@ enter the provider. Exact device credential binding and proof formats require E0
 review before enrollment or acknowledgment can be implemented.
 
 Replacement does not recover old ciphertext or move old deliveries to a new key.
-Clients must verify the new binding and create a fresh encryption session. A
+Clients must independently verify the first-contact binding before sending any
+message, and verify each replacement before creating a fresh sending session. A
 directory lookup is an authenticated public-key claim, not independent proof of
 first-contact identity. E01–E06 remain open.
 

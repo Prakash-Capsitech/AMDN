@@ -7,8 +7,9 @@ formally accepted and no production security approval is implied.
 
 ## Scope and security objectives
 
-The Foundation supports one-to-one sealed messages across tenants, one active
-device per user, a provider-operated single-region service, durable offline inboxes
+The Foundation supports one-to-one sealed messages across tenants,
+[logical device identities](device-enrollment-review.md#enrollment-separate-the-proofs),
+a provider-operated single-region service, durable offline inboxes
 and device acknowledgments. AI handlers, attachments, groups, multi-device sync
 and cross-provider federation are excluded. All messaging flows below describe
 the proposed design; see the [repository README](../../README.md) for current
@@ -56,7 +57,7 @@ flowchart LR
 | Boundary | Required enforcement |
 | --- | --- |
 | Device to gateway | TLS, OIDC verification, active membership, envelope size/schema and rate limits; never trust declared sender/tenant |
-| Public-key directory to device | Authenticated identity binding, key-change warnings and a reviewed first-contact/recovery model |
+| Public-key directory to device | Authenticated identity binding under the [E02 verification requirements](device-enrollment-review.md#first-contact-verification); recovery design remains under review |
 | Application to tenant data | Least-privileged non-BYPASSRLS roles, FORCE RLS, transaction-local tenant context; pooled connections reset correctly |
 | Tenant to cross-tenant routing | Narrow capability/interface; separately authorized sender and recipient records; no unrestricted private-history reads |
 | Broker to worker | Broker authentication, constrained subjects, authenticated job provenance and current policy checks |
@@ -76,7 +77,7 @@ likelihood. The evidence column is work to perform, not passing test evidence.
 | T02 | Reused pooled connection carries the previous tenant context | Critical | Transaction-local context and role separation | Concurrent rollback/reuse tests with actual app pool/role; backend |
 | T03 | Worker job injects another tenant or reuses private invocation state | Critical | Revalidate job authority; no persistent private worker context | Forged jobs, concurrent users and restart tests; delivery/security |
 | T04 | Broad routing role reveals both tenants' histories | Critical | Narrow recipient write operation, participant-side records | Privilege matrix and forbidden reads; architecture/database |
-| T05 | Provider swaps keys or serves malicious client code | Critical | Explicit endpoint/key trust, visible key changes, reviewed distribution | First-contact/rekey and client-distribution review; crypto/security |
+| T05 | Provider swaps keys or serves malicious client code | Critical | [E02 verification, replacement and client-distribution requirements](device-enrollment-review.md) | First-contact/rekey and client-distribution review; crypto/security |
 | T06 | Endpoint or browser extension steals private keys/plaintext | Critical | Reviewed client storage and session lifecycle, minimal dependencies | Device-loss and compromise analysis; crypto/client |
 | T07 | Ciphertext or envelope metadata is altered, replayed or misbound | High | Vetted protocol authentication plus bound identities/session metadata | Mutation, replay and wrong-recipient tests; crypto |
 | T08 | Crash during persistence/publication loses an accepted message | High | Atomic outbox, durable storage and idempotent delivery | Crash injection before/after each commit/publication; delivery |
@@ -112,7 +113,7 @@ and the manual procedure. This constraint is not a production risk acceptance.
 
 | ID | Decision/evidence needed | Accountable role | Exit condition |
 | --- | --- | --- | --- |
-| O01 | First-contact key verification, crypto library, client storage and recovery | Crypto/security reviewer not yet nominated | Reviewed F0.3 spike and recorded trust limitations |
+| O01 | [E02 ceremony and recovery design](device-enrollment-review.md#decisions-and-exit-evidence), crypto library and client storage | Crypto/security reviewer not yet nominated | Reviewed F0.3 spike and recorded trust limitations |
 | O02 | OIDC provider, membership lifecycle and administrative privileges | Maintainer/backend | Identity and privilege matrix reviewed in F0.4 |
 | O03 | Cross-tenant routing interface and exact database privileges | Architecture/database reviewer | Forbidden operations enumerated and test design approved |
 | O04 | Review [storage-only ack and proposed transitions](../protocols/delivery.md), revocation and expiry races | Delivery/policy reviewer | Complete state machine and executable failure scenarios |

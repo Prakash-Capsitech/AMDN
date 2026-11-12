@@ -68,6 +68,15 @@ vendor-specific OIDC token format. The provider must issue API access tokens wit
   no later than the skew allowance and earlier than expiry. Missing or ambiguous
   subject claims fail.
 - If present, a single space-delimited OAuth `scope` string with valid scope tokens.
+- Optional `acr` must be a nonempty visible-ASCII string of at most 256 characters.
+  Optional `auth_time` must be a nonnegative integer no later than `iat`. Duplicate
+  top-level payload claim names, including unknown claims and equivalent
+  JSON-escaped names, are rejected before principal projection.
+
+These are strict token-profile rules even when device step-up is disabled:
+malformed optional claims or duplicate claim names fail authentication. Missing
+`acr` or `auth_time` does not invalidate an otherwise valid token for existing
+APIs; the step-up policy separately requires both claims.
 
 Unsigned tokens, symmetric algorithms, unexpected issuers/audiences, expired or
 premature tokens and bearer headers over 16 KiB are rejected. Tokens are accepted
@@ -76,7 +85,7 @@ cookies and request bodies do not establish identity. Test tokens are generated
 only in the test assembly with disposable in-memory keys.
 
 After verification, the request principal retains only `iss`, `sub`, `client_id`
-and optional `scope`. Provider role, tenant, user, postman, device and email claims
+and optional `scope`, `acr` and `auth_time`. Provider role, tenant, user, postman, device and email claims
 are discarded. The external `(issuer, subject)` is input to the verified
 membership lookup; it is not an AMDN tenant/user identity. Scope also does not grant
 object access. Client-credentials tokens may authenticate an external subject;
@@ -96,6 +105,35 @@ Bearer`; no token, claim value or validation exception is returned. Validated
 tokens are not saved in authentication properties. No request-body/token logging
 or debug PII logging is enabled by this adapter.
 
+## Device step-up prerequisite
+
+F1.4 begins with the [E02 trust review](device-enrollment-review.md). An opt-in
+`AmdnDeviceStepUpPrerequisite` policy checks recent authentication evidence from
+the validated access token. It is **not enrollment authorization**: membership,
+current object grants, device possession and messaging-key binding must still be
+checked by the future operation. No production endpoint uses this policy yet;
+enabling it does not enable `/v1/devices`.
+
+`Authentication:DeviceStepUp` defaults disabled. Enabling requires enabled OIDC,
+`AllowedAcrValues` (1–16 distinct, case-sensitive strings using the `acr` format
+above) and `MaximumAgeSeconds` (1–900). Disabled settings require an empty list
+and age zero. Partial or unknown configuration fails startup. Agree values with
+the configured issuer; there is no universal `mfa` level, ACR ordering or
+production default. Environment keys use `__` separators and numbered array
+elements, such as `Authentication__DeviceStepUp__AllowedAcrValues__0`.
+
+The policy requires exact `device.manage` scope, matching signed `acr`, and signed
+`auth_time` between now minus the configured age and now, inclusive. It recomputes
+freshness on every evaluation, adds no token-lifetime skew, and never substitutes
+`iat`, `amr`, headers or query fields. Renewal does not renew authentication.
+Insufficient evidence gives generic 403 on the test probe; malformed claims give
+401. RFC 9470 interactive challenge/re-authentication is not implemented.
+
+This follows the access-token evidence model in [RFC 9470 section 6](https://www.rfc-editor.org/rfc/rfc9470.html#section-6).
+Provider rollout must verify each configured ACR's meaning and that `auth_time`
+represents user authentication rather than token issuance. This code cannot
+independently establish issuer assurance or recover a lost device.
+
 ## Evidence and remaining gates
 
 Run `dotnet test tests/Integration/AMDN.Integration.Tests.csproj -c Release` or
@@ -110,6 +148,9 @@ wrong issuer/audience, time bounds, ID-token confusion, unsigned/symmetric token
 missing or incorrectly typed profile claims, configuration errors, untrusted TLS, unavailable discovery,
 metadata issuer mismatch, key rollover, header/query spoofing and default-deny
 application access. The separate PostgreSQL/JetStream harness remains required.
+Device step-up tests cover signed tokens over HTTP, exact age boundaries,
+freshness after renewal, missing/wrong evidence, malformed and duplicate raw
+claims, startup validation and continued denial of enrollment.
 
 Production provider compatibility/rollout and login sessions remain pending.
 See [identity persistence evidence](identity-persistence.md#evidence-and-remaining-work)

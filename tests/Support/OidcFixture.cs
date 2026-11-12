@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using AMDN.Identity.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -62,7 +63,8 @@ public sealed class OidcFixture : IAsyncLifetime
 
     public void Rotate() => _rotated = true;
 
-    public string Token(Action<Dictionary<string, object>>? change = null, string type = "at+jwt", bool rogue = false)
+    public string Token(Action<Dictionary<string, object>>? change = null, string type = "at+jwt", bool rogue = false,
+        Func<string, string>? rawPayload = null)
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var payload = new Dictionary<string, object>
@@ -82,6 +84,10 @@ public sealed class OidcFixture : IAsyncLifetime
         using var foreign = RSA.Create(2048);
         var key = new RsaSecurityKey(rogue ? foreign : _rotated ? _rotatedKey : _signingKey)
         { KeyId = rogue ? "rogue" : _rotated ? "rotated" : "initial" };
+        if (rawPayload is not null)
+            return new JsonWebTokenHandler { SetDefaultTimesOnTokenCreation = false }.CreateToken(
+                rawPayload(JsonSerializer.Serialize(payload)), new SigningCredentials(key, SecurityAlgorithms.RsaSha256),
+                new Dictionary<string, object> { ["typ"] = type });
         return new JsonWebTokenHandler { SetDefaultTimesOnTokenCreation = false }.CreateToken(new SecurityTokenDescriptor
         {
             Claims = payload,
@@ -90,8 +96,9 @@ public sealed class OidcFixture : IAsyncLifetime
         });
     }
 
-    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, Action<IServiceCollection>? configure = null) =>
-        Application<Program>(null, false, enabled, trustCertificate, issuer, services =>
+    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null,
+        Action<IServiceCollection>? configure = null, Dictionary<string, string?>? settings = null) =>
+        Application<Program>(settings, false, enabled, trustCertificate, issuer, services =>
         {
             services.AddSingleton<IStartupFilter, ProbeEndpoints>();
             configure?.Invoke(services);
@@ -158,7 +165,7 @@ public sealed class OidcFixture : IAsyncLifetime
         _rotatedKey.Dispose();
     }
 
-    // These routes exist only in the test assembly. Production Gateway exposes no identity API yet.
+    // These routes exist only in the test assembly, never the deployed Gateway.
     private sealed class ProbeEndpoints : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
@@ -174,6 +181,7 @@ public sealed class OidcFixture : IAsyncLifetime
                         context.User.Claims.ToDictionary(claim => claim.Type, claim => claim.Value)))
                         .RequireAuthorization(IdentityAuthentication.TokenValidatedPolicy);
                     endpoints.MapGet("/default", () => Results.NoContent()).RequireAuthorization();
+                    endpoints.MapGet("/device-step-up", () => Results.NoContent()).RequireAuthorization(DeviceStepUp.Policy);
                     endpoints.MapGet("/fallback", () => Results.NoContent());
                 });
             });

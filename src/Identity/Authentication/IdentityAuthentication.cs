@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -25,6 +26,13 @@ public static class IdentityAuthentication
             .Bind(configuration.GetSection(OidcSettings.Section), options => options.ErrorOnUnknownConfiguration = true)
             .Validate(settings => settings.IsValid(), "OIDC requires Enabled, an HTTPS issuer without userinfo/query/fragment, and an explicit audience; omit all settings to disable.")
             .ValidateOnStart();
+        services.AddOptions<DeviceStepUpSettings>()
+            .Bind(configuration.GetSection(DeviceStepUpSettings.Section), options => options.ErrorOnUnknownConfiguration = true)
+            .Validate<IOptions<OidcSettings>>((settings, oidc) => settings.IsValid(settings.Enabled && oidc.Value.Enabled),
+                "Device step-up requires enabled OIDC, explicit unique ACR values and a maximum age of 1–900 seconds; omit all settings to disable.")
+            .ValidateOnStart();
+        services.TryAddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<DeviceStepUp>();
         services.AddAuthentication(Scheme).AddJwtBearer(Scheme, _ => { });
         services.AddOptions<JwtBearerOptions>(Scheme).Configure<IOptions<OidcSettings>>(ConfigureBearer);
         services.AddAuthorization(options =>
@@ -37,6 +45,10 @@ public static class IdentityAuthentication
             options.FallbackPolicy = deny;
             options.AddPolicy(TokenValidatedPolicy, new AuthorizationPolicyBuilder(Scheme)
                 .RequireAuthenticatedUser().Build());
+            options.AddPolicy(DeviceStepUp.Policy, new AuthorizationPolicyBuilder(Scheme)
+                .RequireAuthenticatedUser().RequireAssertion(context =>
+                    context.Resource is HttpContext http
+                    && http.RequestServices.GetRequiredService<DeviceStepUp>().SatisfiedBy(context.User)).Build());
         });
         return services;
     }
@@ -118,6 +130,8 @@ public static class IdentityAuthentication
                 // local authority. F1.2 must resolve (issuer, subject) to membership.
                 var claims = new List<Claim> { new("iss", issuer), new("sub", subject), new("client_id", client) };
                 if (scopes.Length == 1) claims.Add(new Claim("scope", scopes[0].Value));
+                foreach (var name in new[] { "acr", "auth_time" })
+                    if (Single(principal, name) is { } value) claims.Add(new Claim(name, value));
                 context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme));
             },
             OnChallenge = async context =>
@@ -136,6 +150,8 @@ public static class IdentityAuthentication
         // and single-element arrays). Check the signed payload's profile types too.
         using var document = JsonDocument.Parse(Base64UrlEncoder.DecodeBytes(token.EncodedPayload));
         var payload = document.RootElement;
+        var names = payload.EnumerateObject().Select(property => property.Name).ToArray();
+        if (names.Distinct(StringComparer.Ordinal).Count() != names.Length) return false;
         if (!payload.TryGetProperty("aud", out var audience)
             || (audience.ValueKind != JsonValueKind.String
                 && (audience.ValueKind != JsonValueKind.Array || audience.GetArrayLength() == 0
@@ -146,6 +162,11 @@ public static class IdentityAuthentication
             if (!payload.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out _)) return false;
         if (payload.TryGetProperty("nbf", out var notBefore)
             && (notBefore.ValueKind != JsonValueKind.Number || !notBefore.TryGetInt64(out _))) return false;
+        if (payload.TryGetProperty("acr", out var acr)
+            && (acr.ValueKind != JsonValueKind.String || !DeviceStepUpSettings.ValidAcr(acr.GetString()!))) return false;
+        if (payload.TryGetProperty("auth_time", out var authTime)
+            && (authTime.ValueKind != JsonValueKind.Number || !authTime.TryGetInt64(out var authenticatedAt)
+                || authenticatedAt < 0 || authenticatedAt > payload.GetProperty("iat").GetInt64())) return false;
         return !payload.TryGetProperty("scope", out var scope) || scope.ValueKind == JsonValueKind.String;
     }
 
