@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <EmbeddedResource Include="Identity/Migrations/001_identity.sql" LogicalName="Identity.001.sql" />
+    <EmbeddedResource Include="Identity/Migrations/002_access.sql" LogicalName="Identity.002.sql" />
     <ProjectReference Include="../Identity/AMDN.Identity.csproj" />
     <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
     <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />

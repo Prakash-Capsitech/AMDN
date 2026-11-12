@@ -53,7 +53,7 @@ class HttpContractTests(unittest.TestCase):
         expected = {
             "provisionTenant", "registerDevice", "resolveDirectory", "submitMessage",
             "getMessageStatus", "getInbox", "acknowledgeDelivery", "getPostman",
-            "updatePostmanPolicy", "getPostmanAudit",
+            "updatePostmanPolicy", "getPostmanAudit", "provisionMembership",
         }
         operations = [op for path in SPEC["paths"].values() for op in path.values()]
         self.assertEqual(expected, {op["operationId"] for op in operations})

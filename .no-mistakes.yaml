@@ -44,7 +44,12 @@ test:
     For F1.2 run make harness-test: actual identity migrations, separate runtime and
     provisioning roles, registration, RLS/pool reuse, revocation and a test-only
     authenticated HTTP probe supplement the delivery fixtures. Public owner and
-    provisioning APIs remain F1.3 work; do not mark P01-P03 or N01/N02 complete.
+    provisioning APIs are implemented by F1.3; do not mark P01-P03 or N01/N02 complete.
+    For F1.3 run make harness-test through both real HTTPS API hosts. Check separate
+    credentials, scope plus current grants, explicit verified tenant selection,
+    exact-byte replay, quotas, atomic audit rollback and malformed/foreign requests.
+    APIs default disabled; configure synthetic roles, budgets and disposable TLS
+    only in the harness. Do not create production platform grants or credentials.
 
 pr:
   base_branch: main

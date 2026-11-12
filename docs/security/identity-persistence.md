@@ -1,8 +1,8 @@
 # Tenant membership and personal postman persistence
 
-F1.2 adds the application identity schema and persistence library. The Gateway
-still exposes no tenant, provisioning or postman API. F1.3 must add audited
-provisioning and operation authorization before exposing this library to callers.
+F1.2 adds the application identity schema and persistence library.
+[F1.3](provisioning-owner-access.md) adds the opt-in owner API and separate audited
+provisioning service. This guide describes the lower-level storage boundary.
 Do not use the authentication-only policy as permission to access tenant data.
 
 ## Identity and lifecycle
@@ -20,14 +20,14 @@ lock serializes this low-volume provisioning path. Registration never silently
 reactivates suspended or revoked records. IDs and external identity bindings are
 immutable; status changes increment user identity, membership or postman policy
 versions. Revocation is terminal. Suspension can be reversed by the separately
-trusted provisioner; audited lifecycle APIs are F1.3 work, not deployed features.
+trusted provisioner; audited lifecycle APIs remain future work, not deployed features.
 
 `PersonalPostmanStore.ReadAsync` accepts the principal produced by F1.1's token
 validation. It rejects missing, duplicate, malformed or foreign-scheme subjects,
 then looks up current active tenant, user, membership and postman rows. No identity
 is auto-created on a read. Multiple memberships without selection fail closed.
 A selected tenant only filters memberships already bound to the verified subject;
-knowing a tenant UUID is insufficient. UI/API membership selection is still F1.3.
+knowing a tenant UUID is insufficient. F1.3 exposes explicit per-request selection through the verified owner-read API.
 
 Lookup takes shared row locks through the transaction so concurrent lifecycle
 updates serialize with the read. This is a current-state snapshot, not a reusable
@@ -39,11 +39,11 @@ own scopes, object grants and revocation conditions.
 | Role | Authority |
 | --- | --- |
 | `amdn_identity_owner` | Non-login schema/migration owner; trusted definer functions |
-| `amdn_identity_runtime` | Non-login group: scoped SELECT and narrow membership resolution only |
+| `amdn_identity_runtime` | Non-login group: scoped SELECT, narrow membership resolution and owner-grant checks |
 | `amdn_identity_provisioner` | Non-login group: trusted cross-tenant SELECT/INSERT and status updates; no ID rebinding, delete, truncate or DDL |
 
-All four identity tables have enabled and forced RLS. The owner and provisioner
-have explicit policies for their privileged work; neither role is superuser or
+The identity data and access-control tables have enabled and forced RLS. The owner
+and provisioner have explicit policies for their privileged work; neither role is superuser or
 BYPASSRLS. Runtime policies require transaction-local tenant, user, issuer and
 subject values consistent with an active database membership. Missing, partial or
 mismatched context returns no rows. Runtime cannot assume owner/provisioner roles.
@@ -51,7 +51,9 @@ mismatched context returns no rows. Runtime cannot assume owner/provisioner role
 The narrow `resolve_membership` security-definer function bridges an authenticated
 external subject to local IDs before RLS context exists. It uses fixed SQL, a pinned
 search path, no public execute grant, active-state checks and at most two results.
-The RLS helper likewise has a pinned search path and explicit execute grants.
+The RLS helper and owner-grant function likewise have pinned search paths and
+explicit execute grants. See the [owner-grant boundary](provisioning-owner-access.md#atomic-provisioning-grants-and-audit)
+for the additional authorization required by owner reads.
 The owner policy prevents recursion while the helper examines membership.
 
 **The service process and runtime credential are a trust boundary.** A caller
@@ -83,11 +85,11 @@ string or secret is supplied by this repository.
 
 A trusted deployment host explicitly invokes `IdentityMigrations.ApplyAsync` with
 the migration connection string. It takes an advisory transaction lock, assumes the
-owner locally, and applies embedded migration 001 plus a SHA-256 ledger entry in
-one transaction. Reapplying the same version is a no-op; a changed applied checksum
+owner locally, and applies each pending embedded migration plus SHA-256 ledger entries in
+one transaction. F1.3 adds migration 002; applied migration 001 is unchanged. Reapplying the same version is a no-op; a changed applied checksum
 fails. Later schema changes need new versioned migrations, not edits to applied SQL.
-There is no automatic Gateway migration, provisioner registration, deployment CLI
-or production rollout in this slice.
+There is no automatic Gateway migration or deployment CLI. F1.3 adds explicit
+provisioning APIs; production rollout remains pending.
 
 The disposable harness creates all three separate logins with generated secrets,
 bootstraps group membership, and invokes this same migration code before tests.

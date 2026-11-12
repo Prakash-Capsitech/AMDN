@@ -90,9 +90,17 @@ public sealed class OidcFixture : IAsyncLifetime
         });
     }
 
-    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, Action<IServiceCollection>? configure = null)
+    public WebApplicationFactory<Program> Gateway(bool enabled = true, bool trustCertificate = true, string? issuer = null, Action<IServiceCollection>? configure = null) =>
+        Application<Program>(null, false, enabled, trustCertificate, issuer, services =>
+        {
+            services.AddSingleton<IStartupFilter, ProbeEndpoints>();
+            configure?.Invoke(services);
+        });
+
+    public WebApplicationFactory<T> Application<T>(Dictionary<string, string?>? settings = null, bool https = true,
+        bool enabled = true, bool trustCertificate = true, string? issuer = null, Action<IServiceCollection>? configure = null) where T : class
     {
-        var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        var factory = new WebApplicationFactory<T>().WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -100,10 +108,10 @@ public sealed class OidcFixture : IAsyncLifetime
                 ["Authentication:Oidc:Issuer"] = issuer ?? (enabled ? Issuer : ""),
                 ["Authentication:Oidc:Audience"] = enabled ? Audience : ""
             }));
+            if (settings is not null) builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(settings));
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureServices(services =>
             {
-                services.AddSingleton<IStartupFilter, ProbeEndpoints>();
                 configure?.Invoke(services);
                 if (trustCertificate)
                 {
@@ -125,8 +133,20 @@ public sealed class OidcFixture : IAsyncLifetime
                 }
             });
         });
-        factory.UseKestrel(options => options.Listen(IPAddress.Loopback, 0));
+        factory.UseKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => { if (https) listen.UseHttps(_certificate); }));
         return factory;
+    }
+
+    public HttpClient Client<T>(WebApplicationFactory<T> factory) where T : class
+    {
+        using var defaultClient = factory.CreateClient();
+        return new HttpClient(new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            ServerCertificateCustomValidationCallback = (_, certificate, _, _) =>
+                certificate is not null && certificate.RawData.AsSpan().SequenceEqual(_certificate.RawData)
+        })
+        { BaseAddress = defaultClient.BaseAddress };
     }
 
     public async Task DisposeAsync()

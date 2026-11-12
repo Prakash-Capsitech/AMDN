@@ -19,20 +19,25 @@ public static class IdentityMigrations
             CREATE TABLE IF NOT EXISTS amdn_identity.schema_migrations (version integer PRIMARY KEY, checksum text NOT NULL);
             """, connection, transaction);
         await setup.ExecuteNonQueryAsync(cancellationToken);
-        using var reader = new StreamReader(typeof(IdentityMigrations).Assembly.GetManifestResourceStream("Identity.001.sql")!);
-        var sql = await reader.ReadToEndAsync(cancellationToken);
-        var checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(sql)));
-        await using var version = new NpgsqlCommand("SELECT checksum FROM amdn_identity.schema_migrations WHERE version=1", connection, transaction);
-        var previous = await version.ExecuteScalarAsync(cancellationToken);
-        if (previous is not null && !string.Equals((string)previous, checksum, StringComparison.Ordinal))
-            throw new InvalidOperationException("Identity migration checksum mismatch; applied migrations must not be edited.");
-        if (previous is null)
+        for (var number = 1; number <= 2; number++)
         {
-            await using var migration = new NpgsqlCommand(sql, connection, transaction);
-            await migration.ExecuteNonQueryAsync(cancellationToken);
-            await using var record = new NpgsqlCommand("INSERT INTO amdn_identity.schema_migrations VALUES (1,@checksum)", connection, transaction);
-            record.Parameters.AddWithValue("checksum", checksum);
-            await record.ExecuteNonQueryAsync(cancellationToken);
+            using var reader = new StreamReader(typeof(IdentityMigrations).Assembly.GetManifestResourceStream($"Identity.{number:000}.sql")!);
+            var sql = await reader.ReadToEndAsync(cancellationToken);
+            var checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(sql)));
+            await using var version = new NpgsqlCommand("SELECT checksum FROM amdn_identity.schema_migrations WHERE version=@version", connection, transaction);
+            version.Parameters.AddWithValue("version", number);
+            var previous = await version.ExecuteScalarAsync(cancellationToken);
+            if (previous is not null && !string.Equals((string)previous, checksum, StringComparison.Ordinal))
+                throw new InvalidOperationException("Identity migration checksum mismatch; applied migrations must not be edited.");
+            if (previous is null)
+            {
+                await using var migration = new NpgsqlCommand(sql, connection, transaction);
+                await migration.ExecuteNonQueryAsync(cancellationToken);
+                await using var record = new NpgsqlCommand("INSERT INTO amdn_identity.schema_migrations VALUES (@version,@checksum)", connection, transaction);
+                record.Parameters.AddWithValue("version", number);
+                record.Parameters.AddWithValue("checksum", checksum);
+                await record.ExecuteNonQueryAsync(cancellationToken);
+            }
         }
         await transaction.CommitAsync(cancellationToken);
     }

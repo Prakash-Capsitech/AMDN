@@ -23,7 +23,10 @@ flowchart LR
   X --> G
 ```
 
-The API modules share one deployable process. The worker host is separate.
+The ordinary API modules share the Gateway process. Operator provisioning runs
+in a separate process with separate credentials; see the
+[provisioning boundary](../security/provisioning-owner-access.md#service-boundaries-and-requests).
+The worker host is also separate.
 Contracts may be shared; modules do not expose unrestricted database queries.
 Infrastructure supplies adapters. The source dependency graph deliberately keeps
 Identity, Postman and Messaging dependent only on Contracts until interfaces are

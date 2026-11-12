@@ -1,7 +1,7 @@
 # F0.4 HTTP and envelope draft
 
 Status: Proposed, version `0.1.0-draft`. The [OpenAPI 3.1.1 description](openapi.json)
-covers the ten blueprint endpoints. See the [repository README](../../README.md)
+covers the ten blueprint endpoints and the F1.3 platform membership extension. See the [repository README](../../README.md)
 for current implementation status.
 
 The source JSON is the schema authority for this draft. The
@@ -11,13 +11,19 @@ cannot enforce. Validate with `make contracts-restore contracts-test` using Pyth
 3.12 and the hash-locked development dependencies in tests/Contracts. CI runs
 these checks in `make verify`; no production dependency is added.
 
+The [F1.3 guide](../security/provisioning-owner-access.md) documents the implemented
+provisioning and owner-read subset, including its stricter 16 KiB command bound,
+separate operator host and explicit verified tenant selection. Other operations
+remain proposed and unimplemented.
+
 ## Common contract
 
-Require HTTPS and a validated access token. Derive tenant/user/postman from a
-verified active membership and device from the authenticated device binding.
-Never use the submitted body to establish identity. An ordinary member cannot
-invoke platform tenant provisioning. Object checks and per-operation scopes are
-listed in OpenAPI; a bearer scheme declaration does not enforce any of them.
+Require HTTPS and a validated access token. Derive tenant/user/postman for tenant
+operations from a verified active membership and device from the authenticated
+device binding. Never use the submitted body to establish the caller's identity.
+Platform provisioning uses the separate authority described in the
+[authorization matrix](authorization.md). Object checks and per-operation scopes
+are listed in OpenAPI; a bearer scheme declaration does not enforce any of them.
 
 Requests are strict UTF-8 JSON with no duplicate object keys or unknown fields;
 reject compressed command bodies in this draft. IDs use canonical lowercase UUID
@@ -40,14 +46,17 @@ cannot access, tokens, ciphertext and internal exception text. Missing and hidde
 resources share 404 `not_found`. Authentication failures use 401 plus
 WWW-Authenticate; authorized callers may receive generic 403 `forbidden` for a
 disallowed action. 409 signals conflicting idempotency/state/key snapshots, 410
-an expired cursor, 412 a stale policy precondition, 413 a size bound, 429 a quota,
+an expired cursor, 412 a stale policy precondition, 413 a size bound, 415 an
+unsupported media type or content encoding, 429 a quota,
 and 503 transient inability to accept. Retry-After accompanies 429/503.
 
 ## Commands and replay
 
-Provision tenant, register device and submit message require Idempotency-Key.
-Scope the key to authenticated tenant/actor/operation (platform actor for tenant
-provisioning). Compute the request digest over the exact decompressed-free UTF-8
+Commands marked with the required Idempotency-Key parameter in [OpenAPI](openapi.json)
+use the replay contract below. See the [F1.3 provisioning contract](../security/provisioning-owner-access.md#atomic-provisioning-grants-and-audit)
+for platform actor scoping and target-tenant binding.
+Scope other command keys to authenticated tenant/actor/operation.
+Compute the request digest over the exact decompressed-free UTF-8
 JSON bytes and operation, not a client-supplied digest. No JSON canonicalization
 scheme is selected for crypto here. Clients retry identical bytes with the same
 key; any byte difference with that key returns 409. Reserve key, effect and result
@@ -106,7 +115,9 @@ No architecture approval, production encryption selection or F0 completion is
 recorded by these artifacts. [N01/N02](../security/agent-safety.md#pending-native-checks)
 remain pending. The [F0.5 harness](../../tests/Harness/README.md#evidence-and-scope)
 records fixture evidence and the remaining production integration requirements;
-it does not validate these HTTP contracts against an application implementation.
+F1.3 additionally validates the implemented provisioning/owner-read subset against
+actual application hosts, while the remaining contracts and acceptance gates stay
+pending.
 
 References: [OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html),
 [JSON Schema 2020-12](https://json-schema.org/draft/2020-12),

@@ -619,6 +619,12 @@
         "dependencies": {
           "AMDN.Contracts": "[1.0.0, )"
         }
+      },
+      "amdn.provisioning": {
+        "type": "Project",
+        "dependencies": {
+          "AMDN.Infrastructure": "[1.0.0, )"
+        }
       }
     }
   }

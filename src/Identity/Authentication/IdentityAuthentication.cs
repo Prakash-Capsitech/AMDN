@@ -124,9 +124,9 @@ public static class IdentityAuthentication
             {
                 context.HandleResponse();
                 context.Response.Headers.WWWAuthenticate = "Bearer";
-                await Problem(context.HttpContext, StatusCodes.Status401Unauthorized, "unauthenticated");
+                await IdentityProblem.Create(context.HttpContext, StatusCodes.Status401Unauthorized).ExecuteAsync(context.HttpContext);
             },
-            OnForbidden = context => Problem(context.HttpContext, StatusCodes.Status403Forbidden, "forbidden")
+            OnForbidden = context => IdentityProblem.Create(context.HttpContext, StatusCodes.Status403Forbidden).ExecuteAsync(context.HttpContext)
         };
     }
 
@@ -158,9 +158,4 @@ public static class IdentityAuthentication
     private static bool ValidScope(string scope) => scope.Length > 0 && scope.Split(' ').All(value =>
         value.Length > 0 && value.All(character => character == 0x21 || character is >= (char)0x23 and <= (char)0x5b
             || character is >= (char)0x5d and <= (char)0x7e));
-
-    private static Task Problem(HttpContext context, int status, string code) => Results.Problem(
-        statusCode: status, title: code,
-        extensions: new Dictionary<string, object?> { ["code"] = code, ["request_id"] = context.TraceIdentifier })
-        .ExecuteAsync(context);
 }
