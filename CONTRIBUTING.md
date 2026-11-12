@@ -63,6 +63,12 @@ and deletion, and require conversations to be resolved. Private-repository branc
 protection depends on GitHub account entitlements; verify the actual server setting
 rather than claiming the workflow files alone enforce it.
 
+Setup result on 12 November 2026: GitHub returned HTTP 403 when enabling main
+protection for this private repository, requiring GitHub Pro or public visibility.
+The repository remains private. CI and local hooks are configured, but required
+checks and PR-only merging are not enforced by GitHub until an eligible plan is
+available and a maintainer enables protection.
+
 The setup follows kunchenguid's [shared agent guidance](https://github.com/kunchenguid/dotfiles/blob/main/home/AGENTS.md),
 [CLAUDE import](https://github.com/kunchenguid/no-mistakes/blob/v1.106.1/CLAUDE.md),
 and [PR enforcement action](https://github.com/kunchenguid/no-mistakes/tree/v1.106.1/.github/actions/require-no-mistakes).
