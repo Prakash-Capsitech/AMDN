@@ -11,7 +11,7 @@
     "spike": "node run-spike.mjs"
   },
   "dependencies": {
-    "@noble/curves": "2.0.1",
+    "@noble/curves": "2.4.0",
     "ts-mls": "1.6.4"
   }
 }
