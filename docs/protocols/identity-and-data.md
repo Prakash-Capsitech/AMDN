@@ -36,7 +36,9 @@ first-contact identity. E01–E06 remain open.
 
 ## Logical schema and ownership
 
-This is a constraint inventory for the future PostgreSQL migration. `T` denotes
+This is a proposed constraint inventory, not a description of the implemented schema.
+See the [identity persistence guide](../security/identity-persistence.md) for the
+implemented subset and its migration. `T` denotes
 the owning tenant; participant records have their own tenant context. Every
 tenant-owned reference uses a composite tenant key, not a bare cross-tenant FK.
 Lifecycle/event timestamps are server-assigned. Submitted message timestamps
@@ -90,8 +92,8 @@ Every ordinary transaction uses a non-owner, non-superuser, non-BYPASSRLS role
 with FORCE RLS and transaction-local context established by trusted code. Context
 values alone are not credentials. The router interface must not confer arbitrary
 tenant switching to general application callers. Migration/backup identities are
-separate. Exact SQL roles, policy predicates and narrow-function implementation
-remain A03/F0.5 work; this document is not evidence that RLS is active.
+separate. Routing SQL roles, policy predicates and narrow-function implementation
+remain A03/F0.5 work; this proposed model is not runtime RLS evidence.
 
 Retention must preserve idempotency and processed-event records through the
 maximum retry/redelivery window. A06 must set these windows before cleanup can be

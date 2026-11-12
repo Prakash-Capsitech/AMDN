@@ -4,7 +4,8 @@ F1.1 adds a resource-server authentication adapter using ASP.NET Core's JWT bear
 handler. It retrieves discovery metadata and public signing keys from one
 configured HTTPS issuer. It issues no tokens, stores no private keys and requires
 no provider client secret. Client login (authorization code with PKCE), provider
-selection/rollout and tenant membership remain later F1 work.
+selection/rollout remain later F1 work. Membership resolution is covered by the
+[identity persistence guide](identity-persistence.md).
 
 ## Configuration
 
@@ -76,7 +77,7 @@ only in the test assembly with disposable in-memory keys.
 
 After verification, the request principal retains only `iss`, `sub`, `client_id`
 and optional `scope`. Provider role, tenant, user, postman, device and email claims
-are discarded. The external `(issuer, subject)` is input to a future verified
+are discarded. The external `(issuer, subject)` is input to the verified
 membership lookup; it is not an AMDN tenant/user identity. Scope also does not grant
 object access. Client-credentials tokens may authenticate an external subject;
 that does not make the subject an enrolled human or platform provisioner.
@@ -84,8 +85,8 @@ that does not make the subject an enrolled human or platform provisioner.
 `AmdnTokenValidated` is an authentication-only policy for an explicit caller check.
 It must not authorize data or commands. Default/fallback policies deny application
 access even with a valid token, so a new mapped endpoint or bare
-`RequireAuthorization()` cannot accidentally expose tenant data. F1.2/F1.3 must
-add current membership and operation-specific authorization. The Gateway exposes
+`RequireAuthorization()` cannot accidentally expose tenant data. F1.3 must wire
+current membership and operation-specific authorization into the API. The Gateway exposes
 only `/health/live` and a public 404 fallback; no test probe or identity API is shipped.
 
 Failures return generic 401/403 Problem Details. A 401 includes `WWW-Authenticate:
@@ -108,8 +109,9 @@ missing or incorrectly typed profile claims, configuration errors, untrusted TLS
 metadata issuer mismatch, key rollover, header/query spoofing and default-deny
 application access. The separate PostgreSQL/JetStream harness remains required.
 
-Production provider compatibility/rollout, login sessions, current membership and
-device revocation, application SQL roles/pooling and worker integration are pending.
+Production provider compatibility/rollout and login sessions remain pending.
+See [identity persistence evidence](identity-persistence.md#evidence-and-remaining-work)
+for membership coverage and its integration limits.
 [Native N01/N02](agent-safety.md#pending-native-checks) and
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) stay pending.
 F0 Proposed ADRs and A01–A07/E01–E06 reviews are not approved by these tests.

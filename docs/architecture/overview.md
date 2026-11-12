@@ -27,7 +27,8 @@ The API modules share one deployable process. The worker host is separate.
 Contracts may be shared; modules do not expose unrestricted database queries.
 Infrastructure supplies adapters. The source dependency graph deliberately keeps
 Identity, Postman and Messaging dependent only on Contracts until interfaces are
-reviewed. The scaffold contains no database or broker adapters yet.
+reviewed. See the [identity persistence boundary](../security/identity-persistence.md)
+for the implemented database adapter and its credential trust assumptions.
 
 ## Trust boundaries
 

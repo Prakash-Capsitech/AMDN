@@ -64,8 +64,8 @@ HTTP test traverses real JWT validation before the actual persistence adapter.
 
 `IdentityDatabase` creates bounded Npgsql pools with reset-on-close, no multiplexing
 or ambient transaction enlistment, and no parameter/error-detail logging. Each new
-physical connection checks group membership, dangerous role attributes and schema
-ownership; a runtime pool rejects provisioning/migration credentials. Transactions
+physical connection checks group membership, dangerous role attributes and relation
+ownership within the identity schema; a runtime pool rejects provisioning/migration credentials. Transactions
 set context locally, and disposal rolls back on denial, exceptions or cancellation.
 Credential rotation or database privilege changes require pool replacement. Grant
 management remains an administrator trust boundary, not continuous drift detection.
