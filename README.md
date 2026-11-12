@@ -13,13 +13,14 @@ Chrome; it is not an application encryption adapter.
 
 ## Start locally
 
-Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3,
+Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3.12 with venv support,
 Git and GNU Make. Chrome is needed for the separate browser smoke check.
 GitHub CLI and no-mistakes are needed to submit changes, not to build.
 
 ```sh
 make setup
 make crypto-restore
+make contracts-restore
 make verify
 dotnet run --project src/Gateway --no-launch-profile --urls http://127.0.0.1:5080
 # In another terminal:
@@ -48,6 +49,9 @@ It has no delivery handlers yet.
 
 Start with the [ADR register](docs/adr/README.md),
 [architecture](docs/architecture/overview.md), and [F0 backlog](docs/plan/f0.md).
+The [F0.4 contract draft](docs/protocols/README.md) adds identity, authorization,
+OpenAPI and delivery-state proposals with executable consistency checks. It does
+not expose new Gateway endpoints or close the architecture/crypto review gates.
 The original [implementation plan](AMDN_Foundation_Phase_Implementation_Plan.docx)
 is retained unchanged. [Source mapping](docs/plan/source-map.md) distinguishes
 blueprint decisions from repository setup choices.

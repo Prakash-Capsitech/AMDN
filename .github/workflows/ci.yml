@@ -25,5 +25,6 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - run: make crypto-restore
+      - run: make contracts-restore
       - run: make verify
       - run: make crypto-browser

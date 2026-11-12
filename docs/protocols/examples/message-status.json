@@ -1,0 +1,9 @@
+{
+  "envelope_id": "00000000-0000-4000-8000-000000000005",
+  "state": "DEVICE_ACKED",
+  "state_version": 4,
+  "accepted_at": "2026-11-12T10:00:01Z",
+  "updated_at": "2026-11-12T10:01:00Z",
+  "delivered": true,
+  "reason": "none"
+}

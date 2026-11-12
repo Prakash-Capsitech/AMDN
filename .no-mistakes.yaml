@@ -1,7 +1,7 @@
 agent: codex
 
 commands:
-  prepare: "dotnet restore AMDN.sln --locked-mode && make crypto-restore"
+  prepare: "dotnet restore AMDN.sln --locked-mode && make crypto-restore && make contracts-restore"
   lint: "make lint"
   format: "dotnet format AMDN.sln --no-restore"
 
@@ -28,6 +28,8 @@ test:
     For F0.3, also run make crypto-test and make crypto-spike with Node from .nvmrc.
     The experiment uses only disposable synthetic data; never log client state.
     Native agent hook/sandbox validation remains separately pending per agent-safety.md.
+    For F0.4, make contracts-test validates proposed OpenAPI, examples and transition
+    graph invariants only. It does not prove live authorization, persistence or races.
 
 pr:
   base_branch: main

@@ -115,7 +115,7 @@ and the manual procedure. This constraint is not a production risk acceptance.
 | O01 | First-contact key verification, crypto library, client storage and recovery | Crypto/security reviewer not yet nominated | Reviewed F0.3 spike and recorded trust limitations |
 | O02 | OIDC provider, membership lifecycle and administrative privileges | Maintainer/backend | Identity and privilege matrix reviewed in F0.4 |
 | O03 | Cross-tenant routing interface and exact database privileges | Architecture/database reviewer | Forbidden operations enumerated and test design approved |
-| O04 | Ack meaning, legal transitions, revocation and expiry races | Delivery/policy reviewer | Complete state machine and executable failure scenarios |
+| O04 | Review [storage-only ack and proposed transitions](../protocols/delivery.md), revocation and expiry races | Delivery/policy reviewer | Complete state machine and executable failure scenarios |
 | O05 | Retention, quotas, abuse controls, audit access and recovery targets | Maintainer/platform | Written values/owners and F0.5 test plan |
 | O06 | Independent reviewer, agent credential separation and enforced merge control | Maintainer | Real separation verified or a deliberate recorded limitation; no autonomous merge |
 

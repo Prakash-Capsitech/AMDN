@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test
 
 setup:
 	bash scripts/install-hooks.sh
@@ -14,6 +14,7 @@ test: build
 	dotnet test AMDN.sln --no-build --configuration Release
 	python3 -m unittest discover -s tests/Repository -v
 	$(MAKE) crypto-test
+	$(MAKE) contracts-test
 
 lint: restore
 	dotnet format AMDN.sln --verify-no-changes --no-restore
@@ -45,3 +46,10 @@ crypto-spike:
 
 crypto-browser:
 	python3 clients/crypto/browser-smoke.py
+
+contracts-restore:
+	python3 -m venv .tools/contracts
+	.tools/contracts/bin/python -m pip install --require-hashes --only-binary=:all: -r tests/Contracts/requirements.txt
+
+contracts-test:
+	.tools/contracts/bin/python -m unittest discover -s tests/Contracts -v

@@ -23,6 +23,11 @@ State transitions need conditional atomic updates; late events cannot regress su
 
 ## Acceptance evidence and open questions
 
-Finalize legal transitions, rejection/expiry/failure reasons and expiry-versus-ack races. Specify whether device acknowledgment follows local persistence or successful decryption; it is not yet decided. Define cursor retention, sequence allocation and duplicate acknowledgment behavior.
+The maintainer selected durable sealed-record storage on the authorized device as
+the acknowledgment meaning on 12 November 2026; decryption is separate, and this
+does not mean read. The [F0.4 delivery draft](../protocols/delivery.md) specifies
+proposed transitions, duplicate handling and expiry races. Review those details
+and define cursor retention/commit ordering before implementation. This scoped
+product decision does not accept the ADR or establish runtime evidence.
 
 Approval: Not recorded. Record reviewer, date and evidence before changing status.
