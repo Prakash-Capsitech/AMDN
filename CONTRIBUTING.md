@@ -7,6 +7,15 @@ versioned hooks and restores locked dependencies. `make verify` builds, runs the
 bootstrap HTTP, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 
+Run `make harness-test` separately before submission on Linux with local Docker
+Engine and Compose v2. It restores the locked standalone test project, verifies
+its C# formatting, runs real PostgreSQL/JetStream fixtures, and cleans up its own
+containers and volumes even on test failure. See the [harness guide](tests/Harness/README.md)
+for evidence, cleanup recovery and production-integration limitations. Docker is
+not required by `make verify`, but the separate hosted harness job must pass.
+For harness dependency changes regenerate its lock file with
+`dotnet restore tests/Harness/AMDN.Harness.Tests.csproj --force-evaluate`.
+
 Package changes must regenerate and commit packages.lock.json files with
 `dotnet restore AMDN.sln --force-evaluate`; `make build` uses locked restore.
 

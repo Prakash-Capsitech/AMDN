@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:18.6-bookworm@sha256:f1ea2a1a4fb7b68d4836be1fdcb8a6466a89b072158bf9d97663600538c294c5
+    environment:
+      POSTGRES_DB: amdn_harness
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    secrets: [postgres_password]
+    ports: ["127.0.0.1::5432"]
+    volumes: ["postgres_data:/var/lib/postgresql"]
+    labels:
+      amdn.harness.run: ${HARNESS_RUN_ID:?runner required}
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d amdn_harness"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+    mem_limit: 512m
+    pids_limit: 128
+  nats:
+    image: nats:2.15.3-alpine@sha256:558394a23dd3c36f2d3a64b51865fd09908010e80a542cea5e75c2af543ed62a
+    command: ["--config", "/etc/nats/harness.conf"]
+    ports: ["127.0.0.1::4222"]
+    volumes:
+      - nats_data:/data
+      - ${HARNESS_PRIVATE_DIR:?runner required}/nats.conf:/etc/nats/harness.conf:ro
+    labels:
+      amdn.harness.run: ${HARNESS_RUN_ID:?runner required}
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    pids_limit: 64
+volumes:
+  postgres_data:
+    labels:
+      amdn.harness.run: ${HARNESS_RUN_ID:?runner required}
+  nats_data:
+    labels:
+      amdn.harness.run: ${HARNESS_RUN_ID:?runner required}
+secrets:
+  postgres_password:
+    file: ${HARNESS_PRIVATE_DIR:?runner required}/postgres_password
+networks:
+  default:
+    labels:
+      amdn.harness.run: ${HARNESS_RUN_ID:?runner required}

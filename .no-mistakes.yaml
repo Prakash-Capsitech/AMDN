@@ -30,6 +30,13 @@ test:
     Native agent hook/sandbox validation remains separately pending per agent-safety.md.
     For F0.4, make contracts-test validates proposed OpenAPI, examples and transition
     graph invariants only. It does not prove live authorization, persistence or races.
+    For F0.5 run make harness-test on Linux with local Docker Engine and Compose v2.
+    It starts real disposable PostgreSQL/JetStream services, exercises fixture RLS,
+    pooling and crash recovery, and removes only its own labeled resources.
+    Missing Docker is a failed prerequisite, never a skipped passing test.
+    Do not substitute mocks or disable sandbox restrictions to run Docker.
+    Fixture identities/roles/pooling are not production integration evidence.
+    Native N01/N02 remain pending even when the service harness passes.
 
 pr:
   base_branch: main
