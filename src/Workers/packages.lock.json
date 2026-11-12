@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "amdn.contracts": {
+        "type": "Project"
+      },
+      "amdn.identity": {
+        "type": "Project",
+        "dependencies": {
+          "AMDN.Contracts": "[1.0.0, )"
+        }
+      },
+      "amdn.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "AMDN.Identity": "[1.0.0, )",
+          "AMDN.Messaging": "[1.0.0, )",
+          "AMDN.Postman": "[1.0.0, )"
+        }
+      },
+      "amdn.messaging": {
+        "type": "Project",
+        "dependencies": {
+          "AMDN.Contracts": "[1.0.0, )"
+        }
+      },
+      "amdn.postman": {
+        "type": "Project",
+        "dependencies": {
+          "AMDN.Contracts": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}
