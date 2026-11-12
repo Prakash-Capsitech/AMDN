@@ -52,6 +52,7 @@ public sealed class OidcAuthenticationTests : IClassFixture<OidcFixture>
     [InlineData("issuer")]
     [InlineData("audience")]
     [InlineData("audience-slash")]
+    [InlineData("no-audience")]
     [InlineData("expired")]
     [InlineData("future")]
     [InlineData("no-exp")]
@@ -81,6 +82,7 @@ public sealed class OidcAuthenticationTests : IClassFixture<OidcFixture>
             "issuer" => _issuer.Token(p => p["iss"] = "https://foreign.example.invalid"),
             "audience" => _issuer.Token(p => p["aud"] = "another-api"),
             "audience-slash" => _issuer.Token(p => p["aud"] = OidcFixture.Audience + "/"),
+            "no-audience" => _issuer.Token(p => p.Remove("aud")),
             "expired" => _issuer.Token(p => { p["exp"] = DateTimeOffset.UtcNow.AddMinutes(-2).ToUnixTimeSeconds(); p["nbf"] = DateTimeOffset.UtcNow.AddMinutes(-10).ToUnixTimeSeconds(); }),
             "future" => _issuer.Token(p => p["nbf"] = DateTimeOffset.UtcNow.AddMinutes(2).ToUnixTimeSeconds()),
             "no-exp" => _issuer.Token(p => p.Remove("exp")),
@@ -110,6 +112,34 @@ public sealed class OidcAuthenticationTests : IClassFixture<OidcFixture>
         Assert.DoesNotContain("synthetic-alice", body);
         Assert.DoesNotContain("IDX", body);
         if (token is not null) Assert.DoesNotContain(token, body);
+    }
+
+    [Theory]
+    [InlineData("\"amdn-test-api\"", HttpStatusCode.OK)]
+    [InlineData("[\"amdn-test-api\"]", HttpStatusCode.OK)]
+    [InlineData("[\"another-api\",\"amdn-test-api\"]", HttpStatusCode.OK)]
+    [InlineData("[\"amdn-test-api\",\"another-api\"]", HttpStatusCode.OK)]
+    [InlineData("null", HttpStatusCode.Unauthorized)]
+    [InlineData("42", HttpStatusCode.Unauthorized)]
+    [InlineData("true", HttpStatusCode.Unauthorized)]
+    [InlineData("{}", HttpStatusCode.Unauthorized)]
+    [InlineData("[]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api\",null]", HttpStatusCode.Unauthorized)]
+    [InlineData("[null,\"amdn-test-api\"]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api\",42]", HttpStatusCode.Unauthorized)]
+    [InlineData("[42,\"amdn-test-api\"]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api\",true]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api\",{}]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api\",[\"another-api\"]]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"another-api\"]", HttpStatusCode.Unauthorized)]
+    [InlineData("[\"amdn-test-api/\"]", HttpStatusCode.Unauthorized)]
+    public async Task AudienceRequiresProfileTypesAndExactMatch(string audienceJson, HttpStatusCode expected)
+    {
+        await using var gateway = _issuer.Gateway();
+        using var client = gateway.CreateClient();
+        var token = _issuer.Token(payload => payload["aud"] = JsonSerializer.Deserialize<JsonElement>(audienceJson));
+        using var response = await Send(client, token);
+        Assert.Equal(expected, response.StatusCode);
     }
 
     [Theory]

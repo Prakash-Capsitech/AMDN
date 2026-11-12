@@ -136,6 +136,10 @@ public static class IdentityAuthentication
         // and single-element arrays). Check the signed payload's profile types too.
         using var document = JsonDocument.Parse(Base64UrlEncoder.DecodeBytes(token.EncodedPayload));
         var payload = document.RootElement;
+        if (!payload.TryGetProperty("aud", out var audience)
+            || (audience.ValueKind != JsonValueKind.String
+                && (audience.ValueKind != JsonValueKind.Array || audience.GetArrayLength() == 0
+                    || audience.EnumerateArray().Any(value => value.ValueKind != JsonValueKind.String)))) return false;
         foreach (var name in new[] { "iss", "sub", "client_id", "jti" })
             if (!payload.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String) return false;
         foreach (var name in new[] { "iat", "exp" })
