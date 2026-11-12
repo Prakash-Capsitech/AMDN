@@ -28,8 +28,10 @@ step-up authentication and proof of key possession, and atomically replaces the
 old device if explicitly requested. The draft's expected identity version detects
 concurrent enrollment; stale requests fail. Revoked device/key rows remain as
 tombstones for attribution. Public key records are immutable; private keys never
-enter the provider. Exact device credential binding and proof formats require E02
-review before enrollment or acknowledgment can be implemented.
+enter the provider. The [WebAuthn credential design](../security/enrollment-credential-design.md)
+now specifies enrollment possession evidence. Credential-only activation does
+not publish a messaging key or authorize delivery/acknowledgment; messaging-key
+binding and execution credentials still require E02 review.
 
 Replacement does not recover old ciphertext or move old deliveries to a new key.
 Clients must independently verify the first-contact binding before sending any

@@ -17,6 +17,7 @@ Change status only after review; supersede accepted decisions with a new ADR.
 | [0008 Default deny capabilities and revocation](0008-default-deny-capabilities-and-revocation.md) | Proposed | 5, 9, 11, 14 |
 | [0009 HTTP commands and SignalR notifications](0009-http-commands-and-signalr-notifications.md) | Proposed | 11, 13, 16 |
 | [0010 Evidence based release and operations](0010-evidence-based-release-and-operations.md) | Proposed | 12, 13, 14, 17, 19, 20 |
+| [0011 WebAuthn enrollment credentials](0011-webauthn-enrollment-credentials.md) | Proposed | F1.4 / E02 follow-up |
 
 F0.1 acceptance requires review of this register and resolution or explicitly
 owned deferral of open decisions. Crypto protocol selection requires F0.3 evidence.

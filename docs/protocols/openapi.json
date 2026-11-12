@@ -92,7 +92,8 @@
       "post": {
         "operationId": "registerDevice",
         "summary": "registerDevice",
-        "description": "Proposed contract only; this endpoint is not implemented.",
+        "deprecated": true,
+        "description": "Superseded, unimplemented single-step draft. ADR 0011 and docs/security/enrollment-credential-design.md select staged WebAuthn credential enrollment with no messaging-key activation. Replace this legacy contract before implementation; do not expose it as a fallback.",
         "x-required-scope": "device.manage",
         "x-authorization": "Own active membership; step-up, proof of possession and expected identity version; one active device.",
         "x-idempotency": "Atomic owner/operation/key replay",
@@ -1156,6 +1157,7 @@
         ]
       },
       "DeviceRequest": {
+        "deprecated": true,
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -1191,7 +1193,7 @@
           "expected_identity_version",
           "replace_device_id"
         ],
-        "description": "Owner enrollment requires step-up and proof of possession using the reviewed E02 credential design, not just these JSON fields."
+        "description": "Superseded legacy draft, not an accepted enrollment request. See ADR 0011 for separate credential enrollment and later reviewed messaging-key binding."
       },
       "Device": {
         "type": "object",

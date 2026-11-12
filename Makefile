@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test enrollment-experiment
 
 setup:
 	bash scripts/install-hooks.sh
@@ -15,6 +15,7 @@ test: build
 	python3 -m unittest discover -s tests/Repository -v
 	$(MAKE) crypto-test
 	$(MAKE) contracts-test
+	dotnet run --project experiments/Enrollment/AMDN.EnrollmentExperiment.csproj --no-build --configuration Release
 
 lint: restore
 	dotnet format AMDN.sln --verify-no-changes --no-restore
@@ -56,3 +57,6 @@ contracts-test:
 
 harness-test:
 	python3 tests/Harness/run.py
+
+enrollment-experiment: build
+	dotnet run --project experiments/Enrollment/AMDN.EnrollmentExperiment.csproj --no-build --configuration Release
