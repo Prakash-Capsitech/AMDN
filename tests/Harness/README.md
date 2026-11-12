@@ -38,8 +38,8 @@ run graceful disposal handlers. Container restarts check the exact run ownership
 label before sending SIGKILL. Tests are sequential so service restarts cannot race
 other scenarios. Assertions fail on timeout. There are no environment-based skips.
 
-**This is a test model, not production delivery code.** The Gateway still provides
-only health endpoints. The fixture's trusted principals and cross-tenant dispatch
+**The delivery fixture is a test model, not production delivery code.**
+Gateway identity endpoints are tested separately by the F1.3 cases. The fixture's trusted principals and cross-tenant dispatch
 are test inputs, not authentication, authorization or a reviewed routing privilege
 design. Its opaque byte array is not encryption evidence. A caller able to issue
 arbitrary SQL with the fixture login can set its own context; production must bind
@@ -54,13 +54,20 @@ A disposable HTTPS issuer and test-only Gateway route connect validated tokens t
 current database membership. Database process restart checks committed identities.
 These tests use generated synthetic identities and do not deploy a public API.
 
+F1.3 adds [real provisioning and owner API tests](../../docs/security/provisioning-owner-access.md)
+over HTTPS, using the separate application hosts and their actual credentials.
+They exercise grants, scope/selection checks, replay, concurrent quotas, strict
+commands, atomic audit rollback, rate limits and revocation ordering. Both hosts
+remain disabled by default; these tests do not create a deployed service.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,
   migrations, authenticated API and worker adapters when F1-F3 implement them.
   F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
-  authenticated HTTP probe; deployed API policies, worker and routing integration
-  are still pending. P01 is not complete.
+  authenticated HTTP probe. F1.3 adds actual provisioning and owner-read API tests.
+  Device, worker/routing, deployment and complete production integration remain
+  pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
   reconnect cursors, retention/expiry races, quotas and noisy-neighbor backlog load.
 - **P03:** multi-node broker/database failover, host power loss and recovery objectives.
@@ -76,10 +83,10 @@ this harness does not change its incompatible crypto pins.
 
 ## Recorded local validation
 
-On 12 November 2026, `make harness-test` executed all 21 service cases (11 delivery
-fixture cases and 10 F1.2 identity cases) with zero skips on Linux x86_64, .NET SDK
+On 12 November 2026, `make harness-test` executed all 37 service cases (11 delivery
+fixture cases, 10 F1.2 identity cases and 16 F1.3 API cases) with zero skips on Linux x86_64, .NET SDK
 10.0.115, Docker Engine 29.9.3 and Compose 5.7.0. Cleanup verified removal of the
-run's containers, volumes and network. The separate `make verify` passed 64
+run's containers, volumes and network. The separate `make verify` passed 71
 Gateway/authentication checks, 13 repository checks, 12 crypto checks and 13
 contract checks, plus formatting and documentation checks. This is local subset
 evidence; CI must rerun the checks for each submitted head and P01–P03 remain open.

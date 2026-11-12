@@ -19,7 +19,10 @@ Package changes must regenerate and commit packages.lock.json files with
 `dotnet restore AMDN.sln --force-evaluate`; `make build` uses locked restore.
 
 The [F1.2 persistence guide](docs/security/identity-persistence.md) describes explicit
-migrations, separate database credentials and the remaining API integration work.
+migrations and separate database credentials. The
+[F1.3 guide](docs/security/provisioning-owner-access.md) describes the opt-in HTTPS
+services, actual API tests, operator grant administration and remaining integration
+work. Never give migration or provisioning credentials to the owner Gateway.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and

@@ -9,9 +9,10 @@ ADRs, module boundaries, a buildable .NET backend scaffold, repository checks,
 and a no-mistakes contribution workflow. F1 adds
 [provider-neutral JWT access-token authentication](docs/security/oidc-authentication.md).
 [Identity persistence](docs/security/identity-persistence.md) adds tenant membership,
-personal postmen, migrations and scoped PostgreSQL reads. Public provisioning/owner
-APIs, object authorization, message delivery, production encryption, a web client
-and deployment are not implemented.
+personal postmen, migrations and scoped PostgreSQL reads. [F1.3](docs/security/provisioning-owner-access.md) adds separate, opt-in provisioning
+and owner-read APIs with scopes, grants, quotas, replay and audit. Device enrollment,
+policy mutation, message delivery, production encryption, a web client and
+production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate
 [F0.5 harness](tests/Harness/README.md) exercises real PostgreSQL and JetStream
@@ -40,7 +41,11 @@ curl --fail http://127.0.0.1:5080/health/live
 
 OIDC validation is disabled until explicitly configured; see the
 [configuration and supported token profile](docs/security/oidc-authentication.md#configuration).
-The Gateway currently exposes no identity or messaging endpoints.
+With `IdentityApi` explicitly configured, Gateway exposes an owner-only postman
+read. The separate `src/Provisioning` service provides operator-only tenant and
+membership provisioning. Both API surfaces are disabled by default; see the
+[F1.3 configuration guide](docs/security/provisioning-owner-access.md#configuration-and-administration).
+No messaging endpoint is implemented.
 
 The health response is process liveness only; it does not certify delivery readiness.
 The separate worker host can be started with `dotnet run --project src/Workers`.
@@ -56,6 +61,7 @@ It has no delivery handlers yet.
 | src/Messaging | Envelopes, delivery, receipts and transactional outbox |
 | src/Infrastructure | Database, broker and telemetry adapters |
 | src/Contracts | Shared reviewed contracts |
+| src/Provisioning | Separate operator-only provisioning service and credential boundary |
 | src/Workers | Separate delivery and outbox process host |
 | clients/web and clients/crypto | Reserved web client and isolated MLS feasibility experiment |
 | tests | Integration, unit, isolation, reliability, performance and hook checks |

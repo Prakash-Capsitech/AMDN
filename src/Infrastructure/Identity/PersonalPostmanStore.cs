@@ -9,7 +9,13 @@ public sealed class PersonalPostmanStore(NpgsqlDataSource runtimeDatabase) : IPe
 {
     // This library trusts only the principal produced by the configured authentication pipeline.
     // It is not an operation authorization policy; F1.3 must gate each exposed API.
-    public async Task<PersonalPostman?> ReadAsync(ClaimsPrincipal caller, Guid? selectedTenant = null, CancellationToken cancellationToken = default)
+    public Task<PersonalPostman?> ReadAsync(ClaimsPrincipal caller, Guid? selectedTenant = null, CancellationToken cancellationToken = default) =>
+        Read(caller, selectedTenant, false, cancellationToken);
+
+    public Task<PersonalPostman?> ReadOwnerAsync(ClaimsPrincipal caller, Guid selectedTenant, CancellationToken cancellationToken = default) =>
+        IdentityScopes.Has(caller, "postman.read") ? Read(caller, selectedTenant, true, cancellationToken) : Task.FromResult<PersonalPostman?>(null);
+
+    private async Task<PersonalPostman?> Read(ClaimsPrincipal caller, Guid? selectedTenant, bool requireGrant, CancellationToken cancellationToken)
     {
         var subject = VerifiedExternalSubject.FromPrincipal(caller);
         if (subject is null) return null;
@@ -37,9 +43,17 @@ public sealed class PersonalPostmanStore(NpgsqlDataSource runtimeDatabase) : IPe
             context.Parameters.AddWithValue("subject", subject.Subject);
             await context.ExecuteNonQueryAsync(cancellationToken);
         }
+        if (requireGrant)
+        {
+            await using var grant = new NpgsqlCommand("SELECT amdn_identity.lock_owner_grant(@tenant,@user,@postman)", connection, transaction);
+            grant.Parameters.AddWithValue("tenant", tenant);
+            grant.Parameters.AddWithValue("user", user);
+            grant.Parameters.AddWithValue("postman", postman);
+            if (await grant.ExecuteScalarAsync(cancellationToken) is not true) return null;
+        }
         PersonalPostman result;
         await using (var query = new NpgsqlCommand("""
-            SELECT u.identity_version,m.membership_version,p.policy_version FROM amdn_identity.postmen p
+            SELECT u.identity_version,m.membership_version,p.policy_version,p.receive_enabled,p.dispatch_enabled,p.retry_enabled FROM amdn_identity.postmen p
               JOIN amdn_identity.users u ON u.tenant_id=p.tenant_id AND u.user_id=p.owner_user_id
               JOIN amdn_identity.memberships m ON m.tenant_id=u.tenant_id AND m.user_id=u.user_id
             WHERE p.tenant_id=@tenant AND p.postman_id=@postman
@@ -49,7 +63,7 @@ public sealed class PersonalPostmanStore(NpgsqlDataSource runtimeDatabase) : IPe
             query.Parameters.AddWithValue("postman", postman);
             await using var rows = await query.ExecuteReaderAsync(cancellationToken);
             if (!await rows.ReadAsync(cancellationToken)) return null;
-            result = new PersonalPostman(tenant, user, postman, rows.GetInt64(0), rows.GetInt64(1), rows.GetInt64(2));
+            result = new PersonalPostman(tenant, user, postman, rows.GetInt64(0), rows.GetInt64(1), rows.GetInt64(2), rows.GetBoolean(3), rows.GetBoolean(4), rows.GetBoolean(5));
         }
         await transaction.CommitAsync(cancellationToken);
         return result;

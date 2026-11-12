@@ -19,6 +19,14 @@ public sealed class IdentityProvisioner(NpgsqlDataSource provisioningDatabase)
             throw new ArgumentException("A bounded issuer and subject are required.");
         await using var connection = await provisioningDatabase.OpenConnectionAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var result = await EnsureMemberInTransaction(connection, transaction, tenant, issuer, subject, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    internal static async Task<PersonalPostman> EnsureMemberInTransaction(NpgsqlConnection connection, NpgsqlTransaction transaction,
+        Guid tenant, string issuer, string subject, CancellationToken cancellationToken)
+    {
         // Low-volume provisioning serializes per tenant. No read-then-insert race.
         await using var gate = new NpgsqlCommand("SELECT status FROM amdn_identity.tenants WHERE tenant_id=@tenant FOR UPDATE", connection, transaction);
         gate.Parameters.AddWithValue("tenant", tenant);
@@ -59,8 +67,11 @@ public sealed class IdentityProvisioner(NpgsqlDataSource provisioningDatabase)
             postman.Parameters.AddWithValue("tenant", tenant);
             postman.Parameters.AddWithValue("user", user);
             result = new PersonalPostman(tenant, user, (Guid)(await postman.ExecuteScalarAsync(cancellationToken))!, 1, 1, 1);
+            await using var grant = new NpgsqlCommand("INSERT INTO amdn_identity.owner_grants(tenant_id,postman_id,action) VALUES (@tenant,@postman,'postman.read')", connection, transaction);
+            grant.Parameters.AddWithValue("tenant", tenant);
+            grant.Parameters.AddWithValue("postman", result.PostmanId);
+            await grant.ExecuteNonQueryAsync(cancellationToken);
         }
-        await transaction.CommitAsync(cancellationToken);
         return result;
     }
 }

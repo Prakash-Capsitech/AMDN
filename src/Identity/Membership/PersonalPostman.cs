@@ -4,7 +4,8 @@ using AMDN.Identity.Authentication;
 namespace AMDN.Identity.Membership;
 
 public sealed record PersonalPostman(Guid TenantId, Guid UserId, Guid PostmanId,
-    long IdentityVersion, long MembershipVersion, long PolicyVersion);
+    long IdentityVersion, long MembershipVersion, long PolicyVersion,
+    bool ReceiveEnabled = true, bool DispatchEnabled = true, bool RetryEnabled = true);
 
 public interface IPersonalPostmanStore
 {

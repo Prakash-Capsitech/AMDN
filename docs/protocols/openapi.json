@@ -21,11 +21,11 @@
       "post": {
         "operationId": "provisionTenant",
         "summary": "provisionTenant",
-        "description": "Proposed contract only; this endpoint is not implemented.",
+        "description": "Implemented F1.3 subset, disabled until explicitly configured. Production rollout and review gates remain pending.",
         "x-required-scope": "tenant.provision",
         "x-authorization": "Separate platform provisioning identity/grant; tenant owners denied.",
         "x-idempotency": "Atomic platform actor/operation/key replay",
-        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "x-rate-limit": "Explicit process-local endpoint/actor budgets; verified tenant reads and durable provisioning capacity quotas. Distributed enforcement and A06 approval pending.",
         "responses": {
           "201": {
             "description": "Authorized operation completed.",
@@ -60,6 +60,9 @@
           },
           "503": {
             "$ref": "#/components/responses/Error503"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
           }
         },
         "requestBody": {
@@ -76,7 +79,13 @@
           {
             "$ref": "#/components/parameters/IdempotencyKey"
           }
-        ]
+        ],
+        "servers": [
+          {
+            "url": "https://provisioning.example.invalid"
+          }
+        ],
+        "x-max-body-bytes": 16384
       }
     },
     "/v1/devices": {
@@ -437,11 +446,11 @@
       "get": {
         "operationId": "getPostman",
         "summary": "getPostman",
-        "description": "Proposed contract only; this endpoint is not implemented.",
+        "description": "Implemented F1.3 subset, disabled until explicitly configured. Production rollout and review gates remain pending.",
         "x-required-scope": "postman.read",
         "x-authorization": "Own personal postman only.",
         "x-idempotency": "Safe query",
-        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "x-rate-limit": "Explicit process-local endpoint/actor budgets; verified tenant reads and durable provisioning capacity quotas. Distributed enforcement and A06 approval pending.",
         "responses": {
           "200": {
             "description": "Authorized operation completed.",
@@ -480,7 +489,18 @@
           "503": {
             "$ref": "#/components/responses/Error503"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": true,
+            "description": "Explicit selection reverified against the authenticated subject and current owner grant. Tenant headers confer no authority.",
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ]
       }
     },
     "/v1/postman/policy": {
@@ -604,6 +624,85 @@
             "$ref": "#/components/parameters/Limit"
           }
         ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/memberships": {
+      "post": {
+        "operationId": "provisionMembership",
+        "summary": "Provision tenant membership and primary postman",
+        "description": "Implemented F1.3 subset, disabled until explicitly configured. Production rollout and review gates remain pending.",
+        "x-required-scope": "membership.provision",
+        "x-authorization": "Current platform grant that created the active tenant; configured exact owner issuer; tenant member quota. Tenant owners denied.",
+        "x-idempotency": "Atomic platform actor/operation/key replay; target tenant and exact body bytes bound in digest.",
+        "x-rate-limit": "Explicit process-local endpoint/actor budgets; verified tenant reads and durable provisioning capacity quotas. Distributed enforcement and A06 approval pending.",
+        "responses": {
+          "201": {
+            "description": "Authorized operation completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipRegistration"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MembershipRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://provisioning.example.invalid"
+          }
+        ],
+        "x-max-body-bytes": 16384
       }
     }
   },
@@ -925,6 +1024,30 @@
             "schema": {
               "type": "string",
               "pattern": "^[0-9]+$"
+            }
+          }
+        }
+      },
+      "Error415": {
+        "description": "Unsupported media type or content encoding.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                {
+                  "properties": {
+                    "status": {
+                      "const": 400
+                    },
+                    "code": {
+                      "const": "invalid_request"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -1662,6 +1785,47 @@
         "required": [
           "items",
           "next_cursor"
+        ]
+      },
+      "MembershipRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "issuer",
+          "subject"
+        ]
+      },
+      "MembershipRegistration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tenant_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "postman_id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "user_id",
+          "postman_id"
         ]
       }
     }

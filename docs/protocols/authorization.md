@@ -1,7 +1,9 @@
 # F0.4 authorization matrix
 
 Status: Proposed. Source: blueprint sections 4, 9 and 11; ADR 0008; threats
-T01–T04 and T10–T14. This is a contract, not an installed policy engine.
+T01–T04 and T10–T14. This is the proposed full contract. The
+[F1.3 implementation](../security/provisioning-owner-access.md) enforces the
+provisioning and owner-read subset; other operations remain unimplemented.
 
 An allow decision requires verified identity, an eligible active membership,
 the required access-token scope, an active action/resource grant and satisfied
@@ -17,6 +19,7 @@ implement them. OIDC provider and device-bound credential format remain pending.
 | Operation | Scope / actor | Resource rule and additional checks |
 | --- | --- | --- |
 | provisionTenant | tenant.provision / platform provisioner | Separate platform grant, quota and audited provisioning; ordinary tenant owners denied |
+| provisionMembership | membership.provision / platform provisioner | Current platform grant that created the tenant, exact owner issuer and member quota; audited atomic enrollment |
 | registerDevice | device.manage / owner | Own verified membership only; step-up, key-possession proof, expected identity version, one active device |
 | resolveDirectory | directory.resolve / active member | Policy permits resolving this address; public projection only; unknown and hidden records both 404; throttle enumeration |
 | submitMessage | message.send / owner device | Derive sender from active membership/device; own postman; send grant and recipient receive policy; immutable expected recipient key/device |

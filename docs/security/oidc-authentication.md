@@ -85,9 +85,11 @@ that does not make the subject an enrolled human or platform provisioner.
 `AmdnTokenValidated` is an authentication-only policy for an explicit caller check.
 It must not authorize data or commands. Default/fallback policies deny application
 access even with a valid token, so a new mapped endpoint or bare
-`RequireAuthorization()` cannot accidentally expose tenant data. F1.3 must wire
-current membership and operation-specific authorization into the API. The Gateway exposes
-only `/health/live` and a public 404 fallback; no test probe or identity API is shipped.
+`RequireAuthorization()` cannot accidentally expose tenant data. F1.3 wires
+current membership and operation-specific authorization into the opt-in owner API.
+Without explicit API configuration, Gateway exposes only `/health/live` and a
+public 404 fallback. Test probes are never deployed; see
+[F1.3 configuration](provisioning-owner-access.md).
 
 Failures return generic 401/403 Problem Details. A 401 includes `WWW-Authenticate:
 Bearer`; no token, claim value or validation exception is returned. Validated
