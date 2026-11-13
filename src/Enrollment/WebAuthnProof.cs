@@ -125,7 +125,7 @@ internal static class WebAuthnProof
             return new(storedId, storedKey, parsed.IsBackupEligible, parsed.IsBackedUp, verified.SignCount);
         }
         catch (Exception exception) when (exception is InvalidProofEncodingException or Fido2VerificationException
-            or CborContentException or CryptographicException or JsonException or FormatException or ArgumentException or InvalidOperationException)
+            or CborContentException or OverflowException or CryptographicException or JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
             // Only this pure proof boundary is translated. Database/commit failures propagate.
             // Do not log raw exceptions: third-party messages can contain supplied proof data.

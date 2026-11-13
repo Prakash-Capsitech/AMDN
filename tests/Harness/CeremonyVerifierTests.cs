@@ -60,6 +60,14 @@ public sealed partial class CeremonyTransactionTests
     [InlineData(true, "packed")]
     [InlineData(true, "trailing-cbor")]
     [InlineData(true, "bad-cbor")]
+    [InlineData(true, "label-overflow-positive")]
+    [InlineData(true, "label-overflow-negative")]
+    [InlineData(true, "kty-overflow-positive")]
+    [InlineData(true, "kty-overflow-negative")]
+    [InlineData(true, "algorithm-overflow-positive")]
+    [InlineData(true, "algorithm-overflow-negative")]
+    [InlineData(true, "curve-overflow-positive")]
+    [InlineData(true, "curve-overflow-negative")]
     [InlineData(false, "wrong-origin")]
     [InlineData(false, "normalized-origin")]
     [InlineData(false, "wrong-rp")]
@@ -83,13 +91,20 @@ public sealed partial class CeremonyTransactionTests
         var options = registration ? begin : await Verify(actor, id, "registration", key.Response(Challenge(begin), true));
         var body = key.Response(Challenge(options), registration, await Handle(actor), scenario);
         var stage = registration ? "registration" : "candidate"; var replayKey = Idempotency();
-        AssertOutcome("invalid_proof", await Verify(actor, id, stage, body, replayKey));
-        AssertOutcome("invalid_proof", await Verify(actor, id, stage, body, replayKey));
-        await using var owner = await Owner();
-        Assert.Equal(1L, await Sql(owner, "SELECT identity_version FROM amdn_identity.users WHERE tenant_id=@id", ("id", actor.Person.TenantId)));
-        Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage AND state='failed'", ("id", id), ("stage", stage)));
-        Assert.Equal(stage, await Sql(owner, "SELECT state FROM amdn_identity.device_ceremonies WHERE ceremony_id=@id", ("id", id)));
-        Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_challenges WHERE ceremony_id=@id AND stage=@stage AND consumed_at IS NULL", ("id", id), ("stage", stage)));
+        for (var call = 0; call < 2; call++)
+        {
+            var result = await Verify(actor, id, stage, body, replayKey);
+            AssertOutcome("invalid_proof", result);
+            Assert.Single(result.EnumerateObject());
+            await using var owner = await Owner();
+            Assert.Equal(1L, await Sql(owner, "SELECT identity_version FROM amdn_identity.users WHERE tenant_id=@id", ("id", actor.Person.TenantId)));
+            Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage", ("id", id), ("stage", stage)));
+            Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage AND state='failed' AND result='{\"outcome\":\"invalid_proof\"}'::jsonb", ("id", id), ("stage", stage)));
+            Assert.Equal(stage, await Sql(owner, "SELECT state FROM amdn_identity.device_ceremonies WHERE ceremony_id=@id", ("id", id)));
+            Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_challenges WHERE ceremony_id=@id AND stage=@stage AND consumed_at IS NULL", ("id", id), ("stage", stage)));
+            if (registration)
+                Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.devices WHERE device_id=@id AND credential_id IS NULL AND public_key_cose IS NULL", ("id", Id(begin, "device_id"))));
+        }
     }
 
     [Theory]

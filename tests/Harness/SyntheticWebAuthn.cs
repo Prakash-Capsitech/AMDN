@@ -46,9 +46,10 @@ internal sealed class SyntheticWebAuthn : IDisposable
             // Different ordering is legal and must normalize to the database format.
             cose.WriteInt32(-3); cose.WriteByteString(scenario == "invalid-point" ? new byte[32] : q.Y!);
             cose.WriteInt32(-2); cose.WriteByteString(scenario == "invalid-point" ? new byte[32] : q.X!);
-            cose.WriteInt32(-1); cose.WriteInt32(scenario == "wrong-curve" ? 2 : 1);
-            cose.WriteInt32(3); cose.WriteInt32(scenario == "wrong-algorithm" ? -35 : -7);
-            cose.WriteInt32(1); cose.WriteInt32(2); cose.WriteEndMap();
+            cose.WriteInt32(-1); cose.WriteInt64(scenario switch { "curve-overflow-positive" => 2147483648L, "curve-overflow-negative" => -2147483649L, "wrong-curve" => 2, _ => 1 });
+            cose.WriteInt32(3); cose.WriteInt64(scenario switch { "algorithm-overflow-positive" => 2147483648L, "algorithm-overflow-negative" => -2147483649L, "wrong-algorithm" => -35, _ => -7 });
+            cose.WriteInt64(scenario switch { "label-overflow-positive" => 2147483648L, "label-overflow-negative" => -2147483649L, _ => 1 });
+            cose.WriteInt64(scenario switch { "kty-overflow-positive" => 2147483648L, "kty-overflow-negative" => -2147483649L, _ => 2 }); cose.WriteEndMap();
             auth = [.. auth, .. new byte[16], .. size, .. (scenario == "attested-id" ? RandomNumberGenerator.GetBytes(Id.Length) : Id), .. cose.Encode()];
             var attestation = new CborWriter(); attestation.WriteStartMap(3);
             attestation.WriteTextString("fmt"); attestation.WriteTextString(scenario == "packed" ? "packed" : "none");
