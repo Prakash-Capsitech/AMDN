@@ -1,6 +1,6 @@
 # F0.4 domain and API contracts
 
-Status: Proposed review package. The ten blueprint endpoints, identity/data
+Status: Proposed review package. The blueprint operations, staged device commands, identity/data
 constraints and delivery graph are drafted; no wire contract is frozen, ADR is
 accepted, or messaging endpoint implemented. F0.3 E01–E06 and F0.4 A01–A07 remain
 open. Native agent checks N01/N02 remain pending.
@@ -11,6 +11,8 @@ open. Native agent checks N01/N02 remain pending.
 | [Authorization matrix](authorization.md) | Endpoint and worker actions, resource grants, defaults and revocation |
 | [HTTP/envelope contract](http-api.md) | OpenAPI semantics, limits, replay, errors, crypto dependencies and approval register |
 | [OpenAPI 3.1.1 draft](openapi.json) | Route inventory, strict request/response schemas and authorization requirements |
+| [Staged enrollment/revocation](device-enrollment.md) | F1.4 command schemas, browser projection, expiry, replay and proof ordering; unimplemented |
+| [Enrollment graph](enrollment-state-machine.json) | Initial, replacement and revocation paths; contract model only |
 | [Delivery protocol](delivery.md) | Device-storage ack meaning, terminal states, expiry/ack races and reconnect |
 | [State graph](delivery-state-machine.json) | Machine-readable proposed transitions, checked against status schemas |
 | [Synthetic examples](examples/submit-message.json) | Non-production request data for schema review; not valid production cryptography |

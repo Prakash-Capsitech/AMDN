@@ -1,7 +1,7 @@
 # F0.4 HTTP and envelope draft
 
-Status: Proposed, version `0.1.0-draft`. The [OpenAPI 3.1.1 description](openapi.json)
-covers the ten blueprint endpoints and the F1.3 platform membership extension. See the [repository README](../../README.md)
+Status: Proposed, version `0.2.0-draft`. The [OpenAPI 3.1.1 description](openapi.json)
+covers the blueprint operations, F1.3 platform membership extension and F1.4 staged credential commands. See the [repository README](../../README.md)
 for current implementation status.
 
 The source JSON is the schema authority for this draft. The
@@ -16,12 +16,11 @@ provisioning and owner-read subset, including its stricter 16 KiB command bound,
 separate operator host and explicit verified tenant selection. Other operations
 remain proposed and unimplemented.
 
-The single-step `POST /v1/devices` and `DeviceRequest` are **deprecated,
-unimplemented drafts**, superseded by the [staged WebAuthn credential design](../security/enrollment-credential-design.md).
-They remain here for blueprint traceability, not as fallback routes. Credential
-enrollment has no message key or messaging authority; a separate reviewed
-binding is required. Replace the old machine-readable contract with exact
-ceremony schemas before implementing device endpoints.
+The old single-step device draft is replaced by the [staged enrollment/revocation
+contract](device-enrollment.md). Its six commands are proposed and unimplemented;
+their stricter 64 KiB body bounds, proof stages, origin binding and replay rules
+override the common defaults below. Credential enrollment supplies no message key
+or messaging authority; a separate reviewed binding is required.
 
 ## Common contract
 
@@ -39,8 +38,7 @@ noncanonical trailing bits or alternate alphabet) before applying byte limits.
 Regex/length schema checks alone do not prove canonical binary encoding or valid
 cryptography. No client plaintext, private keys or recovery secrets are allowed.
 
-Draft review bounds: ciphertext up to 128 KiB decoded, public key package up to
-24 KiB decoded, JSON command body up to 256 KiB, page size 1–100, cursor up to 1024
+Draft review bounds: ciphertext up to 128 KiB decoded, JSON command body up to 256 KiB, page size 1–100, cursor up to 1024
 characters, idempotency key 16–128 visible ASCII characters. Submitted expiry must
 be after admission time and no later than 24 hours after it. These are proposed
 testable bounds, not measured capacity or approved production quotas. Per-tenant

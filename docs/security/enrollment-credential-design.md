@@ -73,8 +73,9 @@ The fingerprint/comparison format and trusted client distribution remain open.
 
 The future API uses strict JSON, canonical unpadded base64url, HTTPS, no-store
 responses, authenticated tenant selection and explicit per-actor/tenant/global
-budgets. Do not turn the following outline into runtime routes without the
-versioned OpenAPI update and application tests. No new endpoint exists in this PR.
+budgets. The [versioned HTTP contract](../protocols/device-enrollment.md) now specifies exact
+fields, errors, replay and proof endpoints. Application integration tests are still
+required before enabling runtime routes; no device endpoint is implemented.
 
 | Intended command | Request purpose | Server-held result / next state |
 | --- | --- | --- |
@@ -84,10 +85,9 @@ versioned OpenAPI update and application tests. No new endpoint exists in this P
 | `POST /v1/device-enrollments/{id}/current-proof` | Current credential assertion and Idempotency-Key | Revalidate intent and authority; atomically revoke old device/credential and activate candidate; `completed` |
 | `POST /v1/devices/{id}/revocations` (challenge then proof) | Fresh step-up, current grant, expected version and current-credential assertion | Explicit revocation operation, distinct stage/purpose and idempotency namespace; terminal revocation, version increment and audit |
 
-The outline deliberately separates credential enrollment from message-key binding;
-the final HTTP contract must define exact fields, failures and response schemas
-before implementation. Revocation's challenge/proof endpoints must likewise be
-specified together, not added as an unauthenticated delete.
+The outline separates credential enrollment from message-key binding. The HTTP
+contract defines both revocation endpoints together: begin above, then
+`POST /v1/device-revocations/{revocationId}/proof`; neither is an unauthenticated delete.
 
 Bind every stage to ceremony UUID, operation/stage, tenant, local user, verified
 issuer/subject, OIDC `client_id`, exact initiating origin, RP/origin configuration version, expected

@@ -1,0 +1,167 @@
+{
+  "version": "amdn-enrollment-state/1",
+  "status": "Proposed; contract model only, no runtime security evidence",
+  "terminal": [
+    "completed",
+    "expired",
+    "abandoned"
+  ],
+  "flows": {
+    "initial": {
+      "initial": "awaiting_registration",
+      "states": [
+        "awaiting_registration",
+        "awaiting_candidate_proof",
+        "completed",
+        "expired",
+        "abandoned"
+      ],
+      "transitions": [
+        {
+          "source": "awaiting_registration",
+          "event": "registration_verified",
+          "target": "awaiting_candidate_proof"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "candidate_verified",
+          "target": "completed"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        }
+      ]
+    },
+    "replacement": {
+      "initial": "awaiting_registration",
+      "states": [
+        "awaiting_registration",
+        "awaiting_candidate_proof",
+        "awaiting_current_proof",
+        "completed",
+        "expired",
+        "abandoned"
+      ],
+      "transitions": [
+        {
+          "source": "awaiting_registration",
+          "event": "registration_verified",
+          "target": "awaiting_candidate_proof"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "candidate_verified",
+          "target": "awaiting_current_proof"
+        },
+        {
+          "source": "awaiting_current_proof",
+          "event": "current_verified",
+          "target": "completed"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_registration",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_candidate_proof",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_current_proof",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_current_proof",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_current_proof",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        }
+      ]
+    },
+    "revocation": {
+      "initial": "awaiting_revocation_proof",
+      "states": [
+        "awaiting_revocation_proof",
+        "completed",
+        "expired",
+        "abandoned"
+      ],
+      "transitions": [
+        {
+          "source": "awaiting_revocation_proof",
+          "event": "current_verified",
+          "target": "completed"
+        },
+        {
+          "source": "awaiting_revocation_proof",
+          "event": "deadline_elapsed",
+          "target": "expired"
+        },
+        {
+          "source": "awaiting_revocation_proof",
+          "event": "attempts_exhausted",
+          "target": "abandoned"
+        },
+        {
+          "source": "awaiting_revocation_proof",
+          "event": "bound_context_stale",
+          "target": "abandoned"
+        }
+      ]
+    }
+  }
+}

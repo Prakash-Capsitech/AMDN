@@ -1,0 +1,5 @@
+{
+  "profile": "amdn-webauthn-enrollment/1",
+  "expected_identity_version": 0,
+  "replace_device_id": null
+}
