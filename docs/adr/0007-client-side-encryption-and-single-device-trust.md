@@ -34,5 +34,6 @@ production. Audit, secure persistence and human review remain open.
 The [E02 assessment](../security/device-enrollment-review.md) records the
 maintainer's 2026-11-12 product choices: one active logical device identity with
 no hardware/non-copyability claim, and independent peer-key verification before
-first send and after replacement. Credential design, client distribution and
-independent crypto review remain open; these choices do not accept this ADR.
+first send and after replacement. See [ADR 0011](0011-webauthn-enrollment-credentials.md)
+for the enrollment credential direction. Client distribution and independent
+crypto review remain open; these choices do not accept this ADR.

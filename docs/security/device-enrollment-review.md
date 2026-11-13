@@ -1,8 +1,10 @@
 # E02 device enrollment trust review
 
 Status: Initial engineering assessment, 12 November 2026. **E02 remains open.**
-No independent crypto/security reviewer is nominated and no device credential
-profile is selected. The maintainer selected one active logical device identity
+No independent crypto/security reviewer is nominated. The follow-up
+[credential design](enrollment-credential-design.md) selects WebAuthn registration
+plus assertion and records pinned verifier evidence; production approval remains
+pending. The maintainer selected one active logical device identity
 and mandatory independent verification before sending, including after key
 replacement, on 12 November 2026. Those product decisions do not approve a
 cryptographic design. This is a review packet and an authentication prerequisite
@@ -20,42 +22,43 @@ The OIDC adapter previously discarded authentication context/time. This slice
 adds an opt-in, tested [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisite).
 It checks verified login evidence only. It creates no device/key/challenge rows,
 changes no grants and maps no device endpoint. `/v1/devices` stays unimplemented.
-The draft OpenAPI stays Proposed; a reviewed ceremony must revise it before
-enrollment becomes available. There is no placeholder verifier, opaque-key
+The draft OpenAPI stays Proposed; its legacy single-step enrollment is deprecated
+in favor of the credential design and must be replaced before implementation.
+There is no placeholder verifier, opaque-key
 acceptance path or import of the experimental crypto package.
 
 ## Enrollment: separate the proofs
 
-The design must demonstrate all of these in one authorized operation:
+The design must demonstrate these before a device becomes messaging-ready.
+Credential enrollment and later messaging-key binding are separate authorized
+operations; completing the former alone grants no messaging authority:
 
 1. Current tenant membership resolved from verified issuer/subject, explicit
    `device.manage` scope and a current object-level enrollment grant. F1.3's
    `postman.read` grant confers no enrollment authority.
 2. Recent user authentication at an issuer-specific assurance level. An `amr`
    value such as `mfa`, a scope or a new token issue time alone is insufficient.
-3. Possession of the new device authentication credential and required messaging
-   key material, with their binding checked by a reviewed verifier. Proving
-   possession of one key does not prove possession of another.
-4. A single-use, expiring ceremony bound to tenant, user, operation, expected
-   identity version, replacement target, exact public material and originating
-   client context. These cannot change after challenge issuance. Retrying a
-   consumed proof must not authorize a new operation.
+3. Possession of the new authentication credential during enrollment, followed by
+   a separately reviewed messaging-key possession/binding operation before
+   messaging activation. Proving one key does not prove another.
+4. The [staged ceremony's immutable context and candidate binding](enrollment-credential-design.md#ceremony-and-proposed-http-responsibilities),
+   with [single-use proofs and expiry enforcement](enrollment-credential-design.md#validation-and-durable-effects).
 
 | Candidate | Useful property | Remaining problem / disposition |
 | --- | --- | --- |
-| WebAuthn registration plus subsequent assertion | Standard origin/RP binding and user verification | Candidate for interactive authorization; no verifier library selected. No attestation is not hardware provenance or a signed assertion by the new key. It does not validate an MLS package. |
+| WebAuthn registration plus subsequent assertion | Standard origin/RP binding and user verification | Selected engineering direction in ADR 0011; Fido2 4.3.3 exercised in an isolated experiment. No attestation is not hardware provenance or possession proof; the subsequent assertion supplies possession evidence. It does not validate an MLS package. |
 | OAuth DPoP | Standard sender-constrained tokens and proof checking | Requires authorization-server support and a complete resource-server verifier. Current bearer handling does not implement it. It does not sign the request body or prove a separate encryption key. |
 | Bare MLS KeyPackage upload | Public protocol input for offline initiation | Rejected as sufficient account/device authentication. Identity/signature-key binding needs a reviewed MLS authentication service; fixture pins cannot supply it. |
 | Custom signed enrollment JSON | Simple-looking challenge/signature exchange | Not selected: inventing a crypto protocol conflicts with ADR 0007. |
 
-Recommendation for review: evaluate WebAuthn for interactive authorization
-separately from the messaging protocol's credential binding. This does not select
-a library or wire format. Backup-eligible WebAuthn credentials may exist on
+The [selected profile](enrollment-credential-design.md) separates interactive
+WebAuthn authorization from messaging credential binding. Its experiment does
+not approve the library for production. Backup-eligible credentials may exist on
 multiple authenticators. One active server record does not prove one physical
 device; rejecting backup eligibility without trusted attestation also does not
 establish hardware non-exportability. The selected guarantee is one active
 logical identity per tenant/user, with no assurance that keys cannot be copied.
-Supported clients and the proof format remain undecided. See [WebAuthn backup state](https://www.w3.org/TR/2026/REC-webauthn-3-20260825/#sctn-credential-backup)
+Browser qualification remains pending. See [WebAuthn backup state](https://www.w3.org/TR/2026/REC-webauthn-3-20260825/#sctn-credential-backup)
 and [verification ceremonies](https://www.w3.org/TR/2026/REC-webauthn-3-20260825/#sctn-rp-operations).
 
 [DPoP sections 7 and 11.7](https://www.rfc-editor.org/rfc/rfc9449.html#section-7)
@@ -123,7 +126,7 @@ choice is accepted here.
 
 | ID | Decision / evidence | Owner and state |
 | --- | --- | --- |
-| E02-D1 | One active logical identity; no hardware/non-copyability claim | Maintainer selected 2026-11-12; credential/PoP format, verifier and clients still pending identity/security review |
+| E02-D1 | One active logical identity; WebAuthn registration plus assertion for enrollment; no hardware/non-copyability claim | Logical-device guarantee selected by maintainer 2026-11-12; credential profile specified in ADR 0011, experiment passed; browser/application integration and independent review pending |
 | E02-D2 | Independent verification required before first send and after key replacement | Maintainer selected 2026-11-12; comparison format, UX and lost-device recovery still pending crypto review |
 | E02-D3 | Client distribution/update trust root and malicious-provider limitation | Maintainer and security reviewer; pending |
 | E02-D4 | Messaging credential binding and exact-version protocol/implementation review | Independent crypto reviewer not yet nominated; E01/E06 open |
@@ -141,7 +144,8 @@ revocation during lock waits, lost-response retries and audit/commit failure.
 Client evidence must show blocked unverified first contact, visible replacement
 and preserved old-key attribution.
 
-This slice tests only signed step-up evidence, configuration, freshness, scope
-and default denial. [Native N01/N02](agent-safety.md#pending-native-checks) and
+See the [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisite)
+for its implemented checks and the [verifier experiment](../../experiments/Enrollment/README.md#evidence-and-limits)
+for the follow-up credential evidence and limits. [Native N01/N02](agent-safety.md#pending-native-checks) and
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
 pending. Dependabot #10 stays deferred; crypto pins are unchanged.

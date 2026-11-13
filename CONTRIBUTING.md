@@ -6,6 +6,8 @@ Use the SDK selected by global.json, Python 3.12 with venv support and GNU Make.
 versioned hooks and restores locked dependencies. `make verify` builds, runs the
 bootstrap HTTP, OIDC authentication, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
+It also runs the isolated [enrollment verifier experiment](experiments/Enrollment/README.md).
+The experiment's NuGet dependency is not referenced by application projects.
 
 Run `make harness-test` separately before submission using the
 [harness prerequisites](README.md#start-locally). See the

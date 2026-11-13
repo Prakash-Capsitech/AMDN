@@ -16,6 +16,13 @@ provisioning and owner-read subset, including its stricter 16 KiB command bound,
 separate operator host and explicit verified tenant selection. Other operations
 remain proposed and unimplemented.
 
+The single-step `POST /v1/devices` and `DeviceRequest` are **deprecated,
+unimplemented drafts**, superseded by the [staged WebAuthn credential design](../security/enrollment-credential-design.md).
+They remain here for blueprint traceability, not as fallback routes. Credential
+enrollment has no message key or messaging authority; a separate reviewed
+binding is required. Replace the old machine-readable contract with exact
+ceremony schemas before implementing device endpoints.
+
 ## Common contract
 
 Require HTTPS and a validated access token. Derive tenant/user/postman for tenant
@@ -104,7 +111,7 @@ adapter around the candidate. PR #10 remains deferred; no crypto pin changes.
 | ID | Still required | Owner role / evidence |
 | --- | --- | --- |
 | A01 | Review logical schema, immutable ID choice and external identity mapping | Maintainer/backend; reviewed F1 constraints and lifecycle |
-| A02 | OIDC provider, device credential/proof format, address normalization and reassignment | Identity/crypto reviewers; E02 enrollment and key-change tests |
+| A02 | OIDC provider, WebAuthn credential integration/security review, messaging-key binding, address normalization and reassignment | Identity/crypto reviewers; E02 enrollment and key-change tests |
 | A03 | Exact RLS roles, narrow router operations and cross-tenant transaction privileges | Database/security; forbidden-query and race evidence |
 | A04 | Approve envelope encoding, crypto profile, bounds and version compatibility | Crypto/API; E01–E06 and interoperability evidence |
 | A05 | Review transition, expiry, revocation and receipt ordering details | Delivery/policy; executable F0.5 races; durable-storage ack meaning selected by maintainer |
