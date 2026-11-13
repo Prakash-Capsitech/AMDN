@@ -19,7 +19,7 @@ public static class IdentityMigrations
             CREATE TABLE IF NOT EXISTS amdn_identity.schema_migrations (version integer PRIMARY KEY, checksum text NOT NULL);
             """, connection, transaction);
         await setup.ExecuteNonQueryAsync(cancellationToken);
-        for (var number = 1; number <= 2; number++)
+        for (var number = 1; number <= 3; number++)
         {
             using var reader = new StreamReader(typeof(IdentityMigrations).Assembly.GetManifestResourceStream($"Identity.{number:000}.sql")!);
             var sql = await reader.ReadToEndAsync(cancellationToken);

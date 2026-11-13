@@ -25,6 +25,8 @@ migrations and separate database credentials. The
 [F1.3 guide](docs/security/provisioning-owner-access.md) describes the opt-in HTTPS
 services, actual API tests, operator grant administration and remaining integration
 work. Never give migration or provisioning credentials to the owner Gateway.
+The [device storage guide](docs/security/device-persistence.md) documents migration 003
+and the pending ceremony/write boundary.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and

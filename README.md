@@ -14,7 +14,8 @@ and owner-read APIs with scopes, grants, quotas, replay and audit. F1.4 begins w
 an [E02 review and step-up prerequisite](docs/security/device-enrollment-review.md),
 a [WebAuthn credential design](docs/security/enrollment-credential-design.md) and
 an isolated [verifier experiment](experiments/Enrollment/README.md), plus
-[staged enrollment/revocation contracts](docs/protocols/device-enrollment.md).
+[staged enrollment/revocation contracts](docs/protocols/device-enrollment.md) and
+[device persistence foundations](docs/security/device-persistence.md).
 Device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.

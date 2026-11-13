@@ -3,7 +3,9 @@
 Status: Engineering design selected for the next implementation slice,
 12 November 2026. [ADR 0011](../adr/0011-webauthn-enrollment-credentials.md) remains
 Proposed; independent approval and E02 closure are **not** recorded. This document
-specifies intended behavior, not deployed endpoints or persisted device records.
+specifies intended ceremony behavior, not deployed enrollment endpoints. The
+[storage foundation](device-persistence.md) now defines retained device records and
+metadata reads; authorized proof-consuming writes remain pending.
 
 ## Credential and authority
 
@@ -123,15 +125,13 @@ if userHandle is present it must equal the stored handle. Absence is permitted
 only for the already identified owner and explicit allowed credential; it must
 never skip ownership checks. Deny unknown or revoked credentials before effects.
 
-Store credential ID, immutable COSE public key, user handle, initial BE flag,
-latest BS flag/signCount, profile/config version, server timestamps and lifecycle
-status under composite tenant/user/device ownership. Enforce credential-ID
-uniqueness within the RP across active, pending and retained revoked records.
-BE must not change; BS may change only when BE is true. For nonzero counters,
-non-increase/reset fails closed; zero-to-zero is allowed and proves no clone
-resistance. Serialize counter changes with credential use. The experiment shows
-that Fido2 does not consume challenges or compare BE with stored registration;
-these checks belong to the application transaction.
+The [device storage guide](device-persistence.md#records-and-constraints) owns
+retained credential bindings, normalized public-key storage, uniqueness and
+BE/BS/counter constraints. Proof verification adds stricter counter rules:
+for nonzero counters, non-increase/reset fails closed; zero-to-zero is allowed
+and proves no clone resistance. Serialize counter changes with credential use.
+The experiment shows that Fido2 does not consume challenges or compare BE with
+stored registration; these checks belong to the application transaction.
 
 This ceremony does not eliminate bearer-token theft: a stolen token already
 carrying a fresh accepted ACR and enrollment grant can satisfy the initial
@@ -159,9 +159,10 @@ verification reservations, including interrupted attempts. Rollback of stage
 effects leaves no consumed proof or partial identity; it does not erase an
 independently committed attempt reservation.
 
-Pending records expire without changing active identity. Cleanup may delete
-expired proof bytes, but retains audit/replay/tombstone attribution for the
-reviewed retention window; automatic cleanup remains disabled until A06 sets it.
+Pending ceremonies expire without changing active identity; device storage rows
+have no automatic expiry. Cleanup may delete expired proof bytes, but retains
+audit/replay/tombstone attribution for the reviewed retention window; automatic
+cleanup remains disabled until A06 sets it.
 Audit only actor/resource IDs, operation, version and outcome. Never log tokens,
 raw WebAuthn responses, private keys, key packages or plaintext. Migration and
 runtime roles stay separate; add narrow reviewed device functions/role authority,

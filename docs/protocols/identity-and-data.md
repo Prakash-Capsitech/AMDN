@@ -51,7 +51,7 @@ admission or delivery time.
 | users | (T, user_id) | status, identity_version; local identity cannot move tenant |
 | tenant_memberships | (T, issuer, subject), unique (T, user_id) | role, status, membership_version; no email matching |
 | postman_principals | (T, postman_id), unique active (T, owner_user_id) | owner, state, policy_version; logical identity, no private runtime state |
-| devices | (T, device_id), unique active (T, user_id) | owner, identity_version, status, enrolled_at, revoked_at |
+| devices / device_subjects | See [device storage](../security/device-persistence.md#records-and-constraints) | The storage guide owns retained bindings, versions, lifecycle and uniqueness constraints |
 | identity_key_records | (T, key_id) | device FK, profile, immutable public bytes, version, revoked_at; no private material |
 | communication_addresses | normalized address | narrow directory projection of postman/device/key IDs; verification and lifecycle version; no inbox/history read |
 | conversations | (T, conversation_view_id) | local owner and client correlation UUID; not a global authorization key |
