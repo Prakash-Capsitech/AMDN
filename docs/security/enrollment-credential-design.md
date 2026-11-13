@@ -5,7 +5,9 @@ Status: Engineering design selected for the next implementation slice,
 Proposed; independent approval and E02 closure are **not** recorded. This document
 specifies intended ceremony behavior, not deployed enrollment endpoints. The
 [storage foundation](device-persistence.md) now defines retained device records and
-metadata reads; authorized proof-consuming writes remain pending.
+metadata reads. [Internal ceremony transactions](ceremony-transactions.md) now
+record trusted verifier projections; authenticated application execution and
+cryptographic proof integration remain pending.
 
 ## Credential and authority
 

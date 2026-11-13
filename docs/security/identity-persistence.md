@@ -86,7 +86,8 @@ string or secret is supplied by this repository.
 A trusted deployment host explicitly invokes `IdentityMigrations.ApplyAsync` with
 the migration connection string. It takes an advisory transaction lock, assumes the
 owner locally, and applies each pending embedded migration plus SHA-256 ledger entries in
-one transaction. F1.3 adds migration 002 and [F1.4 device storage](device-persistence.md) adds 003; applied migrations are unchanged. Reapplying the same version is a no-op; a changed applied checksum
+one transaction. F1.3 adds migration 002, [device storage](device-persistence.md) adds 003, and
+[ceremony transactions](ceremony-transactions.md) add 004; applied migrations are unchanged. Reapplying the same version is a no-op; a changed applied checksum
 fails. Later schema changes need new versioned migrations, not edits to applied SQL.
 There is no automatic Gateway migration or deployment CLI. F1.3 adds explicit
 provisioning APIs; production rollout remains pending.

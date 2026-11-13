@@ -26,7 +26,8 @@ migrations and separate database credentials. The
 services, actual API tests, operator grant administration and remaining integration
 work. Never give migration or provisioning credentials to the owner Gateway.
 The [device storage guide](docs/security/device-persistence.md) documents migration 003
-and the pending ceremony/write boundary.
+and the [internal ceremony transaction boundary](docs/security/ceremony-transactions.md)
+in migration 004. Verifier/API execution remains pending.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and

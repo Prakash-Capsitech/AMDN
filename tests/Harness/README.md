@@ -67,13 +67,19 @@ actual migration 003, constraints, roles and metadata reads. Trusted migration-o
 writes are synthetic setup; these tests do not establish live enrollment, proof
 consumption or authorized replacement. The device guide owns this evidence scope.
 
+[Ceremony transaction cases](../../docs/security/ceremony-transactions.md) exercise
+migration 004 and its real functions with synthetic trusted actor/proof projections.
+They cover durable attempts, replay, atomic lifecycle/version/audit effects, races,
+post-lock deadlines and restart recovery. They do not exercise live enrollment or
+authenticated verifier/HTTP integration; no API role gains ceremony access.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,
   migrations, authenticated API and worker adapters when F1-F3 implement them.
   F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
   authenticated HTTP probe. F1.3 adds actual provisioning and owner-read API tests.
-  F1.4 adds device storage/read evidence; live enrollment and device ceremony
+  F1.4 adds device storage/read and internal transaction evidence; live enrollment and device ceremony
   integration, worker/routing, deployment and complete production integration remain
   pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
