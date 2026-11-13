@@ -137,8 +137,9 @@ cryptographic approval. ADR 0007 remains Proposed.
 
 The [staged ceremony contract](../protocols/device-enrollment.md) now supplies the
 proposed schemas and state graph. The [device persistence foundation](device-persistence.md)
-adds storage constraints and scoped metadata reads. Remaining F1.4 work is:
-implement proof verification and narrow persistence authority; add enrollment,
+adds storage constraints and scoped metadata reads. [Internal ceremony transactions](ceremony-transactions.md)
+now add durable stages and atomic effects, without application execution grants.
+Remaining F1.4 work is: integrate proof verification and narrow execution authority; add enrollment,
 replacement/revocation and client UX; test real HTTP/PostgreSQL boundaries.
 Negative cases must cover foreign owner/tenant/grant, stale step-up, substituted
 keys/context, wrong origin/RP, expired/reused proofs, simultaneous replacement,

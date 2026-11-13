@@ -3,8 +3,9 @@
 F1.4 now has an embedded storage migration and an internal membership-scoped
 metadata reader. This is **not a working enrollment service**. The
 [staged contract](../protocols/device-enrollment.md) remains proposed; all six
-commands, proof consumption, ceremony reservations, grant administration and
-atomic identity-version/audit/replay effects remain unimplemented. No Gateway
+commands and grant-administration API remain unimplemented. The later
+[ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
+storage effects; authenticated verifier integration remains pending. No Gateway
 route or DI registration is added, and existing application roles cannot write
 device records.
 
@@ -31,7 +32,8 @@ recovery-secret column. The read DTO exposes none of the credential material.
 `pending` is a storage reservation, not a ceremony stage. Multiple pending or
 abandoned device rows may be retained for an owner. The proposed
 [one-unfinished-ceremony rule](../protocols/device-enrollment.md#commands-and-authority)
-requires future ceremony storage; the device table does not enforce it.
+is now enforced by the separate [ceremony ledger](ceremony-transactions.md); the
+device table itself does not enforce it.
 
 The storage representation for a verified ES256 key is the fixed 77-byte public
 COSE map `{1:2, 3:-7, -1:1, -2:x, -3:y}`, with 32-byte x/y coordinates and
@@ -68,9 +70,10 @@ rows only. No production activation/revocation primitive is exposed in this slic
 
 BE cannot change after registration. BS can be true only when BE is true. Counters
 fit unsigned 32 bits and cannot decrease. Equal counters are allowed for metadata
-and lifecycle updates; the future proof-consuming transaction must separately
-reject non-increasing nonzero assertion counters, while permitting zero-to-zero
-under the selected profile. Storage constraints are not replay protection.
+and lifecycle updates; the [ceremony transaction](ceremony-transactions.md) separately
+rejects non-increasing nonzero assertion counters in trusted verifier projections,
+while permitting zero-to-zero under the selected profile. The device-table
+constraints alone are not replay protection.
 
 ## Role and read boundary
 
@@ -114,9 +117,10 @@ uniqueness, competing activation, transaction rollback and database restart.
 All device writes in these cases use the trusted migration owner as **synthetic
 setup**, not a deployed enrollment/proof implementation or verified user ceremony.
 
-Next implement durable ceremony/challenge/attempt/replay/audit storage and the
-narrow authorized transaction layer, including current version/grant/time checks
-after waits, before adding the opt-in verifier/API integration. Explicit grant
+The [ceremony transaction layer](ceremony-transactions.md) now adds durable
+challenge/attempt/replay/audit storage and lifecycle effects with checks after
+waits. It grants no application execution authority; verifier/role/API integration
+is next. Explicit grant
 administration, browser interoperability and messaging-key binding remain open.
 One active logical device makes no physical-device or key non-copyability claim;
 independent peer verification is still required before first send and replacement.

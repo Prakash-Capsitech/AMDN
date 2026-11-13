@@ -16,6 +16,8 @@ a [WebAuthn credential design](docs/security/enrollment-credential-design.md) an
 an isolated [verifier experiment](experiments/Enrollment/README.md), plus
 [staged enrollment/revocation contracts](docs/protocols/device-enrollment.md) and
 [device persistence foundations](docs/security/device-persistence.md).
+[Internal ceremony transactions](docs/security/ceremony-transactions.md) add durable
+challenge/attempt/replay handling; application execution remains disabled.
 Device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.

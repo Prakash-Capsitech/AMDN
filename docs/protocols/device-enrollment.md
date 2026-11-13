@@ -4,7 +4,8 @@ Status: Proposed, OpenAPI `0.2.0-draft`. This specifies the next F1.4 implementa
 boundary after the [credential design](../security/enrollment-credential-design.md).
 No enrollment/revocation endpoint, grant administration or browser adapter is
 implemented. The [device storage foundation](../security/device-persistence.md)
-adds records and metadata reads; proof-consuming ceremony persistence is pending. ADR 0011 remains Proposed. The former single-step
+adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
+now implement durable stage effects; authenticated verifier/API integration is pending. ADR 0011 remains Proposed. The former single-step
 `POST /v1/devices`, `DeviceRequest` and `Device` schemas are removed from the draft;
 Git history retains their blueprint provenance. There is no compatibility fallback.
 
@@ -187,9 +188,9 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next extend the device storage foundation with the scoped ceremony transaction boundary, explicit grant
-administration and opt-in API adapter with real HTTP/role/pool negative and race
-tests. Enrollment can only create `credential_active` with `messaging_ready: false`
+Next integrate the internal ceremony transactions with a vetted verifier, narrow
+application role, explicit grant administration and opt-in API adapter, with real
+HTTP/role/pool negative and race tests. Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after
 replacement. E01/E02/E06, F0 review gates, [native N01/N02](../security/agent-safety.md#pending-native-checks)
