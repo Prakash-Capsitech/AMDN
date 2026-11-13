@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "AMDN Foundation contract proposal",
-    "version": "0.1.0-draft",
+    "version": "0.2.0-draft",
     "description": "F0.4 review artifact only. No messaging endpoints or production crypto profile are implemented/approved. See http-api.md and authorization.md; A01\u2013A07, E01\u2013E06 and N01/N02 remain pending."
   },
   "servers": [
@@ -88,23 +88,51 @@
         "x-max-body-bytes": 16384
       }
     },
-    "/v1/devices": {
+    "/v1/device-enrollments": {
       "post": {
-        "operationId": "registerDevice",
-        "summary": "registerDevice",
-        "deprecated": true,
-        "description": "Superseded, unimplemented single-step draft. ADR 0011 and docs/security/enrollment-credential-design.md select staged WebAuthn credential enrollment with no messaging-key activation. Replace this legacy contract before implementation; do not expose it as a fallback.",
+        "operationId": "beginDeviceEnrollment",
+        "summary": "beginDeviceEnrollment",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
-        "x-authorization": "Own active membership; step-up, proof of possession and expected identity version; one active device.",
-        "x-idempotency": "Atomic owner/operation/key replay",
-        "x-rate-limit": "Requires configured per-actor and per-tenant budgets; values pending A06.",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginEnrollment"
+              }
+            }
+          }
+        },
         "responses": {
-          "201": {
-            "description": "Authorized operation completed.",
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Device"
+                  "$ref": "#/components/schemas/EnrollmentRegistrationOptions"
                 }
               }
             }
@@ -127,6 +155,9 @@
           "413": {
             "$ref": "#/components/responses/Error413"
           },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
           "429": {
             "$ref": "#/components/responses/Error429"
           },
@@ -134,21 +165,454 @@
             "$ref": "#/components/responses/Error503"
           }
         },
+        "x-max-body-bytes": 65536
+      }
+    },
+    "/v1/device-enrollments/{enrollmentId}/registration": {
+      "post": {
+        "operationId": "registerEnrollmentCredential",
+        "summary": "registerEnrollmentCredential",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "enrollmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DeviceRequest"
+                "$ref": "#/components/schemas/WebAuthnRegistration"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentCandidateOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "x-max-body-bytes": 65536
+      }
+    },
+    "/v1/device-enrollments/{enrollmentId}/candidate-proof": {
+      "post": {
+        "operationId": "proveEnrollmentCandidate",
+        "summary": "proveEnrollmentCandidate",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "enrollmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
           }
-        ]
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebAuthnAssertion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/EnrollmentCompleted"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrollmentCurrentOptions"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "x-max-body-bytes": 65536
+      }
+    },
+    "/v1/device-enrollments/{enrollmentId}/current-proof": {
+      "post": {
+        "operationId": "authorizeDeviceReplacement",
+        "summary": "authorizeDeviceReplacement",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "enrollmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebAuthnAssertion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentCompleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "x-max-body-bytes": 65536
+      }
+    },
+    "/v1/devices/{deviceId}/revocations": {
+      "post": {
+        "operationId": "beginDeviceRevocation",
+        "summary": "beginDeviceRevocation",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginRevocation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevocationOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "x-max-body-bytes": 65536
+      }
+    },
+    "/v1/device-revocations/{revocationId}/proof": {
+      "post": {
+        "operationId": "completeDeviceRevocation",
+        "summary": "completeDeviceRevocation",
+        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "x-required-scope": "device.manage",
+        "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
+        "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
+        "x-rate-limit": "Configured actor/tenant/global budgets; one unfinished enrollment or revocation ceremony per tenant/user; five reserved verification attempts per stage; no unlimited defaults.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeviceTenant"
+          },
+          {
+            "$ref": "#/components/parameters/CeremonyOrigin"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "name": "revocationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebAuthnAssertion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage committed or authorized replay. Pending replay allowed only while its returned challenge remains current and unexpired; completed replay returns historical effect with fresh lifecycle snapshot.",
+            "headers": {
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevocationCompleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "x-max-body-bytes": 65536
       }
     },
     "/v1/directory/{address}": {
@@ -760,6 +1224,27 @@
           "maximum": 100,
           "default": 50
         }
+      },
+      "DeviceTenant": {
+        "name": "tenant_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Id"
+        },
+        "description": "Selector only. Resolve through verified issuer/subject and active membership; never authority."
+      },
+      "CeremonyOrigin": {
+        "name": "Origin",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 9,
+          "maxLength": 512,
+          "pattern": "^https://[^\\s/?#@]+(?![\\s\\S])"
+        },
+        "description": "Exactly one canonical configured HTTPS origin, no path or trailing slash; exact allowlist match and binding to initiating origin required. Reject null/multiple values. Syntax alone is not authorization; never derive RP/origin from Host or forwarding headers."
       }
     },
     "responses": {
@@ -1156,25 +1641,71 @@
           "status"
         ]
       },
-      "DeviceRequest": {
-        "deprecated": true,
+      "WebAuthnCredentialId": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 1364,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Canonical unpadded base64url; decoded limit 1023 bytes."
+      },
+      "WebAuthnClientData": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 10923,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Canonical unpadded base64url; decoded limit 8192 bytes."
+      },
+      "WebAuthnAttestation": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 21846,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Canonical unpadded base64url; decoded limit 16384 bytes."
+      },
+      "WebAuthnAuthenticatorData": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 5462,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Canonical unpadded base64url; decoded limit 4096 bytes."
+      },
+      "WebAuthnSignature": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 1366,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Canonical unpadded base64url; decoded limit 1024 bytes."
+      },
+      "WebAuthnChallenge": {
+        "type": "string",
+        "minLength": 43,
+        "maxLength": 43,
+        "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?(?![\\s\\S])",
+        "description": "Exactly 32 bytes, canonical unpadded base64url. Generated by the server; never client-selected."
+      },
+      "EnrollmentProfile": {
+        "const": "amdn-webauthn-enrollment/1"
+      },
+      "IdentityVersion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "ExpectedDeviceVersion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740990,
+        "description": "Current identity version, including after revocation. Maximum reserves room for one atomic increment."
+      },
+      "BeginEnrollment": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "encryption_profile": {
-            "$ref": "#/components/schemas/Profile"
-          },
-          "public_key_package": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 32768,
-            "pattern": "^[A-Za-z0-9_-]+$",
-            "description": "Unpadded canonical base64url. Semantic validation must decode strictly and enforce byte limits."
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
           },
           "expected_identity_version": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "$ref": "#/components/schemas/ExpectedDeviceVersion"
           },
           "replace_device_id": {
             "oneOf": [
@@ -1188,41 +1719,573 @@
           }
         },
         "required": [
-          "encryption_profile",
-          "public_key_package",
+          "profile",
           "expected_identity_version",
           "replace_device_id"
-        ],
-        "description": "Superseded legacy draft, not an accepted enrollment request. See ADR 0011 for separate credential enrollment and later reviewed messaging-key binding."
+        ]
       },
-      "Device": {
+      "BeginRevocation": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "device_id": {
-            "$ref": "#/components/schemas/Id"
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
           },
-          "key_id": {
-            "$ref": "#/components/schemas/Id"
+          "expected_identity_version": {
+            "$ref": "#/components/schemas/ExpectedDeviceVersion"
+          }
+        },
+        "required": [
+          "profile",
+          "expected_identity_version"
+        ]
+      },
+      "WebAuthnRegistration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/WebAuthnCredentialId"
           },
-          "identity_version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 9007199254740991
+          "rawId": {
+            "$ref": "#/components/schemas/WebAuthnCredentialId"
           },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active"
+          "type": {
+            "const": "public-key"
+          },
+          "clientExtensionResults": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {},
+            "required": []
+          },
+          "response": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientDataJSON": {
+                "$ref": "#/components/schemas/WebAuthnClientData"
+              },
+              "attestationObject": {
+                "$ref": "#/components/schemas/WebAuthnAttestation"
+              }
+            },
+            "required": [
+              "clientDataJSON",
+              "attestationObject"
             ]
           }
         },
         "required": [
-          "device_id",
-          "key_id",
-          "identity_version",
-          "status"
+          "id",
+          "rawId",
+          "type",
+          "clientExtensionResults",
+          "response"
+        ],
+        "description": "AMDN projection of browser credential fields, not the complete browser toJSON object. id must equal rawId and the verified attested credential ID. Client adapter copies raw signed bytes without reserialization; see device-enrollment.md."
+      },
+      "WebAuthnAssertion": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/WebAuthnCredentialId"
+          },
+          "rawId": {
+            "$ref": "#/components/schemas/WebAuthnCredentialId"
+          },
+          "type": {
+            "const": "public-key"
+          },
+          "clientExtensionResults": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {},
+            "required": []
+          },
+          "response": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientDataJSON": {
+                "$ref": "#/components/schemas/WebAuthnClientData"
+              },
+              "authenticatorData": {
+                "$ref": "#/components/schemas/WebAuthnAuthenticatorData"
+              },
+              "signature": {
+                "$ref": "#/components/schemas/WebAuthnSignature"
+              },
+              "userHandle": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WebAuthnChallenge"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "clientDataJSON",
+              "authenticatorData",
+              "signature"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rawId",
+          "type",
+          "clientExtensionResults",
+          "response"
+        ],
+        "description": "id/rawId must equal the single allowed stored credential ID. Absent/null userHandle is allowed only for the already identified owner; otherwise exact stored handle required. No client extensions."
+      },
+      "WebAuthnCredentialDescriptor": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "public-key"
+          },
+          "id": {
+            "$ref": "#/components/schemas/WebAuthnCredentialId"
+          }
+        },
+        "required": [
+          "type",
+          "id"
         ]
+      },
+      "WebAuthnCreationOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rp": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 253
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "user": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/WebAuthnChallenge"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "displayName"
+            ]
+          },
+          "challenge": {
+            "$ref": "#/components/schemas/WebAuthnChallenge"
+          },
+          "pubKeyCredParams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "public-key"
+                },
+                "alg": {
+                  "const": -7
+                }
+              },
+              "required": [
+                "type",
+                "alg"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 1,
+            "uniqueItems": true
+          },
+          "timeout": {
+            "const": 120000
+          },
+          "excludeCredentials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebAuthnCredentialDescriptor"
+            },
+            "minItems": 0,
+            "maxItems": 1,
+            "uniqueItems": true
+          },
+          "authenticatorSelection": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "residentKey": {
+                "const": "discouraged"
+              },
+              "userVerification": {
+                "const": "required"
+              }
+            },
+            "required": [
+              "residentKey",
+              "userVerification"
+            ]
+          },
+          "attestation": {
+            "const": "none"
+          }
+        },
+        "required": [
+          "rp",
+          "user",
+          "challenge",
+          "pubKeyCredParams",
+          "timeout",
+          "excludeCredentials",
+          "authenticatorSelection",
+          "attestation"
+        ],
+        "description": "Browser publicKey options after base64url decoding. Explicit configured RP ID; pseudonymous user labels. Exclude only the current credential if any; server uniqueness covers all retained credentials. No extensions requested; no authenticatorAttachment restriction."
+      },
+      "WebAuthnRequestOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "challenge": {
+            "$ref": "#/components/schemas/WebAuthnChallenge"
+          },
+          "timeout": {
+            "const": 120000
+          },
+          "rpId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253
+          },
+          "allowCredentials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebAuthnCredentialDescriptor"
+            },
+            "minItems": 1,
+            "maxItems": 1,
+            "uniqueItems": true
+          },
+          "userVerification": {
+            "const": "required"
+          }
+        },
+        "required": [
+          "challenge",
+          "timeout",
+          "rpId",
+          "allowCredentials",
+          "userVerification"
+        ]
+      },
+      "EnrollmentRegistrationOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "challenge_expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "state": {
+            "const": "awaiting_registration"
+          },
+          "public_key": {
+            "$ref": "#/components/schemas/WebAuthnCreationOptions"
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "device_id",
+          "expires_at",
+          "challenge_expires_at",
+          "state",
+          "public_key"
+        ],
+        "description": "Pending ceremony snapshot. device_id is candidate for enrollment, current device for revocation. Options cannot be replayed after the challenge expires or is consumed. Server deadlines override browser timeout."
+      },
+      "EnrollmentCandidateOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "challenge_expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "state": {
+            "const": "awaiting_candidate_proof"
+          },
+          "public_key": {
+            "$ref": "#/components/schemas/WebAuthnRequestOptions"
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "device_id",
+          "expires_at",
+          "challenge_expires_at",
+          "state",
+          "public_key"
+        ],
+        "description": "Pending ceremony snapshot. device_id is candidate for enrollment, current device for revocation. Options cannot be replayed after the challenge expires or is consumed. Server deadlines override browser timeout."
+      },
+      "EnrollmentCurrentOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "challenge_expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "state": {
+            "const": "awaiting_current_proof"
+          },
+          "public_key": {
+            "$ref": "#/components/schemas/WebAuthnRequestOptions"
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "device_id",
+          "expires_at",
+          "challenge_expires_at",
+          "state",
+          "public_key"
+        ],
+        "description": "Pending ceremony snapshot. device_id is candidate for enrollment, current device for revocation. Options cannot be replayed after the challenge expires or is consumed. Server deadlines override browser timeout."
+      },
+      "RevocationOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "challenge_expires_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "state": {
+            "const": "awaiting_revocation_proof"
+          },
+          "public_key": {
+            "$ref": "#/components/schemas/WebAuthnRequestOptions"
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "device_id",
+          "expires_at",
+          "challenge_expires_at",
+          "state",
+          "public_key"
+        ],
+        "description": "Pending ceremony snapshot. device_id is candidate for enrollment, current device for revocation. Options cannot be replayed after the challenge expires or is consumed. Server deadlines override browser timeout."
+      },
+      "DeviceLifecycleSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "credential_active",
+              "revoked"
+            ]
+          },
+          "identity_version": {
+            "$ref": "#/components/schemas/IdentityVersion"
+          },
+          "observed_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          }
+        },
+        "required": [
+          "status",
+          "identity_version",
+          "observed_at"
+        ]
+      },
+      "EnrollmentCompleted": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "state": {
+            "const": "completed"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "completed_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "committed_identity_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "messaging_ready": {
+            "const": false
+          },
+          "current_lifecycle": {
+            "$ref": "#/components/schemas/DeviceLifecycleSnapshot"
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "state",
+          "device_id",
+          "completed_at",
+          "committed_identity_version",
+          "messaging_ready",
+          "current_lifecycle"
+        ],
+        "description": "Historical credential activation plus current lifecycle snapshot for this device and current owner identity version. Never authorizes messaging or reactivates a superseded device; no key_id."
+      },
+      "RevocationCompleted": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ceremony_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/EnrollmentProfile"
+          },
+          "state": {
+            "const": "completed"
+          },
+          "device_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "completed_at": {
+            "$ref": "#/components/schemas/UtcTime"
+          },
+          "committed_identity_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "messaging_ready": {
+            "const": false
+          },
+          "current_lifecycle": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "revoked"
+              },
+              "identity_version": {
+                "$ref": "#/components/schemas/IdentityVersion"
+              },
+              "observed_at": {
+                "$ref": "#/components/schemas/UtcTime"
+              }
+            },
+            "required": [
+              "status",
+              "identity_version",
+              "observed_at"
+            ]
+          }
+        },
+        "required": [
+          "ceremony_id",
+          "profile",
+          "state",
+          "device_id",
+          "completed_at",
+          "committed_identity_version",
+          "messaging_ready",
+          "current_lifecycle"
+        ],
+        "description": "Historical revocation plus current lifecycle. Revocation is terminal; no reenrollment or messaging authority."
       },
       "DirectoryEntry": {
         "type": "object",

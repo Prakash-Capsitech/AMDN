@@ -51,7 +51,9 @@ class HttpContractTests(unittest.TestCase):
 
     def test_every_blueprint_operation_declares_auth_and_failure_contracts(self):
         expected = {
-            "provisionTenant", "registerDevice", "resolveDirectory", "submitMessage",
+            "provisionTenant", "resolveDirectory", "submitMessage",
+            "beginDeviceEnrollment", "registerEnrollmentCredential", "proveEnrollmentCandidate",
+            "authorizeDeviceReplacement", "beginDeviceRevocation", "completeDeviceRevocation",
             "getMessageStatus", "getInbox", "acknowledgeDelivery", "getPostman",
             "updatePostmanPolicy", "getPostmanAudit", "provisionMembership",
         }
@@ -140,7 +142,7 @@ class HttpContractTests(unittest.TestCase):
         patch = SPEC["paths"]["/v1/postman/policy"]["patch"]
         self.assertIn({"$ref": "#/components/parameters/IfMatch"}, patch["parameters"])
         self.assertIn("412", patch["responses"])
-        for path in ("/v1/tenants", "/v1/devices", "/v1/messages"):
+        for path in ("/v1/tenants", "/v1/device-enrollments", "/v1/messages"):
             command = SPEC["paths"][path]["post"]
             self.assertIn({"$ref": "#/components/parameters/IdempotencyKey"}, command["parameters"])
             self.assertIn("409", command["responses"])

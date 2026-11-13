@@ -1,0 +1,12 @@
+{
+  "id": "AA",
+  "rawId": "AA",
+  "type": "public-key",
+  "clientExtensionResults": {},
+  "response": {
+    "clientDataJSON": "AA",
+    "authenticatorData": "AA",
+    "signature": "AA",
+    "userHandle": null
+  }
+}

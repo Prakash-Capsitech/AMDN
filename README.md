@@ -13,7 +13,8 @@ personal postmen, migrations and scoped PostgreSQL reads. [F1.3](docs/security/p
 and owner-read APIs with scopes, grants, quotas, replay and audit. F1.4 begins with
 an [E02 review and step-up prerequisite](docs/security/device-enrollment-review.md),
 a [WebAuthn credential design](docs/security/enrollment-credential-design.md) and
-an isolated [verifier experiment](experiments/Enrollment/README.md).
+an isolated [verifier experiment](experiments/Enrollment/README.md), plus
+[staged enrollment/revocation contracts](docs/protocols/device-enrollment.md).
 Device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.

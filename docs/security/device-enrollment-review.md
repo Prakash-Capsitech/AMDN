@@ -13,17 +13,17 @@ for F1.4, not approval to enable enrollment or production messaging.
 ## Findings and implementation boundary
 
 The [draft identity contract](../protocols/identity-and-data.md) requires ownership,
-step-up, proof of possession and atomic replacement. Its `DeviceRequest` JSON
-does not specify a possession ceremony. Uploading a public package with a bearer
+step-up, proof of possession and atomic replacement. The former `DeviceRequest` JSON
+did not specify a possession ceremony; the staged contract now replaces it. Uploading a public package with a bearer
 token proves neither possession of private keys nor independent recipient identity.
-Implementing that draft as an endpoint would leave its central condition empty.
+Implementing that former draft as an endpoint would leave its central condition empty.
 
 The OIDC adapter previously discarded authentication context/time. This slice
 adds an opt-in, tested [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisite).
 It checks verified login evidence only. It creates no device/key/challenge rows,
-changes no grants and maps no device endpoint. `/v1/devices` stays unimplemented.
-The draft OpenAPI stays Proposed; its legacy single-step enrollment is deprecated
-in favor of the credential design and must be replaced before implementation.
+changes no grants and maps no device endpoint. See the proposed
+[staged contract](../protocols/device-enrollment.md) for the replacement of the
+legacy single-step draft and the current enrollment/revocation API semantics.
 There is no placeholder verifier, opaque-key
 acceptance path or import of the experimental crypto package.
 
@@ -135,7 +135,8 @@ Record reviewer, date, selected profile, residual risks and evidence before
 acceptance. An agent review, no-mistakes pass or PR merge is not independent
 cryptographic approval. ADR 0007 remains Proposed.
 
-After these decisions, remaining F1.4 work is: revise the ceremony contract;
+The [staged ceremony contract](../protocols/device-enrollment.md) now supplies the
+proposed schemas and state graph. Remaining F1.4 work is:
 implement proof verification and narrow persistence authority; add enrollment,
 replacement/revocation and client UX; test real HTTP/PostgreSQL boundaries.
 Negative cases must cover foreign owner/tenant/grant, stale step-up, substituted
