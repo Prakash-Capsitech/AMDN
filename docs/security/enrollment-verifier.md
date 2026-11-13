@@ -19,7 +19,9 @@ return a fresh open connection without an existing transaction. No role switch
 occurs in this library. Runtime/provisioning credentials still cannot execute the
 SQL primitives. A narrow execution role and reviewed pool integration remain next.
 
-1. Copy the bounded request once and reject malformed projection/JSON encodings.
+1. Copy the bounded request once and reject malformed proof projections, JSON or
+   projection-field base64url encodings with `invalid_request` before opening a
+   database connection.
 2. Call `ceremony_reserve` in an explicit transaction. If newly reserved, capture
    its database snapshot and operation, then **commit and dispose the connection**.
    Replay and denials return without another verification job.
@@ -27,7 +29,9 @@ SQL primitives. A narrow execution role and reviewed pool integration remain nex
    exact-byte SHA-256 digest with the stored reservation digest. No caller can
    supply a successful verifier projection to this API.
 4. In a separate transaction, call `ceremony_finish` with only the verified public
-   projection, or `ceremony_fail` with a generic failure. The existing SQL rechecks
+   projection, or `ceremony_fail` for a generic `invalid_proof` result after bounded
+   CBOR, profile or cryptographic rejection, including out-of-range COSE integers.
+   These failures consume the durable attempt budget. The existing SQL rechecks
    authorization, lifecycle versions, counter/BE, stage, digest, deadlines and
    uniqueness. Commit before returning an internal result. Fresh next-stage
    challenges use the platform cryptographic RNG.
@@ -40,7 +44,9 @@ worker, retry verification or claim that a lost response means rollback. The
 [transaction reference](ceremony-transactions.md) owns lifecycle and replay rules.
 
 The return value is internal SQL JSON, **not an HTTP response DTO**. The future
-adapter must build the staged contract responses, options and generic errors.
+adapter must build the staged contract responses, options and generic errors;
+both internal `invalid_request` and `invalid_proof` map to the contract's generic
+HTTP 400 `invalid_request`, not a new public error schema.
 It must also enforce HTTPS, content type, no compression, headers, authentication,
 request/concurrency budgets and timeouts before enabling routes. Byte limits here
 do not replace transport or operation budgets.
@@ -57,8 +63,8 @@ metadata, verifies attestation certificates or negotiates a weaker algorithm.
 - Strict UTF-8 JSON, depth at most 16, duplicate names rejected including escaped
   equivalents, exact AMDN fields, empty client extensions and canonical unpadded
   base64url. The [contract limits](../protocols/device-enrollment.md#browser-projection-and-bounds)
-  apply before library parsing: 64 KiB command, 8 KiB client data, 16 KiB
-  attestation, 4 KiB authenticator data, 1 KiB signature and 1,023-byte ID.
+  apply before Fido2 parsing; registration authenticator data is bounded during
+  CBOR preflight after reservation.
 - Client data permits only type, challenge, origin and optional `crossOrigin:
   false`. No topOrigin, tokenBinding or unknown client-data fields are accepted in
   this first profile. Origin comparison is exact, even where library URL
@@ -77,9 +83,9 @@ metadata, verifies attestation certificates or negotiates a weaker algorithm.
   the signature, RP hash, challenge, type, UP/UV, flags and counter. The adapter and
   commit transaction additionally compare BE with registration.
 
-The library registration uniqueness callback is only a precheck: retained
-credential-ID and normalized-public-key uniqueness is decided by SQL at commit,
-including concurrent registrations. Registration alone cannot activate a device;
+The library registration uniqueness callback returns true without checking
+uniqueness: retained credential-ID and normalized-public-key uniqueness is decided
+by SQL at commit, including concurrent registrations. Registration alone cannot activate a device;
 the next signed assertion must prove possession. Replacement also requires the
 old credential's separate proof. No plaintext, private key, raw proof, attestation
 or token is persisted or logged by the adapter. Exception text from proof parsers

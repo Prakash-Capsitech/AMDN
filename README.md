@@ -19,7 +19,7 @@ an isolated [verifier experiment](experiments/Enrollment/README.md), plus
 [Internal ceremony transactions](docs/security/ceremony-transactions.md) add durable
 challenge/attempt/replay handling. The isolated [verifier bridge](docs/security/enrollment-verifier.md)
 connects signed WebAuthn proofs to those transactions; application execution remains disabled.
-Device enrollment,
+Live device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and

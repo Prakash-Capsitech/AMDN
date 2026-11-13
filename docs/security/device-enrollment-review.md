@@ -24,8 +24,8 @@ It checks verified login evidence only. It creates no device/key/challenge rows,
 changes no grants and maps no device endpoint. See the proposed
 [staged contract](../protocols/device-enrollment.md) for the replacement of the
 legacy single-step draft and the current enrollment/revocation API semantics.
-There is no placeholder verifier, opaque-key
-acceptance path or import of the experimental crypto package.
+There is no placeholder verifier or opaque-key acceptance path. See the
+[verifier guide](enrollment-verifier.md) for the subsequent cryptographic integration.
 
 ## Enrollment: separate the proofs
 
@@ -103,7 +103,9 @@ Proposed transaction requirements preserve the draft's invariants:
   dismissal must not silently restore peer trust. Lost-device recovery needs a
   reviewed assurance policy; an ordinary session alone is insufficient.
 
-These are acceptance requirements, not implemented SQL, UI or race-test results.
+These are acceptance requirements; the [transaction reference](ceremony-transactions.md)
+owns SQL implementation and evidence, and the [verifier guide](enrollment-verifier.md)
+owns proof integration evidence. Client UI remains pending.
 Unenrollment and replacement contracts must be reviewed together.
 
 ## Client-distribution trust
@@ -139,8 +141,10 @@ The [staged ceremony contract](../protocols/device-enrollment.md) now supplies t
 proposed schemas and state graph. The [device persistence foundation](device-persistence.md)
 adds storage constraints and scoped metadata reads. [Internal ceremony transactions](ceremony-transactions.md)
 now add durable stages and atomic effects, without application execution grants.
-Remaining F1.4 work is: integrate proof verification and narrow execution authority; add enrollment,
-replacement/revocation and client UX; test real HTTP/PostgreSQL boundaries.
+See the [verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for the
+subsequent proof integration and remaining authenticated application work.
+Enrollment, replacement/revocation client UX and real HTTP/PostgreSQL boundary
+tests remain pending.
 Negative cases must cover foreign owner/tenant/grant, stale step-up, substituted
 keys/context, wrong origin/RP, expired/reused proofs, simultaneous replacement,
 revocation during lock waits, lost-response retries and audit/commit failure.

@@ -53,7 +53,9 @@ both credentials through the ceremony. Synced credentials may exist on several
 physical devices; neither counters nor one active database row prove otherwise.
 
 This resolves the engineering direction, not E02 production acceptance.
-Application persistence/HTTP/client integration, independent crypto review,
+See the [verifier guide](../security/enrollment-verifier.md) for internal
+proof/persistence integration and its evidence boundary. Authenticated HTTP/client
+integration, independent crypto review,
 messaging-key binding, client-distribution trust, native N01/N02 and production
 P01–P03 remain pending. Record named reviewer, date and evidence before changing
 this ADR's status. Approval: not recorded.
