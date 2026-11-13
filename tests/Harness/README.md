@@ -62,13 +62,19 @@ and required headers are checked against the published OpenAPI problem constrain
 including status-specific codes and canonical server-generated request IDs. Both hosts
 remain disabled by default; these tests do not create a deployed service.
 
+F1.4 adds [device storage tests](../../docs/security/device-persistence.md) using
+actual migration 003, constraints, roles and metadata reads. Trusted migration-owner
+writes are synthetic setup; these tests do not establish live enrollment, proof
+consumption or authorized replacement. The device guide owns this evidence scope.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,
   migrations, authenticated API and worker adapters when F1-F3 implement them.
   F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
   authenticated HTTP probe. F1.3 adds actual provisioning and owner-read API tests.
-  Device, worker/routing, deployment and complete production integration remain
+  F1.4 adds device storage/read evidence; live enrollment and device ceremony
+  integration, worker/routing, deployment and complete production integration remain
   pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
   reconnect cursors, retention/expiry races, quotas and noisy-neighbor backlog load.

@@ -2,8 +2,9 @@
 
 Status: Proposed, OpenAPI `0.2.0-draft`. This specifies the next F1.4 implementation
 boundary after the [credential design](../security/enrollment-credential-design.md).
-No enrollment/revocation endpoint, device persistence, grant administration or
-browser adapter is implemented. ADR 0011 remains Proposed. The former single-step
+No enrollment/revocation endpoint, grant administration or browser adapter is
+implemented. The [device storage foundation](../security/device-persistence.md)
+adds records and metadata reads; proof-consuming ceremony persistence is pending. ADR 0011 remains Proposed. The former single-step
 `POST /v1/devices`, `DeviceRequest` and `Device` schemas are removed from the draft;
 Git history retains their blueprint provenance. There is no compatibility fallback.
 
@@ -186,7 +187,7 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next implement the scoped device persistence/transaction boundary, explicit grant
+Next extend the device storage foundation with the scoped ceremony transaction boundary, explicit grant
 administration and opt-in API adapter with real HTTP/role/pool negative and race
 tests. Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain

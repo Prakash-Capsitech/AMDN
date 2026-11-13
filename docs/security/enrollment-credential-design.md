@@ -3,7 +3,9 @@
 Status: Engineering design selected for the next implementation slice,
 12 November 2026. [ADR 0011](../adr/0011-webauthn-enrollment-credentials.md) remains
 Proposed; independent approval and E02 closure are **not** recorded. This document
-specifies intended behavior, not deployed endpoints or persisted device records.
+specifies intended ceremony behavior, not deployed enrollment endpoints. The
+[storage foundation](device-persistence.md) now defines retained device records and
+metadata reads; authorized proof-consuming writes remain pending.
 
 ## Credential and authority
 
