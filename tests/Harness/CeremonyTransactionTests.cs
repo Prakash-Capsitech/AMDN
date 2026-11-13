@@ -11,7 +11,7 @@ namespace AMDN.Harness.Tests;
 
 // Exercises real SQL transactions with synthetic actor/proof projections.
 // No OIDC signature, WebAuthn proof, browser or public enrollment endpoint is tested here.
-public sealed class CeremonyTransactionTests
+public sealed partial class CeremonyTransactionTests
 {
     private RunState _state = RunState.Load();
     private const string ActorSql = "ROW(@tenant,@issuer,@subject,@client,@origin,@config,@scope,@acr,@auth_time,@token_exp)::amdn_identity.ceremony_actor";

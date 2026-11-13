@@ -139,3 +139,14 @@ also inspect networks with
 Verify each resource's `amdn.harness.run` label matches the run ID before manually
 removing it and its private directory. Never use a global prune or reset another
 project to repair a harness run. Run again only after prerequisites are restored.
+
+## Verifier integration evidence
+
+The [isolated verifier bridge](../../docs/security/enrollment-verifier.md) runs
+actual Fido2 signature verification between a committed reservation and a separate
+finish transaction. Synthetic in-memory authenticator keys exercise initial,
+replacement and revocation flows, profile and encoding rejection, counter/backup
+checks, replay, foreign owners, normalized-key uniqueness, authority changes and
+interruption. The harness uses the existing migration owner; it does not certify
+a future application execution role, authenticated HTTP bridge or browser.
+Live enrollment, native N01/N02 and full production P01–P03 remain pending.

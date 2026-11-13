@@ -7,7 +7,9 @@ and revocation against the [staged contract](../protocols/device-enrollment.md).
 production verifier integration, grant-administration API or new application
 credential is enabled. Runtime and provisioning roles cannot execute these
 functions or access the new tables. The harness calls them as the trusted
-migration owner with synthetic actor and verifier projections.
+migration owner with synthetic actor and verifier projections. The later
+[isolated verifier bridge](enrollment-verifier.md) also exercises actual signed
+WebAuthn responses through committed reservations; no application role is enabled.
 
 ## Trust and invocation boundary
 
@@ -30,12 +32,13 @@ Only a future validated-principal bridge may construct the projection in an
 application. Arbitrary owner SQL remains an administrator trust boundary.
 
 `ceremony_finish` accepts credential ID, normalized public key, BE/BS and counter
-from a future verifier, bound to a reserved attempt ID and exact request digest.
+from the trusted verifier bridge, bound to a reserved attempt ID and exact request digest.
 It does **not** verify signatures, attestation, UP/UV, client data or curve points.
-A future adapter must verify the original bytes against the reserved challenge,
-RP/origin, handle, exact credential/key and device version, then submit that same
-projection. No boolean "verified" flag, placeholder verifier, custom signature
-format or production cryptographic dependency is added here. The returned
+The isolated verifier bridge verifies the original bytes against the reserved challenge,
+RP/origin, handle and exact credential/key, then submits that same projection;
+SQL checks the reserved device version. Authenticated application wiring remains
+pending. No boolean "verified" flag, placeholder verifier or custom signature
+format is used. The SQL layer has no cryptographic verifier dependency. The returned
 internal verifier snapshot must never be sent directly to an HTTP client.
 
 ## Durable records
@@ -172,7 +175,7 @@ uniqueness waits followed by blocker rollback. All identities and proof projecti
 are synthetic. This is transaction/storage evidence; it proves neither real OIDC
 assurance nor WebAuthn possession, HTTP policy enforcement or browser behavior.
 
-Next add the vetted verifier bridge, explicit grant/configuration administration,
+Next add authenticated principal integration, explicit grant/configuration administration,
 narrow application execution role, operation budgets and opt-in HTTP integration,
 then drive actual enrollment and cross-tenant negative/race cases through them.
 Live enrollment, [native N01/N02](agent-safety.md#pending-native-checks) and full

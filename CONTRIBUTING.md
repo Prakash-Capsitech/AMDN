@@ -7,7 +7,6 @@ versioned hooks and restores locked dependencies. `make verify` builds, runs the
 bootstrap HTTP, OIDC authentication, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 It also runs the isolated [enrollment verifier experiment](experiments/Enrollment/README.md).
-The experiment's NuGet dependency is not referenced by application projects.
 
 Run `make harness-test` separately before submission using the
 [harness prerequisites](README.md#start-locally). See the
@@ -27,7 +26,8 @@ services, actual API tests, operator grant administration and remaining integrat
 work. Never give migration or provisioning credentials to the owner Gateway.
 The [device storage guide](docs/security/device-persistence.md) documents migration 003
 and the [internal ceremony transaction boundary](docs/security/ceremony-transactions.md)
-in migration 004. Verifier/API execution remains pending.
+in migration 004. See the [verifier guide](docs/security/enrollment-verifier.md)
+for the signed verifier/database cases run by the harness and their limits.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and

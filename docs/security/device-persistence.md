@@ -5,7 +5,8 @@ metadata reader. This is **not a working enrollment service**. The
 [staged contract](../protocols/device-enrollment.md) remains proposed; all six
 HTTP commands and grant-administration API remain unimplemented. The later
 [ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
-storage effects; authenticated verifier integration remains pending. No Gateway
+storage effects; the [isolated verifier bridge](enrollment-verifier.md) connects
+proofs to them. Authenticated application integration remains pending. No Gateway
 route or DI registration is added, and existing application roles cannot write
 device records.
 
@@ -41,10 +42,10 @@ and [deterministic CBOR rules](https://www.rfc-editor.org/rfc/rfc8949.html#secti
 The SQL shape check excludes extra/private parameters and alternative encodings,
 so the unique `(rp_id, public_key_cose)` constraint cannot be evaded by reordering
 map fields. It does **not** validate a curve point, signature, attestation or key
-possession. A future vetted verifier adapter must validate the original WebAuthn
-input before projecting its verified public key into this storage representation;
-normalizing stored public material must never rewrite signed client/authenticator
-bytes before verification. The synthetic test encoder is not application crypto.
+possession. See the [verifier boundary](enrollment-verifier.md#verification-profile)
+for validation and normalization before storage. Normalizing stored public material
+must never rewrite signed client/authenticator bytes before verification.
+The synthetic test encoder is not application crypto.
 
 Credential IDs are bounded at 1–1,023 decoded bytes and unique per RP across every
 retained state. The same applies to normalized public keys. Retaining abandoned
@@ -118,8 +119,9 @@ setup**, not a deployed enrollment/proof implementation or verified user ceremon
 
 The [ceremony transaction layer](ceremony-transactions.md) now adds durable
 challenge/attempt/replay/audit storage and lifecycle effects with checks after
-waits. It grants no application execution authority; verifier/role/API integration
-is next. Explicit grant
+waits. It grants no application execution authority; see the
+[verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for proof integration
+and remaining application work. Explicit grant
 administration, browser interoperability and messaging-key binding remain open.
 One active logical device makes no physical-device or key non-copyability claim;
 independent peer verification is still required before first send and replacement.
