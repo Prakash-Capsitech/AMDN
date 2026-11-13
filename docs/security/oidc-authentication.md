@@ -112,7 +112,8 @@ F1.4 begins with the [E02 trust review](device-enrollment-review.md). An opt-in
 the validated access token. It is **not enrollment authorization**: membership,
 current object grants, device possession and messaging-key binding must still be
 checked by the future operation. No production endpoint uses this policy yet;
-enabling it does not enable `/v1/devices`.
+enabling it does not enable the proposed
+[enrollment/revocation commands](../protocols/device-enrollment.md).
 
 `Authentication:DeviceStepUp` defaults disabled. Enabling requires enabled OIDC,
 `AllowedAcrValues` (1–16 distinct, case-sensitive strings using the `acr` format

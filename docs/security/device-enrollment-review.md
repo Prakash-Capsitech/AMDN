@@ -21,9 +21,9 @@ Implementing that former draft as an endpoint would leave its central condition 
 The OIDC adapter previously discarded authentication context/time. This slice
 adds an opt-in, tested [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisite).
 It checks verified login evidence only. It creates no device/key/challenge rows,
-changes no grants and maps no device endpoint. `/v1/devices` stays unimplemented.
-The draft OpenAPI stays Proposed; its legacy single-step enrollment has been
-replaced by the staged enrollment/revocation contract, still unimplemented.
+changes no grants and maps no device endpoint. See the proposed
+[staged contract](../protocols/device-enrollment.md) for the replacement of the
+legacy single-step draft and the current enrollment/revocation API semantics.
 There is no placeholder verifier, opaque-key
 acceptance path or import of the experimental crypto package.
 

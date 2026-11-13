@@ -24,9 +24,9 @@ Each active user has one primary logical postman and at most one active logical
 device identity. The maintainer selected this server-side invariant without a
 hardware-binding or key non-copyability guarantee in the [E02 review](../security/device-enrollment-review.md).
 The [WebAuthn credential design](../security/enrollment-credential-design.md)
-owns staged enrollment, replacement, revocation and credential-only activation
-requirements. Public key records are immutable; private keys never enter the
-provider.
+owns credential verification and durable activation requirements; the
+[staged contract](device-enrollment.md) owns enrollment/revocation wire and replay
+semantics. Public key records are immutable; private keys never enter the provider.
 
 Replacement does not recover old ciphertext or move old deliveries to a new key.
 Clients must independently verify the first-contact binding before sending any
@@ -57,7 +57,7 @@ admission or delivery time.
 | conversations | (T, conversation_view_id) | local owner and client correlation UUID; not a global authorization key |
 | conversation_participants | (T, conversation_view_id, participant_ref) | locally authorized participant projection; no remote private-history FK |
 | envelopes | (sender_T, envelope_id); unique (sender_T, sender_user_id, client_message_id) | immutable sender/device/key binding, recipient snapshot, ciphertext/profile, accepted_at, expires_at |
-| command_idempotency | (T, actor_user_id, operation, idempotency_key) | request_digest, result identity/status, expires_at; committed with command effects |
+| command_idempotency | Default: (T, actor_user_id, operation, idempotency_key); enrollment/revocation use the [staged replay scope](device-enrollment.md#expiry-failures-and-replay) | request_digest, result identity/status, expires_at; committed with command effects |
 | inbox_deliveries | (recipient_T, delivery_id); unique (recipient_T, recipient_user_id, envelope_id) | immutable addressed device/key, local ciphertext copy, expiry, current state/version |
 | message_receipts | (T, receipt_id); unique (T, delivery_id, receipt_kind) | authenticated actor/device, server received_at; append-only; separately scoped sender projection |
 | delivery_events | (T, delivery_id, state_version) | from/to state, reason, invocation/event ID, server time; immutable history plus conditional current-state update |

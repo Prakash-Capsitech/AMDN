@@ -23,7 +23,7 @@ implement them. OIDC provider and device-bound execution credential format remai
 | provisionTenant | tenant.provision / platform provisioner | Separate platform grant, quota and audited provisioning; ordinary tenant owners denied |
 | provisionMembership | membership.provision / platform provisioner | Current platform grant that created the tenant, exact owner issuer and member quota; audited atomic enrollment |
 | beginDeviceEnrollment, registerEnrollmentCredential, proveEnrollmentCandidate, authorizeDeviceReplacement | device.manage / owner | Active membership/postman, explicit object grant, fresh step-up, bound issuer/sub/client/origin and ordered candidate/current proof; see [staged contract](device-enrollment.md) |
-| beginDeviceRevocation, completeDeviceRevocation | device.manage / owner | Same current authority, exact active device/version and separate current-credential proof; no bearer-only or lost-credential fallback |
+| beginDeviceRevocation, completeDeviceRevocation | device.manage / owner | See the [staged contract](device-enrollment.md) for revocation authority, proof requirements and historical completion replay |
 | resolveDirectory | directory.resolve / active member | Policy permits resolving this address; public projection only; unknown and hidden records both 404; throttle enumeration |
 | submitMessage | message.send / owner device | Derive sender from active membership/device; own postman; send grant and recipient receive policy; immutable expected recipient key/device |
 | getMessageStatus | message.status / sender | Only authenticated sender's envelope view; foreign and missing IDs both 404 |

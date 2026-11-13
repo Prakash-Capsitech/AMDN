@@ -71,23 +71,11 @@ The fingerprint/comparison format and trusted client distribution remain open.
 
 ## Ceremony and proposed HTTP responsibilities
 
-The future API uses strict JSON, canonical unpadded base64url, HTTPS, no-store
-responses, authenticated tenant selection and explicit per-actor/tenant/global
-budgets. The [versioned HTTP contract](../protocols/device-enrollment.md) now specifies exact
-fields, errors, replay and proof endpoints. Application integration tests are still
-required before enabling runtime routes; no device endpoint is implemented.
-
-| Intended command | Request purpose | Server-held result / next state |
-| --- | --- | --- |
-| `POST /v1/device-enrollments` | Verified tenant selection, profile, expected identity version, nullable current replacement device ID, Idempotency-Key | Resolve current authority; reserve a server device UUID; store immutable intent; return ceremony UUID, expiry and registration options; `awaiting_registration` |
-| `POST /v1/device-enrollments/{id}/registration` | WebAuthn registration response and Idempotency-Key | Verify original options and uniqueness; store immutable provisional credential/public key; consume registration challenge; issue candidate assertion options; `awaiting_candidate_proof` |
-| `POST /v1/device-enrollments/{id}/candidate-proof` | Candidate assertion and Idempotency-Key | Verify candidate signature and exact binding; first enrollment activates atomically; replacement issues current-credential assertion options; `awaiting_current_proof` |
-| `POST /v1/device-enrollments/{id}/current-proof` | Current credential assertion and Idempotency-Key | Revalidate intent and authority; atomically revoke old device/credential and activate candidate; `completed` |
-| `POST /v1/devices/{id}/revocations` (challenge then proof) | Fresh step-up, current grant, expected version and current-credential assertion | Explicit revocation operation, distinct stage/purpose and idempotency namespace; terminal revocation, version increment and audit |
-
-The outline separates credential enrollment from message-key binding. The HTTP
-contract defines both revocation endpoints together: begin above, then
-`POST /v1/device-revocations/{revocationId}/proof`; neither is an unauthenticated delete.
+The [versioned HTTP contract](../protocols/device-enrollment.md) owns the staged
+commands, browser projection, transport requirements, errors and replay rules;
+[OpenAPI](../protocols/openapi.json) owns their exact request/response schemas.
+Application integration tests are still required before enabling runtime routes;
+no device endpoint is implemented.
 
 Bind every stage to ceremony UUID, operation/stage, tenant, local user, verified
 issuer/subject, OIDC `client_id`, exact initiating origin, RP/origin configuration version, expected
@@ -165,15 +153,11 @@ Replacement does not transfer old message keys, sessions or deliveries to the
 candidate. Their original device/key attribution remains; the new device stays
 unavailable for messaging until a new reviewed binding and peer verification.
 
-Scope replay keys to tenant/user/operation/ceremony/stage; hash exact request bytes.
-Same-key/different-body retries conflict. An exact retry may return its stored
-result only after current authority is rechecked; it cannot reconsume a challenge
-or restore a superseded device. A completed replay returns the historical result
-with current lifecycle state, never a fresh activation. Rollback leaves no
-consumed proof or partial identity. Expired/rejected attempts are bounded by
-explicit quotas: at most one unfinished ceremony per user and five verification
-attempts per stage; after five failures abandon that ceremony. Reserve attempts
-atomically before expensive verification, independently of successful effects.
+The [expiry, failure and replay contract](../protocols/device-enrollment.md#expiry-failures-and-replay)
+owns replay scoping, intermediate/completed replay eligibility and durable
+verification reservations, including interrupted attempts. Rollback of stage
+effects leaves no consumed proof or partial identity; it does not erase an
+independently committed attempt reservation.
 
 Pending records expire without changing active identity. Cleanup may delete
 expired proof bytes, but retains audit/replay/tombstone attribution for the
