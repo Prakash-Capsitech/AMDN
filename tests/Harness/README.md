@@ -128,6 +128,15 @@ are 0 success, 1 runtime/prerequisite/cleanup failure, 2 invalid arguments.
 Sanitized stage logs and the xUnit TRX report are retained under the ignored
 .local/harness-evidence/<run-id> path printed by the runner. They are not uploaded
 as CI artifacts. Inspect the test-stage log and harness.trx for failed assertions.
+On failure, the runner also prints a bounded projection of the TRX after cleanup:
+at most ten non-passing results with method names (no theory arguments), recognized
+assertion/exception kinds, small integer/boolean/null or selected HTTP-status
+expected/actual values, and a harness source filename/line when available. It reports
+the omitted count; missing, malformed or over-2-MiB reports yield `test_diagnostics:
+"unavailable"`. Arbitrary assertion values/messages, full stack traces, captured
+output, private state and service logs are not printed. Unknown details are omitted,
+so local evidence may still be needed. This diagnostic projection never changes
+the failing exit status or the cleanup requirements.
 A successful result requires every discovered test to execute and pass, and cleanup
 to verify that no owned containers, volumes or networks remain.
 

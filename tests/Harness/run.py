@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import shutil
 import signal
@@ -53,6 +54,61 @@ class Run:
         for secret in self.secrets:
             value = value.replace(secret, "[REDACTED]")
         return value
+
+    def failure_diagnostics(self):
+        # TRX messages/display names can contain arbitrary data. Publish only
+        # method metadata and a small vocabulary of diagnostic facts, never a
+        # truncated raw message, captured output, or service log.
+        try:
+            with (self.evidence / "harness.trx").open("rb") as report:
+                data = report.read(2 * 1024 * 1024 + 1)
+            if len(data) > 2 * 1024 * 1024 or b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+                return dict(test_diagnostics="unavailable")
+            tree = ET.fromstring(data)
+        except (OSError, ET.ParseError):
+            return dict(test_diagnostics="unavailable")
+        methods = {}
+        for test in tree.findall("./{*}TestDefinitions/{*}UnitTest"):
+            method = test.find("{*}TestMethod")
+            if method is not None:
+                name = method.get("className", "") + "." + method.get("name", "")
+                if re.fullmatch(r"AMDN\.Harness\.Tests\.[A-Za-z_][A-Za-z_0-9]{0,99}\."
+                                r"[A-Za-z_][A-Za-z_0-9]{0,199}", name):
+                    methods[test.get("id")] = self.redact(name)
+        failures = [result for result in tree.findall("./{*}Results/{*}UnitTestResult")
+                    if result.get("outcome") != "Passed"]
+        fields = dict(test_failures=len(failures), test_failures_omitted=max(0, len(failures) - 10))
+        for index, result in enumerate(failures[:10], 1):
+            outcome = result.get("outcome")
+            if outcome not in ("Failed", "NotExecuted", "Error", "Timeout", "Aborted", "Inconclusive"):
+                outcome = "other"
+            details = [methods.get(result.get("testId"), "unknown test"), "outcome=" + outcome]
+            message = self.redact(result.findtext("./{*}Output/{*}ErrorInfo/{*}Message", ""))
+            assertion = re.match(r"Assert\.(Equal|NotEqual|True|False|Null|NotNull|Empty|NotEmpty|"
+                                 r"Single|Contains|DoesNotContain|Throws|ThrowsAny|IsType|IsAssignableFrom|"
+                                 r"InRange|All|Collection|Fail)\(\) Failure\b", message)
+            if assertion:
+                details.append("kind=Assert." + assertion[1])
+                for label in ("Expected", "Actual"):
+                    scalar = re.search(r"^" + label + r": +(-?[0-9]{1,4}|True|False|null|"
+                                       r"OK|Created|NoContent|BadRequest|Unauthorized|Forbidden|NotFound|"
+                                       r"Conflict|TooManyRequests|InternalServerError)\r?$", message, re.M)
+                    if scalar:
+                        details.append(label.lower() + "=" + scalar[1])
+            else:
+                for kind in ("Npgsql.PostgresException", "Npgsql.NpgsqlException", "System.TimeoutException",
+                             "System.OperationCanceledException", "System.Threading.Tasks.TaskCanceledException",
+                             "System.InvalidOperationException", "System.Net.Http.HttpRequestException"):
+                    if message.startswith(kind + " :") or message.startswith(kind + ":"):
+                        details.append("kind=" + kind)
+                        break
+            stack = self.redact(result.findtext("./{*}Output/{*}ErrorInfo/{*}StackTrace", ""))
+            location = re.search(r"[/\\]tests[/\\]Harness[/\\]([A-Za-z_][A-Za-z_0-9]{0,99}\.cs)"
+                                 r":line ([0-9]{1,6})\r?$", stack, re.M)
+            if location:
+                details.append("at=" + location[1] + ":" + location[2])
+            fields[f"test_failure_{index}"] = "; ".join(details)
+        return fields
 
     def command(self, args, stage, *, data=None, timeout=120):
         self.counter += 1
@@ -214,6 +270,8 @@ def main():
         emit(error=failure, cleanup="complete" if cleaned else "incomplete",
              project=run.project if run else "none", evidence=str(run.evidence) if run else "none",
              help="Inspect evidence, check prerequisites in tests/Harness/README.md, then run make harness-test")
+        if run:
+            emit(**run.failure_diagnostics())
         return 1
     emit(result="passed", tests=total, cleanup="complete", evidence=str(run.evidence),
          pending="production integration P01-P03; native N01/N02")
