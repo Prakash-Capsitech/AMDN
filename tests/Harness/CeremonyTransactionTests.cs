@@ -261,6 +261,69 @@ public sealed class CeremonyTransactionTests
         Assert.Equal(1L, await Sql(holder, "SELECT identity_version FROM amdn_identity.users WHERE tenant_id=@tenant", ("tenant", actor.Person.TenantId)));
     }
 
+    [Theory]
+    [InlineData("credential", "challenge")]
+    [InlineData("credential", "authority")]
+    [InlineData("public_key", "challenge")]
+    [InlineData("public_key", "authority")]
+    [InlineData("next_challenge", "challenge")]
+    [InlineData("next_challenge", "authority")]
+    public async Task ExpiryDuringUniqueWriteRollsBackSuccessAndRetainsCommittedReservation(string collision, string deadline)
+    {
+        var holderActor = await Setup(); var actor = await Setup();
+        var holderBegin = await Begin(holderActor); var begin = await Begin(actor); var id = Id(begin, "ceremony_id");
+        var holderProof = await Reserve(holderActor, Id(holderBegin, "ceremony_id"), "registration");
+        var proof = await Reserve(actor, id, "registration");
+        var holderKey = Key.New(); var key = Key.New();
+        key = collision switch
+        {
+            "credential" => key with { Credential = holderKey.Credential },
+            "public_key" => key with { Public = holderKey.Public },
+            _ => key
+        };
+        var holderNext = RandomNumberGenerator.GetBytes(32);
+        var next = collision == "next_challenge" ? holderNext : RandomNumberGenerator.GetBytes(32);
+        await using var observer = await Owner();
+        await using var holder = await Owner(); await using var transaction = await holder.BeginTransactionAsync();
+        AssertOutcome("ok", await Call(holderActor, "ceremony_finish", "@attempt,@digest,@credential,@publickey,false,false,0,@next", holder,
+            ("attempt", Id(holderProof, "attempt_id")), ("digest", Digest(holderProof)), ("credential", holderKey.Credential),
+            ("publickey", holderKey.Public), ("next", holderNext)));
+        var pid = (int)(await Sql(holder, "SELECT pg_backend_pid()"))!;
+        var expiresAt = (DateTime)(await Sql(observer, "SELECT clock_timestamp()+interval '2 seconds'"))!;
+        if (deadline == "challenge")
+            await Sql(observer, "UPDATE amdn_identity.device_challenges SET expires_at=@expires WHERE ceremony_id=@id AND stage='registration'",
+                ("expires", expiresAt), ("id", id));
+        var attemptedActor = deadline == "authority" ? actor with { TokenExpiry = expiresAt } : actor;
+        var finishing = Call(attemptedActor, "ceremony_finish", "@attempt,@digest,@credential,@publickey,false,false,0,@next", null,
+            ("attempt", Id(proof, "attempt_id")), ("digest", Digest(proof)), ("credential", key.Credential),
+            ("publickey", key.Public), ("next", next));
+        await WaitBlocked(pid);
+        await Sql(observer, "SELECT pg_sleep(greatest(0,extract(epoch FROM (@expires-clock_timestamp()))))", ("expires", expiresAt));
+        await transaction.RollbackAsync();
+        AssertOutcome(deadline == "authority" ? "forbidden" : "conflict", await finishing);
+        Assert.Equal(1L, await Sql(observer, "SELECT identity_version FROM amdn_identity.users WHERE tenant_id=@tenant", ("tenant", actor.Person.TenantId)));
+        Assert.Equal(deadline == "authority" ? "registration" : "expired",
+            await Sql(observer, "SELECT state FROM amdn_identity.device_ceremonies WHERE ceremony_id=@id", ("id", id)));
+        Assert.Equal(deadline == "authority" ? "pending" : "abandoned",
+            await Sql(observer, "SELECT status FROM amdn_identity.devices WHERE device_id=@id", ("id", Id(begin, "device_id"))));
+        Assert.Equal(true, await Sql(observer, """
+            SELECT credential_id IS NULL AND public_key_cose IS NULL AND backup_eligible IS NULL
+              AND backup_state IS NULL AND sign_count IS NULL AND activated_at IS NULL AND revoked_at IS NULL
+              AND record_version=@version
+            FROM amdn_identity.devices WHERE device_id=@id
+            """, ("id", Id(begin, "device_id")), ("version", deadline == "authority" ? 1L : 2L)));
+        Assert.Equal(true, await Sql(observer, """
+            SELECT state='reserved' AND result IS NULL AND request_digest=@digest AND attempt_number=1
+              AND reservation_tx<>pg_current_xact_id() AND verified_device_version=1
+            FROM amdn_identity.device_commands WHERE command_id=@id
+            """, ("id", Id(proof, "attempt_id")), ("digest", Digest(proof))));
+        Assert.Equal(1L, await Sql(observer, "SELECT count(*) FROM amdn_identity.device_challenges WHERE ceremony_id=@id", ("id", id)));
+        Assert.Equal(1L, await Sql(observer, "SELECT count(*) FROM amdn_identity.device_challenges WHERE ceremony_id=@id AND stage='registration' AND consumed_at IS NULL", ("id", id)));
+        Assert.Equal(0L, await Sql(observer, "SELECT count(*) FROM amdn_identity.device_ceremony_audit WHERE ceremony_id=@id AND action NOT IN ('begun','reserved','expired')", ("id", id)));
+        if (deadline == "authority")
+            AssertOutcome("ok", await Finish(actor, proof, key, next: true));
+    }
+
     [Fact]
     public async Task NonzeroCounterReplayAndBackupEligibilityChangesFailBeforeEffects()
     {

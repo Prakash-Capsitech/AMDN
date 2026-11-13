@@ -391,7 +391,7 @@ CREATE FUNCTION amdn_identity.ceremony_finish(p amdn_identity.ceremony_actor,p_a
   p_credential bytea,p_public_key bytea,p_be boolean,p_bs boolean,p_counter bigint,p_next_challenge bytea DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $body$
 DECLARE a amdn_identity.ceremony_authority; c amdn_identity.device_ceremonies; cmd amdn_identity.device_commands;
-  d amdn_identity.devices; next_stage text; now_at timestamptz; answer jsonb;
+  d amdn_identity.devices; next_stage text; now_at timestamptz; stage_deadline timestamptz; answer jsonb;
 BEGIN
   SELECT * INTO cmd FROM amdn_identity.device_commands WHERE command_id=p_attempt;
   IF NOT FOUND THEN RETURN jsonb_build_object('outcome','not_found'); END IF;
@@ -419,42 +419,55 @@ BEGIN
     OR p_be IS DISTINCT FROM d.backup_eligible OR ((d.sign_count<>0 OR p_counter<>0) AND p_counter<=d.sign_count)) THEN
     RETURN amdn_identity.ceremony_fail(p,p_attempt,p_digest,'invalid_proof');
   END IF;
-  -- Catch only projection constraint failures. Audit or later state-write failures
-  -- propagate and roll back every successful-stage effect, leaving the reservation.
+  SELECT least(c.expires_at,expires_at) INTO stage_deadline FROM amdn_identity.device_challenges
+    WHERE ceremony_id=c.ceremony_id AND stage=cmd.stage;
   BEGIN
-    IF cmd.stage='registration' THEN
-      UPDATE amdn_identity.devices SET credential_id=p_credential,public_key_cose=p_public_key,backup_eligible=p_be,backup_state=p_bs,sign_count=p_counter
-        WHERE tenant_id=c.tenant_id AND device_id=d.device_id;
+    -- Catch only projection constraint failures. Audit or later state-write failures
+    -- propagate and roll back every successful-stage effect, leaving the reservation.
+    BEGIN
+      IF cmd.stage='registration' THEN
+        UPDATE amdn_identity.devices SET credential_id=p_credential,public_key_cose=p_public_key,backup_eligible=p_be,backup_state=p_bs,sign_count=p_counter
+          WHERE tenant_id=c.tenant_id AND device_id=d.device_id;
+      ELSE
+        UPDATE amdn_identity.devices SET backup_state=p_bs,sign_count=p_counter WHERE tenant_id=c.tenant_id AND device_id=d.device_id;
+      END IF;
+    EXCEPTION WHEN unique_violation THEN RETURN amdn_identity.ceremony_fail(p,p_attempt,p_digest,'conflict');
+      WHEN check_violation OR not_null_violation THEN RETURN amdn_identity.ceremony_fail(p,p_attempt,p_digest,'invalid_proof');
+    END;
+    now_at:=clock_timestamp();
+    IF a.valid_until<=now_at THEN RAISE EXCEPTION 'Ceremony authority expired' USING ERRCODE='AM001'; END IF;
+    IF stage_deadline<=now_at THEN RAISE EXCEPTION 'Ceremony stage expired' USING ERRCODE='AM002'; END IF;
+    UPDATE amdn_identity.device_challenges SET consumed_at=now_at WHERE ceremony_id=c.ceremony_id AND stage=cmd.stage;
+    IF next_stage='completed' THEN
+      IF c.target_id IS NOT NULL THEN
+        UPDATE amdn_identity.devices SET status='revoked' WHERE tenant_id=c.tenant_id AND device_id=c.target_id;
+      END IF;
+      IF c.operation<>'revocation' THEN
+        UPDATE amdn_identity.devices SET status='credential_active' WHERE tenant_id=c.tenant_id AND device_id=c.device_id;
+      END IF;
+      UPDATE amdn_identity.users SET identity_version=identity_version+1 WHERE tenant_id=c.tenant_id AND user_id=c.user_id;
+      UPDATE amdn_identity.device_ceremonies SET state='completed',completed_at=now_at,committed_identity_version=a.identity_version+1 WHERE ceremony_id=c.ceremony_id;
     ELSE
-      UPDATE amdn_identity.devices SET backup_state=p_bs,sign_count=p_counter WHERE tenant_id=c.tenant_id AND device_id=d.device_id;
+      INSERT INTO amdn_identity.device_challenges(ceremony_id,stage,challenge,issued_at,expires_at)
+        VALUES(c.ceremony_id,next_stage,p_next_challenge,now_at,least(now_at+interval '2 minutes',c.expires_at));
+      UPDATE amdn_identity.device_ceremonies SET state=next_stage WHERE ceremony_id=c.ceremony_id;
     END IF;
-  EXCEPTION WHEN unique_violation THEN RETURN amdn_identity.ceremony_fail(p,p_attempt,p_digest,'conflict');
-    WHEN check_violation OR not_null_violation THEN RETURN amdn_identity.ceremony_fail(p,p_attempt,p_digest,'invalid_proof');
+    UPDATE amdn_identity.device_ceremonies SET
+      device_version=(SELECT record_version FROM amdn_identity.devices WHERE tenant_id=c.tenant_id AND device_id=c.device_id),
+      target_version=(SELECT record_version FROM amdn_identity.devices WHERE tenant_id=c.tenant_id AND device_id=c.target_id)
+      WHERE ceremony_id=c.ceremony_id;
+    answer:=amdn_identity.ceremony_snapshot(c.ceremony_id);
+    UPDATE amdn_identity.device_commands SET state='succeeded',result=answer WHERE command_id=p_attempt;
+    INSERT INTO amdn_identity.device_ceremony_audit(ceremony_id,command_id,action,identity_version)
+      VALUES(c.ceremony_id,p_attempt,cmd.stage,a.identity_version+CASE WHEN next_stage='completed' THEN 1 ELSE 0 END);
+    now_at:=clock_timestamp();
+    IF a.valid_until<=now_at THEN RAISE EXCEPTION 'Ceremony authority expired' USING ERRCODE='AM001'; END IF;
+    IF stage_deadline<=now_at THEN RAISE EXCEPTION 'Ceremony stage expired' USING ERRCODE='AM002'; END IF;
+  EXCEPTION WHEN SQLSTATE 'AM001' THEN RETURN jsonb_build_object('outcome','forbidden');
+    WHEN SQLSTATE 'AM002' THEN
+      PERFORM amdn_identity.ceremony_terminate(c.ceremony_id,'expired');
+      RETURN jsonb_build_object('outcome','conflict');
   END;
-  now_at:=clock_timestamp();
-  UPDATE amdn_identity.device_challenges SET consumed_at=now_at WHERE ceremony_id=c.ceremony_id AND stage=cmd.stage;
-  IF next_stage='completed' THEN
-    IF c.target_id IS NOT NULL THEN
-      UPDATE amdn_identity.devices SET status='revoked' WHERE tenant_id=c.tenant_id AND device_id=c.target_id;
-    END IF;
-    IF c.operation<>'revocation' THEN
-      UPDATE amdn_identity.devices SET status='credential_active' WHERE tenant_id=c.tenant_id AND device_id=c.device_id;
-    END IF;
-    UPDATE amdn_identity.users SET identity_version=identity_version+1 WHERE tenant_id=c.tenant_id AND user_id=c.user_id;
-    UPDATE amdn_identity.device_ceremonies SET state='completed',completed_at=now_at,committed_identity_version=a.identity_version+1 WHERE ceremony_id=c.ceremony_id;
-  ELSE
-    INSERT INTO amdn_identity.device_challenges(ceremony_id,stage,challenge,issued_at,expires_at)
-      VALUES(c.ceremony_id,next_stage,p_next_challenge,now_at,least(now_at+interval '2 minutes',c.expires_at));
-    UPDATE amdn_identity.device_ceremonies SET state=next_stage WHERE ceremony_id=c.ceremony_id;
-  END IF;
-  UPDATE amdn_identity.device_ceremonies SET
-    device_version=(SELECT record_version FROM amdn_identity.devices WHERE tenant_id=c.tenant_id AND device_id=c.device_id),
-    target_version=(SELECT record_version FROM amdn_identity.devices WHERE tenant_id=c.tenant_id AND device_id=c.target_id)
-    WHERE ceremony_id=c.ceremony_id;
-  answer:=amdn_identity.ceremony_snapshot(c.ceremony_id);
-  UPDATE amdn_identity.device_commands SET state='succeeded',result=answer WHERE command_id=p_attempt;
-  INSERT INTO amdn_identity.device_ceremony_audit(ceremony_id,command_id,action,identity_version)
-    VALUES(c.ceremony_id,p_attempt,cmd.stage,a.identity_version+CASE WHEN next_stage='completed' THEN 1 ELSE 0 END);
   RETURN answer;
 END $body$;
 
