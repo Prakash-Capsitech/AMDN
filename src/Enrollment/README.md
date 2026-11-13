@@ -3,7 +3,7 @@
 Pinned WebAuthn verification connected to committed ceremony reservations, with
 [validated principals and scoped execution roles](../../docs/security/enrollment-authority.md).
 `EnrollmentPrincipalMapper` consumes successful AMDN OIDC evidence;
-`EnrollmentCommands` accepts only its bound principals and uses a guarded
+`EnrollmentCommands` accepts only its bound principals; callers must supply a guarded
 `EnrollmentDatabase` pool. Raw actor/verifier types are internal (the harness is a
 friend assembly for synthetic tests). See the [verifier profile](../../docs/security/enrollment-verifier.md).
 

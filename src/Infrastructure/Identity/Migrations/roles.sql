@@ -1,4 +1,5 @@
--- Administrator-only, one-time role bootstrap. No login/password is installed here.
+-- Administrator-only role bootstrap; rerun before new role-dependent migrations.
+-- No login/password is installed here.
 DO $roles$
 DECLARE role_name text;
 BEGIN

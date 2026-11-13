@@ -5,7 +5,9 @@ boundary after the [credential design](../security/enrollment-credential-design.
 No enrollment/revocation endpoint, grant administration or browser adapter is
 implemented. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
-now implement durable stage effects; authenticated verifier/API integration is pending. ADR 0011 remains Proposed. The former single-step
+now implement durable stage effects; see the [principal/role bridge](../security/enrollment-authority.md)
+for internal authenticated integration. Public API integration remains pending.
+ADR 0011 remains Proposed. The former single-step
 `POST /v1/devices`, `DeviceRequest` and `Device` schemas are removed from the draft;
 Git history retains their blueprint provenance. There is no compatibility fallback.
 

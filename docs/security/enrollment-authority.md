@@ -46,7 +46,9 @@ the harness is a friend assembly for synthetic lower-layer tests. The public fac
 provides begin and proof completion, generating begin challenges/handles with the
 platform RNG. Begin's typed operation/version/target parameters are trusted adapter
 inputs; the future HTTP parser must derive them consistently from the exact bounded
-request bytes. This facade does not implement the complete wire contract.
+request bytes. Its results are internal SQL JSON, not wire-contract DTOs; the
+[verifier guide](enrollment-verifier.md#calling-boundary-and-transactions) describes
+the response and transport obligations of the future HTTP adapter.
 
 ## PostgreSQL roles and RLS
 
@@ -80,7 +82,8 @@ No grant/configuration mutation, DELETE, TRUNCATE or schema creation is granted.
 PostgreSQL row-locking SELECT requires UPDATE privilege on at least one column;
 for authority rows the executor receives only immutable identity-column UPDATE
 privileges for locking, never status/expiry/configuration-policy mutation. Existing
-triggers retain identities. Device/ceremony writes are explicitly column-scoped.
+triggers retain identities. Device/ceremony UPDATE grants are column-scoped;
+INSERT grants cover the explicitly listed tables.
 The user trigger permits the executor an increment of exactly one, under scoped
 RLS, to preserve atomic lifecycle effects. Prior migrations 001–004 are unchanged.
 

@@ -3,23 +3,19 @@
 F1.4 migration 004 adds the durable ceremony ledger and internal SQL transaction
 primitives. It implements storage transitions for initial enrollment, replacement
 and revocation against the [staged contract](../protocols/device-enrollment.md).
-**Live enrollment is still unimplemented.** This section describes migration 004;
-[migration 005](enrollment-authority.md) subsequently adds scoped entry functions. No HTTP route, browser adapter,
-production verifier integration, grant-administration API or new application
-credential is enabled. Runtime and provisioning roles cannot execute these
-functions or access the new tables. The harness calls them as the trusted
-migration owner with synthetic actor and verifier projections. The later
-[isolated verifier bridge](enrollment-verifier.md) also exercises actual signed
-WebAuthn responses through committed reservations; no application role is enabled.
+**Live enrollment is still unimplemented.** This guide owns migration 004's
+storage and transaction semantics. See the [verifier guide](enrollment-verifier.md)
+for proof integration and the [authority guide](enrollment-authority.md) for
+migration 005's principal mapping, execution roles and pending deployment work.
 
 ## Trust and invocation boundary
 
 The functions are `SECURITY INVOKER`, with pinned search paths and no PUBLIC
-execute grant. The existing non-login migration owner is the only execution
-principal in this slice. Do not put a migration credential in Gateway, grant
+execute grant. Application invocation uses the
+[migration 005 entry boundary](enrollment-authority.md#postgresql-roles-and-rls).
+Do not put a migration credential in Gateway, grant
 application roles membership in the owner role, or expose these functions as
-bearer-only enrollment. A reviewed narrow execution role and authenticated
-OIDC/WebAuthn adapter are required before application use.
+bearer-only enrollment.
 
 `ceremony_actor` contains tenant selection, issuer/subject, client ID, exact origin,
 configuration ID, scopes, ACR, authentication time and token expiry. These are
@@ -29,15 +25,16 @@ tenant/user/issuer/subject context and checks device.manage,
 active tenant/user/membership/postman, an explicit unexpired device-management
 grant, enabled RP/origin configuration, allowed ACR and fresh authentication/token
 deadlines. It cannot verify that a caller obtained those claims legitimately.
-Only a future validated-principal bridge may construct the projection in an
-application. Arbitrary owner SQL remains an administrator trust boundary.
+The [validated-principal bridge](enrollment-authority.md#principal-mapping) owns
+application construction of this projection. Arbitrary owner SQL remains an
+administrator trust boundary.
 
 `ceremony_finish` accepts credential ID, normalized public key, BE/BS and counter
 from the trusted verifier bridge, bound to a reserved attempt ID and exact request digest.
 It does **not** verify signatures, attestation, UP/UV, client data or curve points.
 The isolated verifier bridge verifies the original bytes against the reserved challenge,
 RP/origin, handle and exact credential/key, then submits that same projection;
-SQL checks the reserved device version. Authenticated application wiring remains
+SQL checks the reserved device version. Production HTTP wiring remains
 pending. No boolean "verified" flag, placeholder verifier or custom signature
 format is used. The SQL layer has no cryptographic verifier dependency. The returned
 internal verifier snapshot must never be sent directly to an HTTP client.
@@ -53,11 +50,10 @@ internal verifier snapshot must never be sent directly to an HTTP client.
 | device_commands | Scoped replay digest/result and durable numbered verification reservation |
 | device_ceremony_audit | Minimal ceremony/command references, action, identity version and server time |
 
-All six tables enable and force RLS with an explicit owner policy; neither API
-role receives table access. Application isolation for these primitives is currently
-the execution privilege boundary plus explicit membership/owner filters, not a
-claim that owner-policy RLS confines arbitrary administrator SQL. Existing
-runtime device metadata RLS stays unchanged. No new grants are seeded from
+All six tables enable and force RLS with an explicit owner policy. The
+[authority guide](enrollment-authority.md#postgresql-roles-and-rls) owns the subsequent
+executor policies and privileges; owner-policy RLS does not confine arbitrary
+administrator SQL. Existing runtime device metadata RLS stays unchanged. No new grants are seeded from
 F1.3 postman.read authority. Control rows cannot be deleted/rebound; revoked grants
 cannot be reactivated. Configuration and grant changes increment their versions.
 

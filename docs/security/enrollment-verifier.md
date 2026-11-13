@@ -24,14 +24,15 @@ entry functions; see the [role and pool boundary](enrollment-authority.md).
 1. Copy the bounded request once and reject malformed proof projections, JSON or
    projection-field base64url encodings with `invalid_request` before opening a
    database connection.
-2. Call `ceremony_reserve` in an explicit transaction. If newly reserved, capture
-   its database snapshot and operation, then **commit and dispose the connection**.
+2. Call `amdn_enrollment.reserve` in an explicit transaction. If newly reserved,
+   capture its database snapshot and next-challenge decision, then **commit and
+   dispose the connection**.
    Replay and denials return without another verification job.
 3. Verify the request against the snapshot, outside database locks. Compare the
    exact-byte SHA-256 digest with the stored reservation digest. No caller can
    supply a successful verifier projection to this API.
-4. In a separate transaction, call `ceremony_finish` with only the verified public
-   projection, or `ceremony_fail` for a generic `invalid_proof` result after bounded
+4. In a separate transaction, call `amdn_enrollment.finish` with only the verified public
+   projection, or `amdn_enrollment.fail` for a generic `invalid_proof` result after bounded
    CBOR, profile or cryptographic rejection, including out-of-range COSE integers.
    These failures consume the durable attempt budget. The existing SQL rechecks
    authorization, lifecycle versions, counter/BE, stage, digest, deadlines and

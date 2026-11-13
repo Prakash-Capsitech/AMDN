@@ -6,7 +6,8 @@ metadata reader. This is **not a working enrollment service**. The
 HTTP commands and grant-administration API remain unimplemented. The later
 [ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
 storage effects; the [isolated verifier bridge](enrollment-verifier.md) connects
-proofs to them. Authenticated application integration remains pending. No Gateway
+proofs to them; the [principal/role bridge](enrollment-authority.md) supplies internal
+authenticated execution. Public API integration remains pending. No Gateway
 route or DI registration is added, and existing application roles cannot write
 device records.
 
@@ -77,13 +78,11 @@ constraints alone are not replay protection.
 
 ## Role and read boundary
 
-Both tables enable and force RLS. Only the non-login migration owner has write
-access through an explicit owner policy; this remains a trusted administrative
-boundary. Runtime and provisioning groups receive no device INSERT, UPDATE,
-DELETE, TRUNCATE or handle-table privileges. No security-definer device mutation
-function, new privileged application pool or bearer-only activation path is added.
-A later reviewed ceremony boundary must grant only narrow operations, never the
-migration credential or general device writes to Gateway.
+Both tables enable and force RLS. The non-login migration owner has an explicit
+owner policy and remains a trusted administrative boundary. Runtime and provisioning
+groups receive no device INSERT, UPDATE, DELETE, TRUNCATE or handle-table privileges.
+Migration 005 adds the [scoped ceremony executor and execute-only application boundary](enrollment-authority.md#postgresql-roles-and-rls);
+that guide owns the mutation privileges and pool requirements.
 
 Runtime receives SELECT on metadata columns only. RLS requires transaction-local
 tenant/user/issuer/subject context matching an active membership, tenant and user,
@@ -119,8 +118,8 @@ setup**, not a deployed enrollment/proof implementation or verified user ceremon
 
 The [ceremony transaction layer](ceremony-transactions.md) now adds durable
 challenge/attempt/replay/audit storage and lifecycle effects with checks after
-waits. It grants no application execution authority; see the
-[verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for proof integration
+waits. See the [authority guide](enrollment-authority.md) for subsequent application
+execution authority and the [verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for proof integration
 and remaining application work. Explicit grant
 administration, browser interoperability and messaging-key binding remain open.
 One active logical device makes no physical-device or key non-copyability claim;

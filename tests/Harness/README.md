@@ -71,7 +71,8 @@ consumption or authorized replacement. The device guide owns this evidence scope
 migration 004 and its real functions with synthetic trusted actor/proof projections.
 They cover durable attempts, replay, atomic lifecycle/version/audit effects, races,
 post-lock deadlines and restart recovery. They do not exercise live enrollment or
-authenticated verifier/HTTP integration; no API role gains ceremony access.
+authenticated verifier/HTTP integration; see the
+[enrollment authority cases](#enrollment-authority-evidence) for that internal coverage.
 
 The following acceptance evidence remains pending:
 
@@ -79,8 +80,9 @@ The following acceptance evidence remains pending:
   migrations, authenticated API and worker adapters when F1-F3 implement them.
   F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
   authenticated HTTP probe. F1.3 adds actual provisioning and owner-read API tests.
-  F1.4 adds device storage/read and internal transaction evidence; live enrollment and device ceremony
-  integration, worker/routing, deployment and complete production integration remain
+  F1.4 adds device storage/read, internal transactions and the
+  [principal/verifier/role probe coverage](#enrollment-authority-evidence).
+  Live enrollment, worker/routing, deployment and complete production integration remain
   pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
   reconnect cursors, retention/expiry races, quotas and noisy-neighbor backlog load.
@@ -111,7 +113,7 @@ Each invocation generates a unique `amdn-f05-<run-id>` Compose project, isolated
 named volumes, random loopback-only published ports and disposable credentials.
 No arbitrary database URL, existing deployment or external broker is accepted.
 Bootstrap SQL runs inside only the newly created PostgreSQL container; tests get
-the restricted fixture login plus separate migration, provisioning and runtime
+the restricted fixture login plus separate migration, provisioning, runtime and enrollment
 identity logins. They never receive the PostgreSQL administrator password. No production data, host directories other than
 run configuration, Docker socket mounts or privileged containers are used.
 
@@ -147,9 +149,9 @@ actual Fido2 signature verification between a committed reservation and a separa
 finish transaction. Synthetic in-memory authenticator keys exercise initial,
 replacement and revocation flows, profile and encoding rejection, counter/backup
 checks, replay, foreign owners, normalized-key uniqueness, authority changes and
-interruption. The harness uses the existing migration owner; it does not certify
-a future application execution role, authenticated HTTP bridge or browser.
-Live enrollment, native N01/N02 and full production P01–P03 remain pending.
+interruption. These lower-layer cases use the existing migration owner; the
+[authority cases](#enrollment-authority-evidence) cover the separate application
+execution boundary. Browser integration remains pending.
 
 ## Enrollment authority evidence
 
