@@ -3,7 +3,7 @@
 F1.4 now has an embedded storage migration and an internal membership-scoped
 metadata reader. This is **not a working enrollment service**. The
 [staged contract](../protocols/device-enrollment.md) remains proposed; all six
-commands and grant-administration API remain unimplemented. The later
+HTTP commands and grant-administration API remain unimplemented. The later
 [ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
 storage effects; authenticated verifier integration remains pending. No Gateway
 route or DI registration is added, and existing application roles cannot write
@@ -12,9 +12,8 @@ device records.
 ## Records and constraints
 
 Migration 003 adds `amdn_identity.device_subjects` and `amdn_identity.devices`.
-Migrations 001/002 remain unchanged. The same explicit deployment migration runner
-applies all three under its advisory lock/checksum ledger; repeat application is a
-no-op. There is no automatic application-startup migration.
+See [applying migrations](identity-persistence.md#applying-migrations) for the
+deployment runner, migration sequence and checksum rules.
 
 A device subject fixes one random 32-byte WebAuthn user handle for each
 `(tenant_id, user_id, rp_id)`. Handles are unique within an RP and retained across

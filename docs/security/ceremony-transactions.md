@@ -79,8 +79,10 @@ pending A06; no automatic deletion or retention window is invented.
 Each invocation is a database transaction; the caller must commit before reporting
 success. Expected denials return a small internal JSON outcome. Unexpected SQL
 errors require rollback and must not be exposed as raw exception details. These
-results are not the public OpenAPI DTOs; the future adapter must construct those
-responses and enforce no-store/error headers and request budgets.
+results are not the public OpenAPI DTOs; the future adapter must map internal
+`registration`, `candidate`, `current` and `revocation` stages to the contract's
+`awaiting_*` states, construct options responses and enforce no-store/error headers
+and request budgets.
 
 1. `ceremony_begin` resolves current authority, checks the expected identity and
    active-device snapshot, fixes the operation and reserves the candidate UUID.
@@ -141,10 +143,13 @@ it does not reactivate it or require that historical device to remain active.
 Lock order is tenant, user, membership, postman, grant, configuration, ceremony,
 then involved devices in UUID order, challenges in stage order and the command
 row. The user row serializes same-owner commands.
-The current actor/grant/token/step-up deadline is checked again after device lock
-waits, and ceremony/challenge deadlines plus lifecycle versions are checked before
-effects. Changes after external proof verification therefore cannot silently use
-its old snapshot. These guarantees use PostgreSQL [row locks](https://www.postgresql.org/docs/18/explicit-locking.html#LOCKING-ROWS)
+The current actor/grant/token/step-up deadline is checked again after device/challenge
+and command lock waits, and ceremony/challenge deadlines plus lifecycle versions
+are checked before effects. `ceremony_finish` also rechecks authority and stage
+deadlines after the credential projection write and after all stage writes, so
+uniqueness waits on credentials, public keys or the next challenge cannot bypass
+deadline checks. Changes after external proof verification therefore cannot
+silently use its old snapshot. These guarantees use PostgreSQL [row locks](https://www.postgresql.org/docs/18/explicit-locking.html#LOCKING-ROWS)
 held until transaction end. No crypto verification, broker or network call belongs
 inside the transaction.
 
@@ -152,11 +157,18 @@ Projection shape/uniqueness failures record a failed attempt without a partial
 credential write. Audit or later state-write failures propagate so the entire
 stage rolls back, including identity version, device changes, challenge consumption
 and success replay. The previously committed attempt survives that rollback.
+Deadline denial after a write also rolls back those provisional effects, including
+credential attachment. Authority expiry returns `forbidden`; stage expiry returns
+`conflict` and expires the ceremony, abandoning its pending candidate. Both retain
+the committed reservation without recording a failed proof.
 
 The harness exercises real migration/functions with two owners/tenants, scoped
 replay, concurrent begins and attempt reservations, ordered initial/replacement/
 revocation paths, stale versions and bindings, counter failures, post-lock expiry,
-audit failure rollback and database restart. All identities and proof projections
+audit failure rollback and database restart. The
+[`ExpiryDuringUniqueWriteRollsBackSuccessAndRetainsCommittedReservation` regression](../../tests/Harness/CeremonyTransactionTests.cs)
+covers authority/challenge expiry during credential, public-key and next-challenge
+uniqueness waits followed by blocker rollback. All identities and proof projections
 are synthetic. This is transaction/storage evidence; it proves neither real OIDC
 assurance nor WebAuthn possession, HTTP policy enforcement or browser behavior.
 
