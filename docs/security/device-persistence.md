@@ -5,7 +5,8 @@ metadata reader. This is **not a working enrollment service**. The
 [staged contract](../protocols/device-enrollment.md) remains proposed; all six
 HTTP commands and grant-administration API remain unimplemented. The later
 [ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
-storage effects; authenticated verifier integration remains pending. No Gateway
+storage effects; the [isolated verifier bridge](enrollment-verifier.md) connects
+proofs to them. Authenticated application integration remains pending. No Gateway
 route or DI registration is added, and existing application roles cannot write
 device records.
 

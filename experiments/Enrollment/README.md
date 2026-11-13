@@ -2,7 +2,10 @@
 
 An isolated executable checks **Fido2 4.3.3** against synthetic WebAuthn
 registration/assertion fixtures on .NET 10. It supports the [credential design](../../docs/security/enrollment-credential-design.md).
-No application project references it. It exposes no HTTP endpoint and stores no
+No application project references this executable. The separate
+[verifier bridge](../../docs/security/enrollment-verifier.md) now references the same
+pinned Fido2 package and has its own real database tests; application hosts do not
+reference that library. It exposes no HTTP endpoint and stores no
 credentials, keys, browser state or enrollment data. The fixture creates fresh
 P-256 keys and public responses in memory; output contains scenario names only.
 

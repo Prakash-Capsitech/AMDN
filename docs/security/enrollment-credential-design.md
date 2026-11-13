@@ -6,8 +6,9 @@ Proposed; independent approval and E02 closure are **not** recorded. This docume
 specifies intended ceremony behavior, not deployed enrollment endpoints. The
 [storage foundation](device-persistence.md) now defines retained device records and
 metadata reads. [Internal ceremony transactions](ceremony-transactions.md) now
-record trusted verifier projections; authenticated application execution and
-cryptographic proof integration remain pending.
+record trusted verifier projections. The [isolated verifier bridge](enrollment-verifier.md)
+now connects cryptographic verification to those transactions; authenticated
+application execution remains pending.
 
 ## Credential and authority
 
@@ -31,7 +32,7 @@ The selected profile is `amdn-webauthn-enrollment/1`. Parameters:
 | User handle | Random 32-byte opaque value per tenant/user, stable within that RP; not an email, OIDC subject or authorization token |
 | Challenge | Fresh 32 cryptographically random bytes per stage, stored server-side; browser timeout 120 seconds is a hint only |
 | Expiry | Entire ceremony expires 5 minutes after creation; every issued stage challenge also expires after 2 minutes, capped by ceremony expiry |
-| Initial verifier | Fido2 4.3.3, pinned in the isolated experiment; no production dependency added by this PR |
+| Initial verifier | Fido2 4.3.3, pinned in the experiment and isolated verifier library; no application host registration |
 
 These are AMDN profile restrictions. The [WebAuthn verification procedures](https://www.w3.org/TR/2026/REC-webauthn-3-20260825/#sctn-rp-operations)
 remain authoritative for the standard checks. Do not implement a local signature,

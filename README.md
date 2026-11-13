@@ -17,7 +17,8 @@ an isolated [verifier experiment](experiments/Enrollment/README.md), plus
 [staged enrollment/revocation contracts](docs/protocols/device-enrollment.md) and
 [device persistence foundations](docs/security/device-persistence.md).
 [Internal ceremony transactions](docs/security/ceremony-transactions.md) add durable
-challenge/attempt/replay handling; application execution remains disabled.
+challenge/attempt/replay handling. The isolated [verifier bridge](docs/security/enrollment-verifier.md)
+connects signed WebAuthn proofs to those transactions; application execution remains disabled.
 Device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.
@@ -65,6 +66,7 @@ It has no delivery handlers yet.
 | --- | --- |
 | src/Gateway | ASP.NET Core entry point and future SignalR connections |
 | src/Identity | Tenant identity and policy boundary |
+| src/Enrollment | Internal WebAuthn verifier-to-transaction bridge; no host registration |
 | src/Postman | Domain, runtime and delegated authorization |
 | src/Messaging | Envelopes, delivery, receipts and transactional outbox |
 | src/Infrastructure | Database, broker and telemetry adapters |
