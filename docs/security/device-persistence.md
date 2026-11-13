@@ -28,6 +28,11 @@ profile, configuration version, creation time, credential ID/key and BE are
 immutable after binding. There is no private-key, messaging-key, plaintext or
 recovery-secret column. The read DTO exposes none of the credential material.
 
+`pending` is a storage reservation, not a ceremony stage. Multiple pending or
+abandoned device rows may be retained for an owner. The proposed
+[one-unfinished-ceremony rule](../protocols/device-enrollment.md#commands-and-authority)
+requires future ceremony storage; the device table does not enforce it.
+
 The storage representation for a verified ES256 key is the fixed 77-byte public
 COSE map `{1:2, 3:-7, -1:1, -2:x, -3:y}`, with 32-byte x/y coordinates and
 shortest, ordered CBOR encodings. This uses the [COSE EC2 parameters](https://www.rfc-editor.org/rfc/rfc9053.html#section-7.1.1)
