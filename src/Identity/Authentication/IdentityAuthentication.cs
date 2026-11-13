@@ -133,6 +133,10 @@ public static class IdentityAuthentication
                 foreach (var name in new[] { "acr", "auth_time" })
                     if (Single(principal, name) is { } value) claims.Add(new Claim(name, value));
                 context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme));
+                context.Properties.SetParameter(ValidatedAccessToken.Property, new ValidatedAccessToken(
+                    issuer, subject, client, scopes.SingleOrDefault()?.Value ?? "", Single(principal, "acr"),
+                    Single(principal, "auth_time") is { } authTime ? long.Parse(authTime, CultureInfo.InvariantCulture) : null,
+                    DateTime.SpecifyKind(context.SecurityToken.ValidTo, DateTimeKind.Utc)));
             },
             OnChallenge = async context =>
             {

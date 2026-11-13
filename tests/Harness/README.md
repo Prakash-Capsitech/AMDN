@@ -150,3 +150,15 @@ checks, replay, foreign owners, normalized-key uniqueness, authority changes and
 interruption. The harness uses the existing migration owner; it does not certify
 a future application execution role, authenticated HTTP bridge or browser.
 Live enrollment, native N01/N02 and full production P01–P03 remain pending.
+
+## Enrollment authority evidence
+
+[Migration 005 and the principal bridge](../../docs/security/enrollment-authority.md)
+are tested through test-only HTTPS probes, signed OIDC tokens, actual WebAuthn
+signatures and a separate enrollment login with a one-connection pool. Tests check
+foreign tenants/owners, grant and membership revocation, immutable validation
+evidence, expiry, scoped executor RLS, direct table/helper/role denial and unsafe
+credential rejection. The runner generates seven disposable secrets, including
+the new enrollment login, and removes them at teardown. This is not deployment of
+public enrollment routes; live enrollment, native N01/N02 and full production
+P01–P03 remain pending.

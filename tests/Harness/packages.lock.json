@@ -642,6 +642,7 @@
       "amdn.enrollment": {
         "type": "Project",
         "dependencies": {
+          "AMDN.Identity": "[1.0.0, )",
           "Fido2": "[4.3.3, )",
           "Npgsql": "[10.0.3, )"
         }

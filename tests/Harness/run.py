@@ -35,7 +35,7 @@ class Run:
         self.private = Path(tempfile.mkdtemp(prefix=self.run_id + "-", dir=local))
         self.evidence = ROOT / ".local/harness-evidence" / self.run_id
         self.evidence.mkdir(parents=True, mode=0o700)
-        self.secrets = [secrets.token_hex(32) for _ in range(6)]
+        self.secrets = [secrets.token_hex(32) for _ in range(7)]
         self.env = dict(os.environ, HARNESS_RUN_ID=self.run_id,
                         HARNESS_PRIVATE_DIR=str(self.private),
                         AMDN_HARNESS_STATE=str(self.private / "state.json"),
@@ -119,7 +119,8 @@ class Run:
         roles = (ROOT / "src/Infrastructure/Identity/Migrations/roles.sql").read_text()
         for suffix, group, secret in (("runtime", "runtime", self.secrets[3]),
                                       ("provisioner", "provisioner", self.secrets[4]),
-                                      ("migrator", "owner", self.secrets[5])):
+                                      ("migrator", "owner", self.secrets[5]),
+                                      ("enrollment", "enrollment", self.secrets[6])):
             # All values are fixed role names or generated hex, never caller input.
             roles += (f"CREATE ROLE harness_identity_{suffix} LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS "
                       f"NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '{secret}';\n")
@@ -135,6 +136,7 @@ class Run:
                      AppPassword=self.secrets[1], NatsToken=self.secrets[2],
                      IdentityRuntimePassword=self.secrets[3], IdentityProvisionerPassword=self.secrets[4],
                      IdentityMigrationPassword=self.secrets[5],
+                     IdentityEnrollmentPassword=self.secrets[6],
                      PostgresContainer=ids["postgres"], NatsContainer=ids["nats"])
         (self.private / "state.json").write_text(json.dumps(state))
         (self.private / "state.json").chmod(0o600)

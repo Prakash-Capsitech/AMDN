@@ -8,7 +8,8 @@ specifies intended ceremony behavior, not deployed enrollment endpoints. The
 metadata reads. [Internal ceremony transactions](ceremony-transactions.md) now
 record trusted verifier projections. The [isolated verifier bridge](enrollment-verifier.md)
 now connects cryptographic verification to those transactions; authenticated
-application execution remains pending.
+application HTTP execution remains pending; the [principal/role bridge](enrollment-authority.md)
+now supplies internal signed-token and scoped-role integration.
 
 ## Credential and authority
 

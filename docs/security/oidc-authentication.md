@@ -163,3 +163,9 @@ F0 Proposed ADRs and A01–A07/E01–E06 reviews are not approved by these tests
 References: [ASP.NET Core JWT bearer validation](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0),
 [RFC 9068 access-token profile](https://www.rfc-editor.org/rfc/rfc9068.html),
 and [RFC 6750 bearer-token transport](https://www.rfc-editor.org/rfc/rfc6750.html).
+
+The successful validation event also retains immutable in-process
+`ValidatedAccessToken` evidence (no raw bearer token) for the
+[enrollment principal mapper](enrollment-authority.md#principal-mapping).
+Ordinary claim projection remains unchanged. This adds no login/token type or
+enrollment endpoint; live enrollment, native and production checks remain pending.

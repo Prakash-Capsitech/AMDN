@@ -28,6 +28,10 @@ The [device storage guide](docs/security/device-persistence.md) documents migrat
 and the [internal ceremony transaction boundary](docs/security/ceremony-transactions.md)
 in migration 004. See the [verifier guide](docs/security/enrollment-verifier.md)
 for the signed verifier/database cases run by the harness and their limits.
+The [principal and execution-role guide](docs/security/enrollment-authority.md)
+covers migration 005, administrator role bootstrap, isolated enrollment pools and
+validated-principal tests. Rerun the reviewed roles.sql bootstrap before applying
+005; never install migration or executor membership in an application login.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and

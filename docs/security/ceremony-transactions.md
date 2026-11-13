@@ -3,7 +3,8 @@
 F1.4 migration 004 adds the durable ceremony ledger and internal SQL transaction
 primitives. It implements storage transitions for initial enrollment, replacement
 and revocation against the [staged contract](../protocols/device-enrollment.md).
-**Live enrollment is still unimplemented.** No HTTP route, browser adapter,
+**Live enrollment is still unimplemented.** This section describes migration 004;
+[migration 005](enrollment-authority.md) subsequently adds scoped entry functions. No HTTP route, browser adapter,
 production verifier integration, grant-administration API or new application
 credential is enabled. Runtime and provisioning roles cannot execute these
 functions or access the new tables. The harness calls them as the trusted
@@ -175,8 +176,9 @@ uniqueness waits followed by blocker rollback. All identities and proof projecti
 are synthetic. This is transaction/storage evidence; it proves neither real OIDC
 assurance nor WebAuthn possession, HTTP policy enforcement or browser behavior.
 
-Next add authenticated principal integration, explicit grant/configuration administration,
-narrow application execution role, operation budgets and opt-in HTTP integration,
+[Principal and execution-role integration](enrollment-authority.md) now connects
+validated OIDC evidence with scoped entry functions. Next add explicit
+grant/configuration administration, operation budgets and opt-in HTTP integration,
 then drive actual enrollment and cross-tenant negative/race cases through them.
 Live enrollment, [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.

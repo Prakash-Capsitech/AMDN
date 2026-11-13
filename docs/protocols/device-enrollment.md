@@ -184,7 +184,9 @@ Errors and logs must not contain tokens, raw proofs, private keys or hidden owne
 The [isolated verifier bridge](../security/enrollment-verifier.md) now validates
 this bounded proof projection against committed SQL reservations using real
 WebAuthn signatures. It returns internal SQL results, not the public response DTOs.
-No HTTP transport, authenticated principal bridge or enrollment route is enabled.
+The [principal/role bridge](../security/enrollment-authority.md) now validates OIDC
+evidence and scoped execution in test probes. No public HTTP transport or
+enrollment route is enabled.
 
 `make contracts-test` validates OpenAPI, all synthetic examples, encoding bounds,
 closed object shapes, proof-stage response alternatives and terminal transition
@@ -193,8 +195,8 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next integrate the verifier/transaction bridge with validated principals, a narrow
-application role, explicit grant administration and an opt-in API adapter, with real
+Next integrate the principal/verifier/transaction bridge with explicit grant
+administration and an opt-in API adapter, with real
 HTTP/role/pool negative and race tests. Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after

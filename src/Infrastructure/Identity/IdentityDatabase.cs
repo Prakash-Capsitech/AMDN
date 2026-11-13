@@ -39,6 +39,8 @@ public static class IdentityDatabase
                     SELECT NOT (rolsuper OR rolbypassrls OR rolcreatedb OR rolcreaterole OR rolreplication)
                       AND pg_has_role(current_user,@role,'USAGE')
                       AND NOT pg_has_role(current_user,'amdn_identity_owner','MEMBER')
+                      AND NOT pg_has_role(current_user,'amdn_identity_enrollment','MEMBER')
+                      AND NOT pg_has_role(current_user,'amdn_identity_ceremony_executor','MEMBER')
                       AND (@role='amdn_identity_provisioner' OR NOT pg_has_role(current_user,'amdn_identity_provisioner','MEMBER'))
                       AND NOT EXISTS (SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
                         WHERE n.nspname='amdn_identity' AND pg_has_role(current_user,c.relowner,'MEMBER'))

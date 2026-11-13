@@ -113,3 +113,8 @@ API/worker/routing integration, device revocation, multi-node failover or recove
 objectives. [Native N01/N02](agent-safety.md#pending-native-checks), F0 approvals,
 Proposed ADRs, and crypto/contract review gates remain open. Dependabot #10 remains
 deferred and crypto pins are unchanged.
+
+Migration 005 adds the [enrollment execution-role boundary](enrollment-authority.md).
+Administrator role bootstrap must run before that migration. Applied 001–004
+remain unchanged; enrollment uses a separate credential and four scoped entry
+functions, never the owner/runtime/provisioning pool. Live enrollment remains pending.
