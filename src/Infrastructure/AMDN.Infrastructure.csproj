@@ -6,6 +6,7 @@
     <EmbeddedResource Include="Identity/Migrations/003_devices.sql" LogicalName="Identity.003.sql" />
     <EmbeddedResource Include="Identity/Migrations/004_ceremonies.sql" LogicalName="Identity.004.sql" />
     <EmbeddedResource Include="Identity/Migrations/005_enrollment_execution.sql" LogicalName="Identity.005.sql" />
+    <EmbeddedResource Include="Identity/Migrations/006_enrollment_administration.sql" LogicalName="Identity.006.sql" />
     <ProjectReference Include="../Identity/AMDN.Identity.csproj" />
     <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
     <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />

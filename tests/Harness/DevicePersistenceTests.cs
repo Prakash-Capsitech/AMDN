@@ -231,7 +231,7 @@ public sealed class DevicePersistenceTests
         var (person, subject) = await Person(); var device = await Seed(person);
         await using (var owner = await Owner())
         {
-            Assert.Equal(5L, await Sql(owner, "SELECT count(*) FROM amdn_identity.schema_migrations"));
+            Assert.Equal(6L, await Sql(owner, "SELECT count(*) FROM amdn_identity.schema_migrations"));
             await Sql(owner, "UPDATE amdn_identity.devices SET status='credential_active' WHERE device_id=@id", ("id", device));
         }
         var restarted = await _state.CrashAndRestart(_state.PostgresContainer);

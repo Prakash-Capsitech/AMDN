@@ -2,8 +2,9 @@
 
 Status: Proposed, OpenAPI `0.2.0-draft`. This specifies the next F1.4 implementation
 boundary after the [credential design](../security/enrollment-credential-design.md).
-No enrollment/revocation endpoint, grant administration or browser adapter is
-implemented. The [device storage foundation](../security/device-persistence.md)
+No enrollment/revocation endpoint or browser adapter is implemented.
+[Trusted SQL administration](../security/enrollment-administration.md) provides
+configuration and grant commands. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
 now implement durable stage effects; see the [principal/role bridge](../security/enrollment-authority.md)
 for internal authenticated integration. Public API integration remains pending.
@@ -197,8 +198,8 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next integrate the principal/verifier/transaction bridge with explicit grant
-administration and an opt-in API adapter, with real
+Next integrate the principal/verifier/transaction bridge and trusted administration
+with an opt-in API adapter, with real
 HTTP/role/pool negative and race tests. Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after

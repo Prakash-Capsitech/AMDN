@@ -166,6 +166,11 @@ execution boundary. Browser integration remains pending.
 
 ## Enrollment authority evidence
 
+[Administration cases](../../docs/security/enrollment-administration.md) exercise
+migration 006's trusted SQL commands, audit/replay atomicity, version races,
+application-role denials and grant/configuration effects on actual enrollment calls.
+These are administrator and synthetic service-boundary checks, not new public APIs.
+
 [Migration 005 and the principal bridge](../../docs/security/enrollment-authority.md)
 are tested through test-only HTTPS probes, signed OIDC tokens, actual WebAuthn
 signatures and a separate enrollment login with a one-connection pool. Tests check

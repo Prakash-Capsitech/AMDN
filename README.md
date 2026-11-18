@@ -22,8 +22,10 @@ connects signed WebAuthn proofs to those transactions.
 [Validated-principal and execution-role integration](docs/security/enrollment-authority.md)
 adds internal OIDC mapping and scoped execute-only database access; no application
 host registers enrollment.
+[Audited enrollment administration](docs/security/enrollment-administration.md)
+adds explicit migration-owner SQL commands for configuration and management grants.
 Live device enrollment,
-policy mutation, message delivery, production encryption, a web client and
+policy-mutation APIs, message delivery, production encryption, a web client and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate

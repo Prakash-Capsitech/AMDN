@@ -41,8 +41,9 @@ postman projection and policy ETag. Foreign, unknown and revoked objects all ret
 The returned receive/dispatch/retry values are stored preferences, not permission
 for a worker to execute an operation. Migration 002 defaults these preferences to
 true, but only `postman.read` is seeded as an executable owner grant. Messaging,
-device, policy-mutation, delegated worker grants and audit-query APIs remain
-unimplemented. Their routes still return 404. No content-access grant is created.
+device, policy-mutation, delegated worker and audit-query APIs remain
+unimplemented. Their routes still return 404. See [enrollment administration](enrollment-administration.md)
+for separate device-management grants. No content-access grant is created.
 
 Requests reject unknown/duplicate properties, malformed UTF-8, compressed bodies,
 invalid idempotency keys and bodies over 16 KiB. A supplied JSON charset must be

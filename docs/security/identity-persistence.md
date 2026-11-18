@@ -91,7 +91,8 @@ one transaction. F1.3 adds migration 002, [device storage](device-persistence.md
 [ceremony transactions](ceremony-transactions.md) add 004. Migration 005 adds the
 [enrollment execution boundary](enrollment-authority.md#pool-and-deployment); follow
 that guide's administrator bootstrap and separate credential requirements before
-applying it. Applied migrations remain unchanged. Reapplying the same version is a no-op; a changed applied checksum
+applying it. Migration 006 adds [trusted enrollment administration](enrollment-administration.md).
+Applied migrations remain unchanged. Reapplying the same version is a no-op; a changed applied checksum
 fails. Later schema changes need new versioned migrations, not edits to applied SQL.
 There is no automatic Gateway migration or deployment CLI. F1.3 adds explicit
 provisioning APIs; production rollout remains pending.
