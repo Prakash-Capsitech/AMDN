@@ -166,6 +166,61 @@ public sealed class EnrollmentAdministrationTests
     }
 
     [Theory]
+    [InlineData("0xffffffff")]
+    [InlineData("0x7f.1")]
+    [InlineData("0177.1")]
+    [InlineData("127.1")]
+    [InlineData("127.0.0.1")]
+    [InlineData("0x")]
+    [InlineData("example.0xff")]
+    [InlineData("example.0x")]
+    [InlineData("example.123")]
+    [InlineData("1.09")]
+    [InlineData("4294967296")]
+    public async Task WhatwgUrlStandardNumericHostsCannotChangeConfigurationOrReserveReplay(string host)
+    {
+        await using var owner = await Owner();
+        foreach (var (rp, origin) in new[]
+        {
+            (host, $"https://{host}"),
+            (host, $"https://admin.{host}:8443"),
+            ("admin.invalid", $"https://{host}:8443")
+        })
+        {
+            foreach (var expected in new[] { 0L, 1L })
+            {
+                var id = Guid.NewGuid(); var command = Guid.NewGuid();
+                if (expected == 1) Outcome("ok", await Configure(owner, id));
+                var before = await Sql(owner, "SELECT to_jsonb(c)::text FROM amdn_identity.device_configurations c WHERE configuration_id=@id", ("id", id));
+                Outcome("invalid_request", await Configure(owner, id, expected: expected, enabled: true, rp: rp, origin: origin, command: command));
+                Assert.Equal(before, await Sql(owner, "SELECT to_jsonb(c)::text FROM amdn_identity.device_configurations c WHERE configuration_id=@id", ("id", id)));
+                Assert.Equal(expected, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_administration_audit WHERE configuration_id=@id", ("id", id)));
+                Assert.Equal(0L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_administration_audit WHERE command_id=@id", ("id", command)));
+                Outcome("ok", await Configure(owner, id, expected: expected, enabled: true, command: command));
+                Assert.Equal(expected + 1, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_administration_audit WHERE configuration_id=@id", ("id", id)));
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("admin.invalid", "https://admin.invalid")]
+    [InlineData("admin.invalid", "https://other.admin.invalid:8443")]
+    [InlineData("admin.invalid", "https://127.admin.invalid:1")]
+    [InlineData("admin.invalid", "https://0xff.admin.invalid:65535")]
+    [InlineData("0xg", "https://0xg")]
+    [InlineData("example.0xffg", "https://login.example.0xffg")]
+    public async Task WhatwgUrlStandardDnsBindingsRemainUnchangedOnCreateAndUpdate(string rp, string origin)
+    {
+        await using var owner = await Owner(); var id = Guid.NewGuid();
+        Outcome("ok", await Configure(owner, id, rp: rp, origin: origin));
+        var updated = await Configure(owner, id, expected: 1, enabled: true, rp: rp, origin: origin);
+        Outcome("ok", updated); Assert.Equal(2, updated.GetProperty("version").GetInt64());
+        Assert.Equal(rp, await Sql(owner, "SELECT rp_id FROM amdn_identity.device_configurations WHERE configuration_id=@id", ("id", id)));
+        Assert.Equal(origin, await Sql(owner, "SELECT origin FROM amdn_identity.device_configurations WHERE configuration_id=@id", ("id", id)));
+        Assert.Equal(2L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_administration_audit WHERE configuration_id=@id", ("id", id)));
+    }
+
+    [Theory]
     [InlineData("tenants")]
     [InlineData("users")]
     [InlineData("memberships")]

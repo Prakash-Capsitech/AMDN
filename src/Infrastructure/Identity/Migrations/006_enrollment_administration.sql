@@ -68,14 +68,15 @@ BEGIN
     OR p_expected NOT BETWEEN 0 AND 9007199254740991 OR p_enabled IS NULL
     OR p_maximum_age IS NULL OR p_maximum_age NOT BETWEEN 1 AND 900
     OR p_reference IS NULL OR octet_length(p_reference) NOT BETWEEN 1 AND 128 OR p_reference ~ '[^!-~]'
-    OR p_rp IS NULL OR octet_length(p_rp) NOT BETWEEN 1 AND 253 OR p_rp ~ '^[0-9.]+$'
+    OR p_rp IS NULL OR octet_length(p_rp) NOT BETWEEN 1 AND 253 OR p_rp ~ '(^|\.)([0-9]+|0x[0-9a-f]*)$'
     OR p_rp !~ '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$'
     OR p_origin IS NULL OR octet_length(p_origin) NOT BETWEEN 9 AND 512
     OR p_origin !~ '^https://[a-z0-9.-]+(:[1-9][0-9]{0,4})?$'
     OR NOT amdn_identity.ceremony_valid_acrs(p_acrs) THEN RETURN jsonb_build_object('outcome','invalid_request'); END IF;
   host_name:=split_part(substring(p_origin FROM 9),':',1);
   port_text:=split_part(substring(p_origin FROM 9),':',2);
-  IF octet_length(host_name)>253 OR host_name !~ '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$'
+  IF octet_length(host_name)>253 OR host_name ~ '(^|\.)([0-9]+|0x[0-9a-f]*)$'
+    OR host_name !~ '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$'
     OR (host_name<>p_rp AND right(host_name,length(p_rp)+1)<>'.'||p_rp)
     OR (port_text<>'' AND (port_text::integer>65535 OR port_text='443')) THEN
     RETURN jsonb_build_object('outcome','invalid_request');

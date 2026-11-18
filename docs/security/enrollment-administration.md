@@ -47,7 +47,10 @@ configuration and explicit deployment selection; existing devices are not migrat
 RP IDs and origins use lowercase ASCII DNS labels. Origins must be canonical HTTPS
 without user info, path, query, fragment, trailing slash or explicit default port
 443. Other ports are bounded to 1–65535. The host must equal the RP ID or be its
-subdomain. IP RP IDs are rejected. ACRs must be 1–16 distinct visible ASCII strings
+subdomain. Both RP IDs and origin hosts reject terminal decimal or hexadecimal
+numeric labels under the [WHATWG URL Standard's ends-in-a-number rule](https://url.spec.whatwg.org/#ends-in-a-number-checker),
+including hexadecimal, octal and shortened IPv4 spellings and malformed numeric
+hosts. ACRs must be 1–16 distinct visible ASCII strings
 of at most 256 bytes; maximum age is 1–900 seconds. These are not public-suffix-list
 or browser qualification checks: the operator must review the registrable domain
 and deployment binding.
