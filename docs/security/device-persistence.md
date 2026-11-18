@@ -120,8 +120,9 @@ The [ceremony transaction layer](ceremony-transactions.md) now adds durable
 challenge/attempt/replay/audit storage and lifecycle effects with checks after
 waits. See the [authority guide](enrollment-authority.md) for subsequent application
 execution authority and the [verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for proof integration
-and remaining application work. Explicit grant
-administration, browser interoperability and messaging-key binding remain open.
+and remaining application work. See [enrollment administration](enrollment-administration.md)
+for trusted grant/configuration commands. Browser interoperability and messaging-key
+binding remain open.
 One active logical device makes no physical-device or key non-copyability claim;
 independent peer verification is still required before first send and replacement.
 
