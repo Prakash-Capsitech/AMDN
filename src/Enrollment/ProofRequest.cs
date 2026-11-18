@@ -24,9 +24,14 @@ internal sealed record ProofRequest(byte[] Credential, byte[] ClientData, byte[]
             Fields(response, registration ? ["clientDataJSON", "attestationObject"] : ["clientDataJSON", "authenticatorData", "signature"],
                 registration ? [] : ["userHandle"]);
             var client = Decode(response.GetProperty("clientDataJSON"), 8192);
-            // Structural JSON failure is rejected before reserving a verification slot.
             using var clientJson = StrictJson(client);
-            Require(clientJson.RootElement.ValueKind == JsonValueKind.Object);
+            var data = clientJson.RootElement;
+            Fields(data, ["type", "challenge", "origin"], ["crossOrigin"]);
+            Require(data.GetProperty("type").ValueKind == JsonValueKind.String
+                && data.GetProperty("origin").ValueKind == JsonValueKind.String);
+            Require(Decode(data.GetProperty("challenge"), 32).Length == 32);
+            if (data.TryGetProperty("crossOrigin", out var cross))
+                Require(cross.ValueKind is JsonValueKind.True or JsonValueKind.False);
             byte[]? handle = null;
             if (!registration && response.TryGetProperty("userHandle", out var supplied) && supplied.ValueKind != JsonValueKind.Null)
             {

@@ -65,6 +65,11 @@ Bodies are uncompressed JSON, at most 65,536 bytes, with UTF-8 (quoted or unquot
 as the only explicit charset. Duplicate charset parameters, duplicate JSON members
 (including escaped names), unknown fields, noncanonical encodings and invalid
 proof structure fail before reservation. Bounded proof-field overflow returns 413.
+Decoded client data requires string type/origin, a canonical base64url challenge
+of exactly 32 bytes and an optional boolean crossOrigin, with no other members.
+These structural checks apply to all four proof stages; an oversized challenge
+returns 413 before reservation. Stored challenge, origin and stage comparisons,
+cross-origin rejection and cryptographic verification follow reservation.
 Each mapped request has a 30-second cancellation deadline, including body reading,
 database waits and verification. Timeout returns a generic 503; an already committed
 reservation retains the existing ambiguous-outcome replay rules.
@@ -96,6 +101,10 @@ tokens, synthetic signed WebAuthn proofs and real PostgreSQL roles: initial
 activation, replacement with both proofs, revocation, exact-byte replay and fresh
 lifecycle, foreign actors, client rebinding, grant revocation, body/field limits,
 generic error headers, quotas and busy-verifier rejection before reservation.
+Client-data regression cases cover missing/unknown/duplicate members, invalid
+types and challenge encodings/lengths across all four stages. Repeated malformed
+submissions leave no proof reservations and allow valid completion, while valid
+structures with wrong context or signatures consume durable attempts.
 The earlier transaction/verifier/role suites retain expiry, concurrency, crash,
 rollback and privilege-denial coverage.
 

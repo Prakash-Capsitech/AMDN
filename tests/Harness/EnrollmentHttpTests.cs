@@ -144,6 +144,80 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
     }
 
     [Fact]
+    public async Task MalformedClientDataPreservesAttemptsAcrossAllProofStages()
+    {
+        var member = await Setup();
+        await using var app = App(member, globalBudget: 500, actorBudget: 500, tenantBudget: 500);
+        using var client = issuer.Client(app); using var first = new SyntheticWebAuthn(); using var second = new SyntheticWebAuthn();
+        var begin = await Ok(client, member, "/v1/device-enrollments", Begin(1));
+        var candidate = await Prove(begin, "registration", first);
+        var active = await Prove(candidate, "candidate", first);
+        var replacement = await Ok(client, member, "/v1/device-enrollments", Begin(2, active.GetProperty("device_id").GetGuid()));
+        var replacementId = replacement.GetProperty("ceremony_id").GetGuid();
+        var replacementCandidate = await Ok(client, member, $"/v1/device-enrollments/{replacementId}/registration", second.Response(Challenge(replacement), true));
+        var current = await Ok(client, member, $"/v1/device-enrollments/{replacementId}/candidate-proof", second.Response(Challenge(replacementCandidate), false));
+        var replaced = await Prove(current, "current", first);
+        var revoke = await Ok(client, member, $"/v1/devices/{replaced.GetProperty("device_id").GetGuid()}/revocations",
+            JsonSerializer.SerializeToUtf8Bytes(new { profile = Profile, expected_identity_version = 3 }));
+        var revoked = await Prove(revoke, "revocation", second);
+        Assert.Equal(4, revoked.GetProperty("committed_identity_version").GetInt64());
+
+        async Task<JsonElement> Prove(JsonElement options, string stage, SyntheticWebAuthn credential)
+        {
+            var id = options.GetProperty("ceremony_id").GetGuid();
+            var path = stage == "revocation" ? $"/v1/device-revocations/{id}/proof"
+                : $"/v1/device-enrollments/{id}/" + (stage == "registration" ? stage : stage + "-proof");
+            var valid = credential.Response(Challenge(options), stage == "registration");
+            var envelope = JsonNode.Parse(valid)!;
+            var clientBytes = Decode(envelope["response"]!["clientDataJSON"]!.GetValue<string>());
+            for (var submission = 0; submission < 6; submission++)
+                await Reject("{}"u8.ToArray(), 400);
+            await Reject("[]"u8.ToArray(), 400);
+            await Reject("null"u8.ToArray(), 400);
+            var data = JsonNode.Parse(clientBytes)!.AsObject();
+            foreach (var field in new[] { "type", "challenge", "origin" })
+            {
+                var missing = data.DeepClone().AsObject(); missing.Remove(field);
+                await Reject(JsonSerializer.SerializeToUtf8Bytes(missing), 400);
+            }
+            foreach (var field in new[] { "type", "challenge", "origin", "crossOrigin" })
+            {
+                foreach (var value in new[] { "null", "1", "{}", "[]", field == "crossOrigin" ? "\"false\"" : "false" })
+                {
+                    var malformed = data.DeepClone(); malformed[field] = JsonNode.Parse(value);
+                    await Reject(JsonSerializer.SerializeToUtf8Bytes(malformed), 400);
+                }
+            }
+            var unknown = data.DeepClone(); unknown["topOrigin"] = "https://ceremony.invalid";
+            await Reject(JsonSerializer.SerializeToUtf8Bytes(unknown), 400);
+            var text = Encoding.UTF8.GetString(clientBytes);
+            await Reject(Encoding.UTF8.GetBytes("{\"type\":\"webauthn.create\"," + text[1..]), 400);
+            await Reject(Encoding.UTF8.GetBytes("{\"t\\u0079pe\":\"webauthn.create\"," + text[1..]), 400);
+            foreach (var challenge in new[] { "", "!", "AA=", new string('A', 42) + "B", SyntheticWebAuthn.Encode(new byte[31]) })
+            {
+                var malformed = data.DeepClone(); malformed["challenge"] = challenge;
+                await Reject(JsonSerializer.SerializeToUtf8Bytes(malformed), 400);
+            }
+            var oversized = data.DeepClone(); oversized["challenge"] = SyntheticWebAuthn.Encode(new byte[33]);
+            await Reject(JsonSerializer.SerializeToUtf8Bytes(oversized), 413);
+            await using var owner = await Owner();
+            Assert.Equal(0L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage", ("id", id), ("stage", stage)));
+            Assert.Equal(stage, await Sql(owner, "SELECT state FROM amdn_identity.device_ceremonies WHERE ceremony_id=@id", ("id", id)));
+            var invalidProof = credential.Response(Challenge(options), stage == "registration", scenario: stage == "registration" ? "wrong-challenge" : "wrong-signature");
+            var failureKey = Key();
+            for (var retry = 0; retry < 2; retry++) await Error(client, member, path, invalidProof, 400, key: failureKey);
+            Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage AND state='failed' AND attempt_number=1", ("id", id), ("stage", stage)));
+            return await Ok(client, member, path, valid);
+
+            async Task Reject(byte[] malformed, int status)
+            {
+                envelope["response"]!["clientDataJSON"] = SyntheticWebAuthn.Encode(malformed);
+                await Error(client, member, path, JsonSerializer.SerializeToUtf8Bytes(envelope), status);
+            }
+        }
+    }
+
+    [Fact]
     public async Task GlobalBudgetCountsAnonymousFailuresWithoutThrottlingLiveness()
     {
         var member = await Setup(); await using var app = App(member, 1); using var client = issuer.Client(app);

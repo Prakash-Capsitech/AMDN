@@ -48,7 +48,6 @@ public sealed partial class CeremonyTransactionTests
     [InlineData(true, "wrong-challenge")]
     [InlineData(true, "wrong-type")]
     [InlineData(true, "cross-origin")]
-    [InlineData(true, "top-origin")]
     [InlineData(true, "no-up")]
     [InlineData(true, "no-uv")]
     [InlineData(true, "invalid-backup")]
@@ -74,7 +73,6 @@ public sealed partial class CeremonyTransactionTests
     [InlineData(false, "wrong-challenge")]
     [InlineData(false, "wrong-type")]
     [InlineData(false, "cross-origin")]
-    [InlineData(false, "top-origin")]
     [InlineData(false, "no-up")]
     [InlineData(false, "no-uv")]
     [InlineData(false, "invalid-backup")]
@@ -151,6 +149,20 @@ public sealed partial class CeremonyTransactionTests
         var bridge = new CeremonyVerifier(_ => throw new InvalidOperationException("Malformed projection reached database"));
         var actor = new CeremonyActor(Guid.NewGuid(), "issuer", "subject", "client", "https://ceremony.invalid", Guid.NewGuid(), "device.manage", "acr", DateTime.UtcNow, DateTime.UtcNow.AddMinutes(5));
         AssertOutcome("invalid_request", await bridge.CompleteAsync(actor, Guid.NewGuid(), "registration", Idempotency(), bytes));
+    }
+
+    [Theory]
+    [InlineData("registration")]
+    [InlineData("candidate")]
+    [InlineData("current")]
+    [InlineData("revocation")]
+    public async Task UnknownClientDataFieldsNeverOpenDatabaseOrReserveAttempt(string stage)
+    {
+        using var fixture = new SyntheticWebAuthn();
+        var body = fixture.Response(new byte[32], stage == "registration", scenario: "top-origin");
+        var bridge = new CeremonyVerifier(_ => throw new InvalidOperationException("Malformed client data reached database"));
+        var actor = new CeremonyActor(Guid.NewGuid(), "issuer", "subject", "client", "https://ceremony.invalid", Guid.NewGuid(), "device.manage", "acr", DateTime.UtcNow, DateTime.UtcNow.AddMinutes(5));
+        AssertOutcome("invalid_request", await bridge.CompleteAsync(actor, Guid.NewGuid(), stage, Idempotency(), body));
     }
 
     [Fact]

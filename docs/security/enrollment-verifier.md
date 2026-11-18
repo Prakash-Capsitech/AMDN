@@ -23,7 +23,9 @@ entry functions; see the [role and pool boundary](enrollment-authority.md).
 
 1. Copy the bounded request once and reject malformed proof projections, JSON or
    projection-field base64url encodings with `invalid_request` before opening a
-   database connection.
+   database connection. This includes closed client-data fields, their JSON types
+   and a canonical base64url challenge of exactly 32 decoded bytes. Context
+   comparisons and cryptographic verification remain after reservation.
 2. Call `amdn_enrollment.reserve` in an explicit transaction. If newly reserved,
    capture its database snapshot and next-challenge decision, then **commit and
    dispose the connection**.
