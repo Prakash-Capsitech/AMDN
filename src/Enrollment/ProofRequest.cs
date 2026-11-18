@@ -3,7 +3,8 @@ using System.Text.Json;
 
 namespace AMDN.Enrollment;
 
-internal sealed class InvalidProofEncodingException : Exception;
+internal class InvalidProofEncodingException : Exception;
+internal sealed class ProofTooLargeException : InvalidProofEncodingException;
 
 internal sealed record ProofRequest(byte[] Credential, byte[] ClientData, byte[] AuthenticatorOrAttestation,
     byte[]? Signature, byte[]? UserHandle)
@@ -23,9 +24,14 @@ internal sealed record ProofRequest(byte[] Credential, byte[] ClientData, byte[]
             Fields(response, registration ? ["clientDataJSON", "attestationObject"] : ["clientDataJSON", "authenticatorData", "signature"],
                 registration ? [] : ["userHandle"]);
             var client = Decode(response.GetProperty("clientDataJSON"), 8192);
-            // Structural JSON failure is rejected before reserving a verification slot.
             using var clientJson = StrictJson(client);
-            Require(clientJson.RootElement.ValueKind == JsonValueKind.Object);
+            var data = clientJson.RootElement;
+            Fields(data, ["type", "challenge", "origin"], ["crossOrigin"]);
+            Require(data.GetProperty("type").ValueKind == JsonValueKind.String
+                && data.GetProperty("origin").ValueKind == JsonValueKind.String);
+            Require(Decode(data.GetProperty("challenge"), 32).Length == 32);
+            if (data.TryGetProperty("crossOrigin", out var cross))
+                Require(cross.ValueKind is JsonValueKind.True or JsonValueKind.False);
             byte[]? handle = null;
             if (!registration && response.TryGetProperty("userHandle", out var supplied) && supplied.ValueKind != JsonValueKind.Null)
             {
@@ -67,9 +73,11 @@ internal sealed record ProofRequest(byte[] Credential, byte[] ClientData, byte[]
     {
         Require(element.ValueKind == JsonValueKind.String);
         var text = element.GetString()!;
-        Require(text.Length is > 0 && text.Length <= (max * 8 + 5) / 6 && text.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'));
+        if (text.Length > (max * 8 + 5) / 6) throw new ProofTooLargeException();
+        Require(text.Length > 0 && text.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'));
         var bytes = Convert.FromBase64String(text.Replace('-', '+').Replace('_', '/') + new string('=', (4 - text.Length % 4) % 4));
-        Require(bytes.Length is > 0 && bytes.Length <= max && Encode(bytes) == text);
+        if (bytes.Length > max) throw new ProofTooLargeException();
+        Require(bytes.Length > 0 && Encode(bytes) == text);
         return bytes;
     }
     internal static string Encode(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');

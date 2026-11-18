@@ -31,7 +31,6 @@ internal static class WebAuthnProof
             using (var client = StrictJson(proof.ClientData))
             {
                 var data = client.RootElement;
-                Fields(data, ["type", "challenge", "origin"], ["crossOrigin"]);
                 Require(data.GetProperty("type").GetString() == (registration ? "webauthn.create" : "webauthn.get")
                     && data.GetProperty("origin").GetString() == origin
                     && Decode(data.GetProperty("challenge"), 32).AsSpan().SequenceEqual(challenge));

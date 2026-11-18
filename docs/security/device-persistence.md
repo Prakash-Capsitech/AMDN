@@ -1,15 +1,13 @@
 # Device persistence foundation
 
 F1.4 now has an embedded storage migration and an internal membership-scoped
-metadata reader. This is **not a working enrollment service**. The
-[staged contract](../protocols/device-enrollment.md) remains proposed; all six
-HTTP commands and grant-administration API remain unimplemented. The later
-[ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
+metadata reader. The [staged contract](../protocols/device-enrollment.md) remains
+proposed. The later [ceremony transaction layer](ceremony-transactions.md) adds reservations and atomic
 storage effects; the [isolated verifier bridge](enrollment-verifier.md) connects
 proofs to them; the [principal/role bridge](enrollment-authority.md) supplies internal
-authenticated execution. Public API integration remains pending. No Gateway
-route or DI registration is added, and existing application roles cannot write
-device records.
+authenticated execution. See the [HTTP guide](enrollment-http.md) for adapter
+configuration and the [role guide](enrollment-authority.md#postgresql-roles-and-rls)
+for application mutation authority. Public grant-administration APIs remain pending.
 
 ## Records and constraints
 
@@ -126,7 +124,7 @@ binding remain open.
 One active logical device makes no physical-device or key non-copyability claim;
 independent peer verification is still required before first send and replacement.
 
-Live enrollment validation remains pending. [Native N01/N02](agent-safety.md#pending-native-checks)
+Browser and production enrollment validation remain pending. [Native N01/N02](agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
 pending despite this storage evidence. ADRs remain Proposed; no F0 or independent
 crypto review is declared complete. Dependabot #10 was separately evaluated and

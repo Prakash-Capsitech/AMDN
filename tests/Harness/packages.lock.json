@@ -650,6 +650,7 @@
       "amdn.gateway": {
         "type": "Project",
         "dependencies": {
+          "AMDN.Enrollment": "[1.0.0, )",
           "AMDN.Identity": "[1.0.0, )",
           "AMDN.Infrastructure": "[1.0.0, )",
           "AMDN.Messaging": "[1.0.0, )",

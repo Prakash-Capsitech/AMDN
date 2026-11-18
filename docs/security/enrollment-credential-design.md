@@ -7,9 +7,9 @@ specifies intended ceremony behavior, not deployed enrollment endpoints. The
 [storage foundation](device-persistence.md) now defines retained device records and
 metadata reads. [Internal ceremony transactions](ceremony-transactions.md) now
 record trusted verifier projections. The [isolated verifier bridge](enrollment-verifier.md)
-now connects cryptographic verification to those transactions; authenticated
-application HTTP execution remains pending; the [principal/role bridge](enrollment-authority.md)
-now supplies internal signed-token and scoped-role integration.
+now connects cryptographic verification to those transactions; the [principal/role bridge](enrollment-authority.md)
+supplies signed-token and scoped-role integration. See the [HTTP guide](enrollment-http.md)
+for adapter configuration and evidence limits.
 
 ## Credential and authority
 
@@ -33,7 +33,7 @@ The selected profile is `amdn-webauthn-enrollment/1`. Parameters:
 | User handle | Random 32-byte opaque value per tenant/user, stable within that RP; not an email, OIDC subject or authorization token |
 | Challenge | Fresh 32 cryptographically random bytes per stage, stored server-side; browser timeout 120 seconds is a hint only |
 | Expiry | Entire ceremony expires 5 minutes after creation; every issued stage challenge also expires after 2 minutes, capped by ceremony expiry |
-| Initial verifier | Fido2 4.3.3, pinned in the experiment and isolated verifier library; no application host registration |
+| Initial verifier | Fido2 4.3.3, pinned in the experiment and verifier library |
 
 These are AMDN profile restrictions. The [WebAuthn verification procedures](https://www.w3.org/TR/2026/REC-webauthn-3-20260825/#sctn-rp-operations)
 remain authoritative for the standard checks. Do not implement a local signature,
@@ -48,9 +48,9 @@ Credential operations require the validated OIDC issuer/subject, exact
 `device.manage` scope, current active tenant/user/membership/postman, fresh
 [step-up evidence](oidc-authentication.md#device-step-up-prerequisite) and an
 explicit unexpired `device.manage` object grant. F1.3 only provisions
-`postman.read`; it must not acquire device authority implicitly. Future grant
-administration is an audited privileged operation and a prerequisite to enabling
-the API. The credential cannot authenticate another tenant's membership.
+`postman.read`; it must not acquire device authority implicitly.
+[Audited grant administration](enrollment-administration.md) is a prerequisite to
+enabling the API. The credential cannot authenticate another tenant's membership.
 
 ## Separation from messaging
 
@@ -80,8 +80,8 @@ The fingerprint/comparison format and trusted client distribution remain open.
 The [versioned HTTP contract](../protocols/device-enrollment.md) owns the staged
 commands, browser projection, transport requirements, errors and replay rules;
 [OpenAPI](../protocols/openapi.json) owns their exact request/response schemas.
-Application integration tests are still required before enabling runtime routes;
-no device endpoint is implemented.
+The [HTTP guide](enrollment-http.md#evidence-and-remaining-work) owns adapter
+integration evidence and remaining qualification work.
 
 Bind every stage to ceremony UUID, operation/stage, tenant, local user, verified
 issuer/subject, OIDC `client_id`, exact initiating origin, RP/origin configuration version, expected

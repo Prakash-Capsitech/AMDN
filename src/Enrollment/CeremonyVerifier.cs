@@ -63,7 +63,7 @@ internal sealed class CeremonyVerifier(Func<CancellationToken, Task<NpgsqlConnec
     internal static async Task<JsonElement> Call(NpgsqlConnection connection, CeremonyActor actor, string function,
         string arguments, CancellationToken cancellationToken, params (string Name, object? Value)[] values)
     {
-        await using var command = new NpgsqlCommand($"SELECT amdn_enrollment.{function}({ActorSql},{arguments})", connection);
+        await using var command = new NpgsqlCommand($"SELECT amdn_enrollment.{function}({ActorSql}{(arguments.Length == 0 ? "" : "," + arguments)})", connection);
         foreach (var (name, value) in new (string, object)[] {
             ("tenant", actor.TenantId), ("issuer", actor.Issuer), ("subject", actor.Subject), ("client", actor.ClientId),
             ("origin", actor.Origin), ("config", actor.ConfigurationId), ("scope", actor.Scope), ("acr", actor.Acr),

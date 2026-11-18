@@ -2,8 +2,8 @@
 
 Migration 006 adds trusted administrator SQL commands for WebAuthn configuration
 and device-management grants, as a prerequisite for the opt-in enrollment HTTP
-adapter. No public administration or enrollment endpoint is added. E02, live
-enrollment, native N01/N02 and production P01–P03 remain pending.
+adapter. No public administration endpoint is added. See the
+[HTTP guide](enrollment-http.md) for enrollment integration and its pending gates.
 
 ## Authority and deployment
 
@@ -112,7 +112,7 @@ enrollment calls check that grant/configuration changes stop existing ceremony
 use. Those calls use synthetic trusted service projections, not new signed
 OIDC/WebAuthn or public HTTP evidence.
 
-Next add the opt-in HTTP adapter with strict parsing, wire DTOs, origin checks,
-budgets and authenticated endpoint/role/pool negative tests. Browser UX,
+The [HTTP guide](enrollment-http.md#evidence-and-remaining-work) owns subsequent
+endpoint integration evidence and its limits. Browser UX,
 messaging-key binding, independent verification and deployment remain separate.
 The [authority guide](enrollment-authority.md) owns the existing service trust boundary.

@@ -3,10 +3,11 @@
 F1.4 migration 004 adds the durable ceremony ledger and internal SQL transaction
 primitives. It implements storage transitions for initial enrollment, replacement
 and revocation against the [staged contract](../protocols/device-enrollment.md).
-**Live enrollment is still unimplemented.** This guide owns migration 004's
-storage and transaction semantics. See the [verifier guide](enrollment-verifier.md)
-for proof integration and the [authority guide](enrollment-authority.md) for
-migration 005's principal mapping, execution roles and pending deployment work.
+This guide owns migration 004's storage and transaction semantics. See the
+[verifier guide](enrollment-verifier.md) for proof integration and the
+[authority guide](enrollment-authority.md) for
+principal mapping and execution roles. The [HTTP guide](enrollment-http.md) owns
+adapter configuration and deployment requirements.
 
 ## Trust and invocation boundary
 
@@ -79,10 +80,8 @@ pending A06; no automatic deletion or retention window is invented.
 Each invocation is a database transaction; the caller must commit before reporting
 success. Expected denials return a small internal JSON outcome. Unexpected SQL
 errors require rollback and must not be exposed as raw exception details. These
-results are not the public OpenAPI DTOs; the future adapter must map internal
-`registration`, `candidate`, `current` and `revocation` stages to the contract's
-`awaiting_*` states, construct options responses and enforce no-store/error headers
-and request budgets.
+results are not the public OpenAPI DTOs; the [HTTP adapter](enrollment-http.md)
+owns public projection, transport enforcement and request budgets.
 
 1. `ceremony_begin` resolves current authority, checks the expected identity and
    active-device snapshot, fixes the operation and reserves the candidate UUID.
@@ -174,9 +173,9 @@ assurance nor WebAuthn possession, HTTP policy enforcement or browser behavior.
 [Principal and execution-role integration](enrollment-authority.md) now connects
 validated OIDC evidence with scoped entry functions.
 [Trusted SQL administration](enrollment-administration.md) now provides explicit
-grant/configuration commands. Next add operation budgets and opt-in HTTP integration,
-then drive actual enrollment and cross-tenant negative/race cases through them.
-Live enrollment, [native N01/N02](agent-safety.md#pending-native-checks) and full
+grant/configuration commands. See the [HTTP guide](enrollment-http.md#evidence-and-remaining-work)
+for subsequent route-level evidence and remaining browser/production work.
+[Native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.
 ADRs and crypto approvals remain Proposed/open. Dependabot #10 was separately
 evaluated and closed without merging; see the

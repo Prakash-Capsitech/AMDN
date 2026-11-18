@@ -13,13 +13,12 @@ these checks in `make verify`; no production dependency is added.
 
 The [F1.3 guide](../security/provisioning-owner-access.md) documents the implemented
 provisioning and owner-read subset, including its stricter 16 KiB command bound,
-separate operator host and explicit verified tenant selection. Other operations
-remain proposed and unimplemented.
+separate operator host and explicit verified tenant selection. See the
+[repository README](../../README.md) for the implemented API surfaces.
 
 The old single-step device draft is replaced by the [staged enrollment/revocation
-contract](device-enrollment.md). Its six commands are proposed and unimplemented;
-their stricter 64 KiB body bounds, proof stages, origin binding and replay rules
-override the common defaults below. Credential enrollment supplies no message key
+contract](device-enrollment.md). Its stricter 64 KiB body bounds, proof stages,
+origin binding and replay rules override the common defaults below. Credential enrollment supplies no message key
 or messaging authority; a separate reviewed binding is required.
 
 ## Common contract

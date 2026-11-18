@@ -74,6 +74,13 @@ post-lock deadlines and restart recovery. They do not exercise live enrollment o
 authenticated verifier/HTTP integration; see the
 [enrollment authority cases](#enrollment-authority-evidence) for that internal coverage.
 
+[Opt-in enrollment HTTP tests](../../docs/security/enrollment-http.md) add actual
+Gateway HTTPS routes for initial enrollment, replacement and revocation with
+signed disposable OIDC tokens and synthetic signed WebAuthn proofs. They exercise
+public response shapes, replay, current lifecycle, generic problems, strict bodies,
+current authority and process-local request/proof budgets. Browser/client and
+production deployment evidence remains separate.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,
@@ -81,8 +88,9 @@ The following acceptance evidence remains pending:
   F1.2 now covers the actual identity store/migrations/roles/pool and a test-only
   authenticated HTTP probe. F1.3 adds actual provisioning and owner-read API tests.
   F1.4 adds device storage/read, internal transactions and the
-  [principal/verifier/role probe coverage](#enrollment-authority-evidence).
-  Live enrollment, worker/routing, deployment and complete production integration remain
+  [principal/verifier/role probe coverage](#enrollment-authority-evidence) and
+  [actual enrollment HTTP coverage](../../docs/security/enrollment-http.md#evidence-and-remaining-work).
+  Browser qualification, worker/routing, deployment and complete production integration remain
   pending. P01 is not complete.
 - **P02:** forged broker provenance, device ownership/revocation, receipt ordering,
   reconnect cursors, retention/expiry races, quotas and noisy-neighbor backlog load.
@@ -178,5 +186,5 @@ foreign tenants/owners, grant and membership revocation, immutable validation
 evidence, expiry, scoped executor RLS, direct table/helper/role denial and unsafe
 credential rejection. The runner generates seven disposable secrets, including
 the new enrollment login, and removes them at teardown. This is not deployment of
-public enrollment routes; live enrollment, native N01/N02 and full production
+public enrollment routes; browser/production enrollment, native N01/N02 and full production
 P01–P03 remain pending.

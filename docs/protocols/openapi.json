@@ -92,7 +92,7 @@
       "post": {
         "operationId": "beginDeviceEnrollment",
         "summary": "beginDeviceEnrollment",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
@@ -172,7 +172,7 @@
       "post": {
         "operationId": "registerEnrollmentCredential",
         "summary": "registerEnrollmentCredential",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
@@ -260,7 +260,7 @@
       "post": {
         "operationId": "proveEnrollmentCandidate",
         "summary": "proveEnrollmentCandidate",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
@@ -355,7 +355,7 @@
       "post": {
         "operationId": "authorizeDeviceReplacement",
         "summary": "authorizeDeviceReplacement",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
@@ -443,7 +443,7 @@
       "post": {
         "operationId": "beginDeviceRevocation",
         "summary": "beginDeviceRevocation",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",
@@ -531,7 +531,7 @@
       "post": {
         "operationId": "completeDeviceRevocation",
         "summary": "completeDeviceRevocation",
-        "description": "Proposed F1.4 contract only; no runtime endpoint. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
+        "description": "Proposed F1.4 contract; Gateway implements this route only with explicit EnrollmentApi configuration (disabled by default). Browser and production enrollment remain pending. See device-enrollment.md for proof order, strict parsing, expiry, replay and atomic effects. All responses, including errors, require Cache-Control: no-store.",
         "x-required-scope": "device.manage",
         "x-authorization": "Verified issuer/sub/client_id; active tenant/user/membership/postman, fresh configured step-up and explicit current device.manage object grant on every request and replay. Bind exact initiating origin and stored RP configuration; recheck after lock waits.",
         "x-idempotency": "Tenant/user/operation/ceremony/stage/key and exact request bytes, including authenticated client/origin binding. Begin uses operation/target namespace before ceremony ID exists. Different bytes conflict; consumed/expired pending options cannot be replayed; completed effects never repeat.",

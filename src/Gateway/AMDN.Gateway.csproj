@@ -4,5 +4,6 @@
     <ProjectReference Include="../Postman/AMDN.Postman.csproj" />
     <ProjectReference Include="../Messaging/AMDN.Messaging.csproj" />
     <ProjectReference Include="../Infrastructure/AMDN.Infrastructure.csproj" />
+    <ProjectReference Include="../Enrollment/AMDN.Enrollment.csproj" />
   </ItemGroup>
 </Project>
