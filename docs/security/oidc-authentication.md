@@ -91,6 +91,9 @@ membership lookup; it is not an AMDN tenant/user identity. Scope also does not g
 object access. Client-credentials tokens may authenticate an external subject;
 that does not make the subject an enrolled human or platform provisioner.
 
+Successful validation also retains immutable in-process evidence for the
+[enrollment principal mapper](enrollment-authority.md#principal-mapping).
+
 `AmdnTokenValidated` is an authentication-only policy for an explicit caller check.
 It must not authorize data or commands. Default/fallback policies deny application
 access even with a valid token, so a new mapped endpoint or bare
@@ -101,7 +104,7 @@ public 404 fallback. Test probes are never deployed; see
 [F1.3 configuration](provisioning-owner-access.md).
 
 Failures return generic 401/403 Problem Details. A 401 includes `WWW-Authenticate:
-Bearer`; no token, claim value or validation exception is returned. Validated
+Bearer`; no token, claim value or validation exception is returned. Raw bearer
 tokens are not saved in authentication properties. No request-body/token logging
 or debug PII logging is enabled by this adapter.
 
@@ -111,7 +114,7 @@ F1.4 begins with the [E02 trust review](device-enrollment-review.md). An opt-in
 `AmdnDeviceStepUpPrerequisite` policy checks recent authentication evidence from
 the validated access token. It is **not enrollment authorization**: membership,
 current object grants, device possession and messaging-key binding must still be
-checked by the future operation. No production endpoint uses this policy yet;
+checked by the operation. No production endpoint uses this policy yet;
 enabling it does not enable the proposed
 [enrollment/revocation commands](../protocols/device-enrollment.md).
 
@@ -163,9 +166,3 @@ F0 Proposed ADRs and A01–A07/E01–E06 reviews are not approved by these tests
 References: [ASP.NET Core JWT bearer validation](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0),
 [RFC 9068 access-token profile](https://www.rfc-editor.org/rfc/rfc9068.html),
 and [RFC 6750 bearer-token transport](https://www.rfc-editor.org/rfc/rfc6750.html).
-
-The successful validation event also retains immutable in-process
-`ValidatedAccessToken` evidence (no raw bearer token) for the
-[enrollment principal mapper](enrollment-authority.md#principal-mapping).
-Ordinary claim projection remains unchanged. This adds no login/token type or
-enrollment endpoint; live enrollment, native and production checks remain pending.

@@ -113,13 +113,10 @@ because @noble/hashes was absent. Explicitly pinning the optional curve package
 supplies that dependency. The lockfile records the working graph; the minimal
 upstream install example alone was insufficient in this environment.
 
-Dependabot PR #10's curves/hashes 2.4.0 update was separately evaluated and closed
-without merging on 18 November 2026 because it violates ts-mls 1.6.4's exact
-curves 2.0.1 peer requirement. See the
+See the PR #10
 [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation)
-for the isolated install and dependency-tree results. The pins are unchanged,
-no peer override was added, and a coordinated MLS/dependency upgrade remains
-separate future work. This evaluation does not approve production crypto.
+for dependency compatibility evidence and disposition. This evaluation does not
+approve production crypto.
 
 ## Remaining gates
 

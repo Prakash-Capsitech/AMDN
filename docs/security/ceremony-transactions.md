@@ -126,10 +126,9 @@ zero is allowed. BE must match registration, BS cannot be true when BE is false.
 Record-version comparison detects changes since the verification snapshot.
 Final activation/replacement/revocation increments the user's identity version
 **once** in the same transaction, retaining old device attribution and leaving
-messaging unavailable. Migration 004 replaces the old identity trigger's user
-branch to permit only the trusted owner an explicit increment of exactly one;
-existing provisioning status/version behavior remains intact. Applied migrations
-001–003 are unchanged, and safe-integer exhaustion fails closed.
+messaging unavailable. The [authority guide](enrollment-authority.md#postgresql-roles-and-rls)
+owns the identity trigger's execution-role boundary. Existing provisioning
+status/version behavior remains intact, and safe-integer exhaustion fails closed.
 
 Intermediate successful replay is available only while its returned challenge
 remains current and unexpired. Completed replay returns the original completion
