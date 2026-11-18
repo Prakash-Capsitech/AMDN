@@ -154,7 +154,9 @@ metadata issuer mismatch, key rollover, header/query spoofing and default-deny
 application access. The separate PostgreSQL/JetStream harness remains required.
 Device step-up tests cover signed tokens over HTTP, exact age boundaries,
 freshness after renewal, missing/wrong evidence, malformed and duplicate raw
-claims, startup validation and continued denial of enrollment.
+claims, startup validation and denial of enrollment when its API is disabled.
+The separate [HTTP harness evidence](enrollment-http.md#evidence-and-remaining-work)
+covers enrollment with explicit API configuration.
 
 Production provider compatibility/rollout and login sessions remain pending.
 See [identity persistence evidence](identity-persistence.md#evidence-and-remaining-work)

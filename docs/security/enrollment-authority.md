@@ -43,8 +43,8 @@ headers. The HTTP adapter separately enforces the exact request Origin policy.
 The public `EnrollmentCommands` accepts only a non-publicly-constructible
 `EnrollmentPrincipal`. Raw `CeremonyActor` and `CeremonyVerifier` are now internal;
 the harness is a friend assembly for synthetic lower-layer tests. The public facade
-provides begin and proof completion, generating begin challenges/handles with the
-platform RNG. Begin's typed operation/version/target parameters are trusted adapter
+provides authorization preflight, begin and proof completion, generating begin
+challenges/handles with the platform RNG. Begin's typed operation/version/target parameters are trusted adapter
 inputs; the HTTP parser derives them consistently from the exact bounded
 request bytes. Its results are internal SQL JSON, not wire-contract DTOs; the
 [verifier guide](enrollment-verifier.md#calling-boundary-and-transactions) describes
@@ -113,12 +113,14 @@ local and pool reset remains enabled; an error, rollback or reused connection mu
 not carry another actor's context into the next command.
 
 Deployment remains explicit: an administrator first reruns the reviewed
-`roles.sql` bootstrap, then the separate migration runner applies 005 under the
-existing checksum/advisory-lock ledger. No application startup creates roles or
+`roles.sql` bootstrap, then the separate migration runner applies pending migrations
+under the existing checksum/advisory-lock ledger. No application startup creates roles or
 runs migrations. The bootstrap gives only the migration owner SET membership in
 the executor for atomic function ownership transfer, without inheritance. CREATE
 on the entry schema is temporarily granted for that transfer and revoked within
 the migration transaction. Never grant this membership to an application login.
+The [HTTP deployment guide](enrollment-http.md#configuration-and-deployment)
+owns the required migration level before enabling routes.
 
 Provision a distinct non-superuser, non-BYPASSRLS login through the administrator's
 secret-management process. Grant only `amdn_identity_enrollment` with INHERIT TRUE
@@ -147,7 +149,7 @@ review remain pending. Trusted SQL administration is supplied by
 [migration 006](enrollment-administration.md); public administration APIs remain pending.
 Messaging-key binding and independent peer verification remain separate. ADRs and
 E02 approvals remain open. [Native N01/N02](agent-safety.md#pending-native-checks),
-full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) and live
+full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) and production
 enrollment remain pending. Dependabot #10 was separately evaluated and closed
 without merging; see the
 [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).

@@ -8,7 +8,7 @@ routes, disabled by default; browser and production enrollment remain pending.
 configuration and grant commands. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
 now implement durable stage effects; see the [principal/role bridge](../security/enrollment-authority.md)
-for internal authenticated integration. Public API integration remains pending.
+for authenticated execution authority.
 ADR 0011 remains Proposed. The former single-step
 `POST /v1/devices`, `DeviceRequest` and `Device` schemas are removed from the draft;
 Git history retains their blueprint provenance. There is no compatibility fallback.

@@ -1,10 +1,9 @@
 # Enrollment verifier integration
 
 F1.4 now connects **Fido2 4.3.3** to migration 004's committed ceremony
-reservations in `src/Enrollment`. This is an internal library, not a live
-enrollment service. Gateway, Provisioning and Workers do not reference or register
-it. The subsequent [principal/role integration](enrollment-authority.md) adds migration
-005 and scoped entry functions, without installing an application login or endpoint.
+reservations in `src/Enrollment`. The [principal/role integration](enrollment-authority.md)
+adds scoped entry functions; the [HTTP guide](enrollment-http.md) owns Gateway
+registration and configuration.
 The harness exercises both synthetic lower-layer projections and signed OIDC
 principals with in-memory WebAuthn keys and a separate disposable execution login.
 
@@ -18,8 +17,8 @@ from HTTP JSON or give an application the migration credential. The constructor'
 connection factory is trusted infrastructure, not a request parameter; it must
 return a fresh open connection without an existing transaction. No client-side role switch
 occurs in this library; the entry functions use a scoped non-login executor. Runtime/provisioning credentials still cannot execute the
-core SQL primitives. The dedicated enrollment role calls only the four scoped
-entry functions; see the [role and pool boundary](enrollment-authority.md).
+core SQL primitives. The dedicated enrollment role uses the scoped
+entry functions listed in the [role and pool boundary](enrollment-authority.md).
 
 1. Copy the bounded request once and reject malformed proof projections, JSON or
    projection-field base64url encodings with `invalid_request` before opening a
@@ -111,13 +110,12 @@ Its upstream MIT license and dependency notices still require the separate
 redistribution review before binary distribution. Advisory checks remain enabled;
 successful restore is not a security audit or independent crypto approval.
 
-**Live enrollment remains pending**: no deployed HTTP adapter, browser adapter,
-application budgets or production rollout is provided.
 [Trusted SQL administration](enrollment-administration.md) now supplies configuration
 and grant commands. Principal and role integration have test-probe evidence in the
-[authority guide](enrollment-authority.md). Browser/authenticator compatibility, real OIDC
-assurance and integrated API races require later validation. One active logical
-device is not a non-copyable key guarantee. Messaging readiness/key binding and
+[authority guide](enrollment-authority.md); the [HTTP guide](enrollment-http.md#evidence-and-remaining-work)
+owns route and admission-budget evidence and its limits. Browser/authenticator
+compatibility, real OIDC assurance and production rollout require later validation.
+One active logical device is not a non-copyable key guarantee. Messaging readiness/key binding and
 independent peer verification remain separate requirements. E02 and ADR approvals,
 [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.

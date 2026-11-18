@@ -11,7 +11,7 @@ open. Native agent checks N01/N02 remain pending.
 | [Authorization matrix](authorization.md) | Endpoint and worker actions, resource grants, defaults and revocation |
 | [HTTP/envelope contract](http-api.md) | OpenAPI semantics, limits, replay, errors, crypto dependencies and approval register |
 | [OpenAPI 3.1.1 draft](openapi.json) | Route inventory, strict request/response schemas and authorization requirements |
-| [Staged enrollment/revocation](device-enrollment.md) | F1.4 command schemas, browser projection, expiry, replay and proof ordering; HTTP endpoints unimplemented |
+| [Staged enrollment/revocation](device-enrollment.md) | F1.4 command schemas, browser projection, expiry, replay and proof ordering |
 | [Enrollment graph](enrollment-state-machine.json) | Initial, replacement and revocation paths; contract model only |
 | [Delivery protocol](delivery.md) | Device-storage ack meaning, terminal states, expiry/ack races and reconnect |
 | [State graph](delivery-state-machine.json) | Machine-readable proposed transitions, checked against status schemas |

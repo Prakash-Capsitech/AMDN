@@ -128,7 +128,7 @@ choice is accepted here.
 
 | ID | Decision / evidence | Owner and state |
 | --- | --- | --- |
-| E02-D1 | One active logical identity; WebAuthn registration plus assertion for enrollment; no hardware/non-copyability claim | Logical-device guarantee selected by maintainer 2026-11-12; credential profile specified in ADR 0011, experiment passed; browser/application integration and independent review pending |
+| E02-D1 | One active logical identity; WebAuthn registration plus assertion for enrollment; no hardware/non-copyability claim | Logical-device guarantee selected by maintainer 2026-11-12; credential profile specified in ADR 0011, experiment passed; browser qualification and independent review pending; [HTTP evidence and limits](enrollment-http.md#evidence-and-remaining-work) |
 | E02-D2 | Independent verification required before first send and after key replacement | Maintainer selected 2026-11-12; comparison format, UX and lost-device recovery still pending crypto review |
 | E02-D3 | Client distribution/update trust root and malicious-provider limitation | Maintainer and security reviewer; pending |
 | E02-D4 | Messaging credential binding and exact-version protocol/implementation review | Independent crypto reviewer not yet nominated; E01/E06 open |
@@ -142,9 +142,9 @@ proposed schemas and state graph. The [device persistence foundation](device-per
 adds storage constraints and scoped metadata reads. [Internal ceremony transactions](ceremony-transactions.md)
 now add durable stages and atomic effects, without application execution grants.
 See the [verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for the
-subsequent proof integration and remaining authenticated application work.
-Enrollment, replacement/revocation client UX and real HTTP/PostgreSQL boundary
-tests remain pending.
+subsequent proof integration and the [HTTP guide](enrollment-http.md#evidence-and-remaining-work)
+for authenticated HTTP/PostgreSQL evidence and its limits.
+Enrollment and replacement/revocation client UX remain pending.
 Negative cases must cover foreign owner/tenant/grant, stale step-up, substituted
 keys/context, wrong origin/RP, expired/reused proofs, simultaneous replacement,
 revocation during lock waits, lost-response retries and audit/commit failure.
