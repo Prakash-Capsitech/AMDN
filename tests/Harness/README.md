@@ -74,6 +74,13 @@ post-lock deadlines and restart recovery. They do not exercise live enrollment o
 authenticated verifier/HTTP integration; see the
 [enrollment authority cases](#enrollment-authority-evidence) for that internal coverage.
 
+[Opt-in enrollment HTTP tests](../../docs/security/enrollment-http.md) add actual
+Gateway HTTPS routes for initial enrollment, replacement and revocation with
+signed disposable OIDC tokens and synthetic signed WebAuthn proofs. They exercise
+public response shapes, replay, current lifecycle, generic problems, strict bodies,
+current authority and process-local request/proof budgets. Browser/client and
+production deployment evidence remains separate.
+
 The following acceptance evidence remains pending:
 
 - **P01:** run these cases through the actual application roles, pool configuration,

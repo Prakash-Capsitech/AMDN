@@ -20,12 +20,12 @@ an isolated [verifier experiment](experiments/Enrollment/README.md), plus
 challenge/attempt/replay handling. The isolated [verifier bridge](docs/security/enrollment-verifier.md)
 connects signed WebAuthn proofs to those transactions.
 [Validated-principal and execution-role integration](docs/security/enrollment-authority.md)
-adds internal OIDC mapping and scoped execute-only database access; no application
-host registers enrollment.
+adds OIDC mapping and scoped execute-only database access.
 [Audited enrollment administration](docs/security/enrollment-administration.md)
 adds explicit migration-owner SQL commands for configuration and management grants.
-Live device enrollment,
-policy-mutation APIs, message delivery, production encryption, a web client and
+[Opt-in enrollment HTTP](docs/security/enrollment-http.md) connects the six staged
+commands to Gateway, disabled by default and exercised with synthetic signed proofs.
+Browser enrollment, policy-mutation APIs, message delivery, production encryption, a web client and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate
@@ -60,6 +60,8 @@ read. The separate `src/Provisioning` service provides operator-only tenant and
 membership provisioning. Both API surfaces are disabled by default; see the
 [F1.3 configuration guide](docs/security/provisioning-owner-access.md#configuration-and-administration).
 No messaging endpoint is implemented.
+The separate [enrollment configuration](docs/security/enrollment-http.md) enables
+device credential enrollment/replacement/revocation with its own execution pool.
 
 The health response is process liveness only; it does not certify delivery readiness.
 The separate worker host can be started with `dotnet run --project src/Workers`.
@@ -71,7 +73,7 @@ It has no delivery handlers yet.
 | --- | --- |
 | src/Gateway | ASP.NET Core entry point and future SignalR connections |
 | src/Identity | Tenant identity and policy boundary |
-| src/Enrollment | Internal WebAuthn verifier-to-transaction bridge; no host registration |
+| src/Enrollment | WebAuthn verifier, transaction bridge and opt-in enrollment HTTP |
 | src/Postman | Domain, runtime and delegated authorization |
 | src/Messaging | Envelopes, delivery, receipts and transactional outbox |
 | src/Infrastructure | Database, broker and telemetry adapters |

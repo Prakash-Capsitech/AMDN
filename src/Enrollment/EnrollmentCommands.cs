@@ -4,10 +4,20 @@ using Npgsql;
 
 namespace AMDN.Enrollment;
 
-// No host registration or HTTP routes. Production callers must use the guarded
-// EnrollmentDatabase pool and a principal minted by EnrollmentPrincipalMapper.
+// Callers use the guarded EnrollmentDatabase pool and a principal minted by
+// EnrollmentPrincipalMapper. HTTP preflight is not a cached mutation grant.
 public sealed class EnrollmentCommands(NpgsqlDataSource database)
 {
+    public async Task<JsonElement> AuthorizeAsync(EnrollmentPrincipal principal, CancellationToken cancellationToken = default)
+    {
+        if (System.Transactions.Transaction.Current is not null) throw new InvalidOperationException("Independent transactions required.");
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var answer = await CeremonyVerifier.Call(connection, principal.Actor, "authorize", "", cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return answer;
+    }
+
     public async Task<JsonElement> BeginAsync(EnrollmentPrincipal principal, string operation, long expectedVersion,
         Guid? target, string idempotencyKey, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
     {

@@ -1,11 +1,11 @@
 # Validated enrollment principals and execution roles
 
 F1.4 now connects validated OIDC evidence to the verifier/transaction bridge and
-adds an execute-only application credential boundary in migration 005. **Live
-enrollment remains pending.** No Gateway, Provisioning or Worker registration,
-production credential, enrollment route, grant/configuration administration API
-or browser adapter is enabled. The harness uses disposable roles and test-only
-HTTPS probes; its operations are not deployed public endpoints.
+adds an execute-only application credential boundary in migration 005.
+[Migration 007 and the opt-in HTTP adapter](enrollment-http.md) connect six staged
+Gateway routes, disabled by default. The harness uses disposable roles and actual
+HTTPS routes as well as internal probes. Production deployment, public
+administration APIs and browser enrollment remain pending.
 
 ## Principal mapping
 
@@ -38,29 +38,30 @@ active membership. Only then is transaction-local tenant/user/issuer/subject
 context established; ordinary authorization rechecks and locks follow. Missing or
 foreign membership fails closed. Configuration UUID and canonical HTTPS origin
 come from an explicit immutable deployment binding, never Host, Origin or forwarded
-headers. A future HTTP adapter must separately enforce the request Origin policy.
+headers. The HTTP adapter separately enforces the exact request Origin policy.
 
 The public `EnrollmentCommands` accepts only a non-publicly-constructible
 `EnrollmentPrincipal`. Raw `CeremonyActor` and `CeremonyVerifier` are now internal;
 the harness is a friend assembly for synthetic lower-layer tests. The public facade
 provides begin and proof completion, generating begin challenges/handles with the
 platform RNG. Begin's typed operation/version/target parameters are trusted adapter
-inputs; the future HTTP parser must derive them consistently from the exact bounded
+inputs; the HTTP parser derives them consistently from the exact bounded
 request bytes. Its results are internal SQL JSON, not wire-contract DTOs; the
 [verifier guide](enrollment-verifier.md#calling-boundary-and-transactions) describes
-the response and transport obligations of the future HTTP adapter.
+the response and transport obligations implemented by the opt-in HTTP adapter.
 
 ## PostgreSQL roles and RLS
 
 | Principal | Authority |
 | --- | --- |
-| amdn_identity_enrollment | Non-login group; schema/type usage and EXECUTE on exactly four entry functions; no identity table/column read or write |
+| amdn_identity_enrollment | Non-login group; schema/type usage and EXECUTE on exactly five entry functions after 007; no identity table/column read or write |
 | Dedicated enrollment login | Inherits only the enrollment group; no owner, executor, runtime or provisioner membership |
 | amdn_identity_ceremony_executor | Non-login, non-owner, non-BYPASSRLS definer role; owns the entry functions and has explicit scoped table/column/helper privileges |
 | amdn_identity_owner | Existing trusted migration owner; applies schema/privilege changes and owns the narrow context bootstrap lookup |
 
 The only application entry functions are `amdn_enrollment.begin`, `reserve`,
-`finish` and `fail`. They are SECURITY DEFINER, owned by the executor, with a pinned
+`finish`, `fail` and (after 007) `authorize`. The last performs a current-authority
+preflight before charging a tenant quota; mutations still reauthorize. They are SECURITY DEFINER, owned by the executor, with a pinned
 `pg_catalog,pg_temp` search path and qualified table/function references. PUBLIC
 execute and schema creation are absent. Runtime/provisioner roles gain no entry
 access. The application cannot call core ceremony helpers, snapshots, the context
@@ -139,9 +140,10 @@ executor RLS and rejection of overprivileged pools. Existing verifier and transa
 tests continue through the new entry boundary. Synthetic lower-layer cases retain
 their separate migration-owner fixture setup.
 
-These are internal integration and test-probe results. Live enrollment still needs
-the production endpoint/DTO/transport/error/budget integration, browser/client UX,
-deployment and independent review. Trusted SQL administration is supplied by
+These earlier cases cover internal integration and test probes. The
+[HTTP guide](enrollment-http.md) records actual route/DTO/transport/error/budget
+tests and configuration. Browser/client UX, production deployment and independent
+review remain pending. Trusted SQL administration is supplied by
 [migration 006](enrollment-administration.md); public administration APIs remain pending.
 Messaging-key binding and independent peer verification remain separate. ADRs and
 E02 approvals remain open. [Native N01/N02](agent-safety.md#pending-native-checks),

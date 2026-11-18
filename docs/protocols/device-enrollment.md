@@ -2,7 +2,8 @@
 
 Status: Proposed, OpenAPI `0.2.0-draft`. This specifies the next F1.4 implementation
 boundary after the [credential design](../security/enrollment-credential-design.md).
-No enrollment/revocation endpoint or browser adapter is implemented.
+The [opt-in Gateway adapter](../security/enrollment-http.md) implements the six
+routes, disabled by default; browser and production enrollment remain pending.
 [Trusted SQL administration](../security/enrollment-administration.md) provides
 configuration and grant commands. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
@@ -188,8 +189,9 @@ The [isolated verifier bridge](../security/enrollment-verifier.md) now validates
 this bounded proof projection against committed SQL reservations using real
 WebAuthn signatures. It returns internal SQL results, not the public response DTOs.
 The [principal/role bridge](../security/enrollment-authority.md) now validates OIDC
-evidence and scoped execution in test probes. No public HTTP transport or
-enrollment route is enabled.
+evidence and scoped execution. The [HTTP adapter](../security/enrollment-http.md)
+adds explicit opt-in transport, public response projection and process-local budgets.
+The harness exercises the actual routes with synthetic signed tokens/proofs.
 
 `make contracts-test` validates OpenAPI, all synthetic examples, encoding bounds,
 closed object shapes, proof-stage response alternatives and terminal transition
@@ -198,9 +200,8 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next integrate the principal/verifier/transaction bridge and trusted administration
-with an opt-in API adapter, with real
-HTTP/role/pool negative and race tests. Enrollment can only create `credential_active` with `messaging_ready: false`
+Next qualify browser/client UX, production configuration and independent review.
+Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after
 replacement. E01/E02/E06, F0 review gates, [native N01/N02](../security/agent-safety.md#pending-native-checks)

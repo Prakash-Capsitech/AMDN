@@ -44,7 +44,8 @@ public static class EnrollmentDatabase
                   AND has_schema_privilege(current_user,'amdn_identity','USAGE')
                   AND has_schema_privilege(current_user,'amdn_enrollment','USAGE')
                   AND NOT EXISTS(SELECT FROM pg_proc p WHERE p.pronamespace='amdn_identity'::regnamespace AND has_function_privilege(current_user,p.oid,'EXECUTE'))
-                  AND (SELECT count(*)=4 AND bool_and(p.prosecdef AND p.proowner='amdn_identity_ceremony_executor'::regrole
+                  AND (SELECT count(*)=5 AND bool_and(p.prosecdef AND p.proowner='amdn_identity_ceremony_executor'::regrole
+                    AND p.proname=ANY(ARRAY['authorize','begin','reserve','finish','fail'])
                     AND has_function_privilege(current_user,p.oid,'EXECUTE')) FROM pg_proc p WHERE p.pronamespace='amdn_enrollment'::regnamespace)
                 FROM pg_roles WHERE rolname=current_user
                 """, connection);

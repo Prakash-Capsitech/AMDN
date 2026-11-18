@@ -46,13 +46,13 @@ reservation returns `unavailable`; this slice does not add an automatic recovery
 worker, retry verification or claim that a lost response means rollback. The
 [transaction reference](ceremony-transactions.md) owns lifecycle and replay rules.
 
-The return value is internal SQL JSON, **not an HTTP response DTO**. The future
-adapter must build the staged contract responses, options and generic errors;
+The return value is internal SQL JSON, **not an HTTP response DTO**. The
+[opt-in HTTP adapter](enrollment-http.md) builds staged responses, options and generic errors;
 both internal `invalid_request` and `invalid_proof` map to the contract's generic
 HTTP 400 `invalid_request`, not a new public error schema.
-It must also enforce HTTPS, content type, no compression, headers, authentication,
-request/concurrency budgets and timeouts before enabling routes. Byte limits here
-do not replace transport or operation budgets.
+It enforces HTTPS, content type, no compression, headers, authentication,
+request/concurrency budgets and timeouts. Byte limits here do not replace those
+transport or operation budgets.
 
 ## Verification profile
 

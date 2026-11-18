@@ -34,6 +34,9 @@ validated-principal tests. Rerun the reviewed roles.sql bootstrap before applyin
 005; never install migration or executor membership in an application login.
 Migration 006 adds [audited enrollment administration](docs/security/enrollment-administration.md)
 through trusted migration-owner SQL commands, with no application administration grants.
+Migration 007 adds the [opt-in HTTP boundary](docs/security/enrollment-http.md),
+its membership/grant preflight and locked public-option snapshots. Apply it before
+enabling EnrollmentApi; the guarded pool requires all five execute-only entries.
 PDF exports are ignored; retain source documents and do not commit generated PDFs.
 
 The OIDC integration cases use loopback HTTP plus an ephemeral HTTPS issuer and
