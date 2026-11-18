@@ -172,8 +172,9 @@ are synthetic. This is transaction/storage evidence; it proves neither real OIDC
 assurance nor WebAuthn possession, HTTP policy enforcement or browser behavior.
 
 [Principal and execution-role integration](enrollment-authority.md) now connects
-validated OIDC evidence with scoped entry functions. Next add explicit
-grant/configuration administration, operation budgets and opt-in HTTP integration,
+validated OIDC evidence with scoped entry functions.
+[Trusted SQL administration](enrollment-administration.md) now provides explicit
+grant/configuration commands. Next add operation budgets and opt-in HTTP integration,
 then drive actual enrollment and cross-tenant negative/race cases through them.
 Live enrollment, [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.

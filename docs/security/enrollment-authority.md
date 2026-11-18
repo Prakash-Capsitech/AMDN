@@ -124,7 +124,8 @@ secret-management process. Grant only `amdn_identity_enrollment` with INHERIT TR
 and SET FALSE. Do not reuse runtime, provisioning or migration credentials. No
 login or password is installed by repository SQL; harness credentials are generated
 for disposable services and removed at teardown. Explicit device.manage grants
-and enabled RP configuration still require administrator setup; postman.read never
+and enabled RP configuration require the separate
+[administrator commands](enrollment-administration.md); postman.read never
 implicitly grants enrollment authority.
 
 ## Evidence and remaining checks
@@ -139,8 +140,9 @@ tests continue through the new entry boundary. Synthetic lower-layer cases retai
 their separate migration-owner fixture setup.
 
 These are internal integration and test-probe results. Live enrollment still needs
-the production endpoint/DTO/transport/error/budget integration, audited grant and
-configuration administration, browser/client UX, deployment and independent review.
+the production endpoint/DTO/transport/error/budget integration, browser/client UX,
+deployment and independent review. Trusted SQL administration is supplied by
+[migration 006](enrollment-administration.md); public administration APIs remain pending.
 Messaging-key binding and independent peer verification remain separate. ADRs and
 E02 approvals remain open. [Native N01/N02](agent-safety.md#pending-native-checks),
 full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) and live

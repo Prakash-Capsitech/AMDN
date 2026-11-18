@@ -110,8 +110,9 @@ redistribution review before binary distribution. Advisory checks remain enabled
 successful restore is not a security audit or independent crypto approval.
 
 **Live enrollment remains pending**: no deployed HTTP adapter, browser adapter,
-grant/configuration administration, application budgets or production rollout is
-provided. Principal and role integration now have test-probe evidence in the
+application budgets or production rollout is provided.
+[Trusted SQL administration](enrollment-administration.md) now supplies configuration
+and grant commands. Principal and role integration have test-probe evidence in the
 [authority guide](enrollment-authority.md). Browser/authenticator compatibility, real OIDC
 assurance and integrated API races require later validation. One active logical
 device is not a non-copyable key guarantee. Messaging readiness/key binding and
