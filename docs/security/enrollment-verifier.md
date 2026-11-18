@@ -118,4 +118,6 @@ device is not a non-copyable key guarantee. Messaging readiness/key binding and
 independent peer verification remain separate requirements. E02 and ADR approvals,
 [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.
-Dependabot #10 stays deferred; security hooks and PR/CI gates remain intact.
+Dependabot #10 was separately evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Security hooks and PR/CI gates remain intact.

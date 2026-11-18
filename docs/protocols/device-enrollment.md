@@ -204,5 +204,6 @@ and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after
 replacement. E01/E02/E06, F0 review gates, [native N01/N02](../security/agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope)
-remain pending. Dependabot #10 stays deferred; no security gate or dependency pin
-is changed here.
+remain pending. Dependabot #10 was separately evaluated and closed without merging;
+see the [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+No security gate or dependency pin is changed here.

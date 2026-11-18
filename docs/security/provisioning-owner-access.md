@@ -150,7 +150,9 @@ This supplies more P01 evidence for actual APIs, migrations, roles and pools.
 application/worker/device/routing integration and production failure modes.
 [Native N01/N02](agent-safety.md#pending-native-checks) remain pending. F1.4 device
 enrollment still depends on E02 and identity review; no private key enrollment or
-recovery scheme has been introduced. Dependabot #10 remains deferred.
+recovery scheme has been introduced. Dependabot #10 was separately evaluated and
+closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
 
 Implementation references: [ASP.NET Core rate limiting](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-10.0)
 and [PostgreSQL row locks](https://www.postgresql.org/docs/18/explicit-locking.html).

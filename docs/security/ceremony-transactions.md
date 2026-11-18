@@ -178,5 +178,7 @@ grant/configuration administration, operation budgets and opt-in HTTP integratio
 then drive actual enrollment and cross-tenant negative/race cases through them.
 Live enrollment, [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.
-ADRs and crypto approvals remain Proposed/open. Dependabot #10 remains deferred;
-no pins, hooks or repository security gates are weakened.
+ADRs and crypto approvals remain Proposed/open. Dependabot #10 was separately
+evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+No pins, hooks or repository security gates are weakened.

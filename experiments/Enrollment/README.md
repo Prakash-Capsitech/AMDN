@@ -55,5 +55,6 @@ must carry the applicable notices and receive the separate maintainer license
 review. The lockfile includes transitive dependencies even where this narrow
 ES256/no-metadata experiment does not exercise them.
 
-Native N01/N02 and production P01–P03 remain pending. The MLS experiment and
-deferred Dependabot #10 are unchanged.
+Native N01/N02 and production P01–P03 remain pending. The MLS experiment's crypto
+pins are unchanged. Dependabot #10 was separately evaluated and closed without
+merging; see the [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).

@@ -115,5 +115,7 @@ It is not a deployed operation policy or owner API.
 pending: F1.2 supplies a subset of P01 identity persistence evidence, not application
 API/worker/routing integration, device revocation, multi-node failover or recovery
 objectives. [Native N01/N02](agent-safety.md#pending-native-checks), F0 approvals,
-Proposed ADRs, and crypto/contract review gates remain open. Dependabot #10 remains
-deferred and crypto pins are unchanged.
+Proposed ADRs, and crypto/contract review gates remain open. Dependabot #10 was
+separately evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Crypto pins are unchanged.

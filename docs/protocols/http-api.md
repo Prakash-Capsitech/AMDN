@@ -102,7 +102,9 @@ The profile field is syntactically a versioned identifier, not an allowlist.
 Examples use `amdn-synthetic/1`, which is **not** an approved profile. The eventual
 server must reject every unapproved profile and stale key binding. Do not equate
 the isolated ts-mls wire records with this draft HTTP envelope or freeze the
-adapter around the candidate. PR #10 remains deferred; no crypto pin changes.
+adapter around the candidate. PR #10 was separately evaluated and closed without
+merging; see the [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+No crypto pin changes.
 
 ## Decisions and approval gates
 

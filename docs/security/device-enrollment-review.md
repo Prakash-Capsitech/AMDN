@@ -155,4 +155,6 @@ See the [step-up prerequisite](oidc-authentication.md#device-step-up-prerequisit
 for its implemented checks and the [verifier experiment](../../experiments/Enrollment/README.md#evidence-and-limits)
 for the follow-up credential evidence and limits. [Native N01/N02](agent-safety.md#pending-native-checks) and
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
-pending. Dependabot #10 stays deferred; crypto pins are unchanged.
+pending. Dependabot #10 was separately evaluated and closed without merging; see
+the [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Crypto pins are unchanged.

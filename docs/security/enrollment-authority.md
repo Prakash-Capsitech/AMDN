@@ -144,8 +144,10 @@ configuration administration, browser/client UX, deployment and independent revi
 Messaging-key binding and independent peer verification remain separate. ADRs and
 E02 approvals remain open. [Native N01/N02](agent-safety.md#pending-native-checks),
 full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) and live
-enrollment remain pending. Dependabot #10 stays deferred; hooks and PR/CI gates are
-unchanged.
+enrollment remain pending. Dependabot #10 was separately evaluated and closed
+without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Hooks and PR/CI gates are unchanged.
 
 References: [PostgreSQL SECURITY DEFINER guidance](https://www.postgresql.org/docs/18/sql-createfunction.html#SQL-CREATEFUNCTION-SECURITY),
 [row security](https://www.postgresql.org/docs/18/ddl-rowsecurity.html) and

@@ -94,8 +94,10 @@ The following acceptance evidence remains pending:
 
 `DEVICE_ACKED` still means durable sealed storage on an authorized recipient device,
 not decryption or reading. The fixture never produces that state. Proposed ADRs and
-F0.4 A01–A07 / crypto E01–E06 review gates stay open. Dependabot #10 remains deferred;
-this harness does not change its incompatible crypto pins.
+F0.4 A01–A07 / crypto E01–E06 review gates stay open. Dependabot #10 was separately
+evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+This harness does not change the retained crypto pins.
 
 ## Recorded local validation
 

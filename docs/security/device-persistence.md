@@ -128,5 +128,7 @@ independent peer verification is still required before first send and replacemen
 Live enrollment validation remains pending. [Native N01/N02](agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
 pending despite this storage evidence. ADRs remain Proposed; no F0 or independent
-crypto review is declared complete. Dependabot #10 stays deferred, with pins and
-all repository/security gates unchanged.
+crypto review is declared complete. Dependabot #10 was separately evaluated and
+closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Pins and all repository/security gates remain unchanged.
