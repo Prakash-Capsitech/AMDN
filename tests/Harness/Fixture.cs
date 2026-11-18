@@ -29,7 +29,8 @@ internal sealed record Job(Guid Event, Guid Envelope, Principal Sender, Principa
 
 internal sealed record RunState(string RunId, int PostgresPort, int NatsPort, string AppPassword,
     string NatsToken, string PostgresContainer, string NatsContainer,
-    string IdentityRuntimePassword, string IdentityProvisionerPassword, string IdentityMigrationPassword)
+    string IdentityRuntimePassword, string IdentityProvisionerPassword, string IdentityMigrationPassword,
+    string IdentityEnrollmentPassword)
 {
     public static RunState Load()
     {
@@ -68,6 +69,7 @@ internal sealed record RunState(string RunId, int PostgresPort, int NatsPort, st
             "runtime" => IdentityRuntimePassword,
             "provisioner" => IdentityProvisionerPassword,
             "migrator" => IdentityMigrationPassword,
+            "enrollment" => IdentityEnrollmentPassword,
             _ => throw new ArgumentException("Unknown identity role")
         },
         Timeout = 5,

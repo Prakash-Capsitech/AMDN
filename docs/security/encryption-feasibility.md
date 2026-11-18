@@ -113,6 +113,11 @@ because @noble/hashes was absent. Explicitly pinning the optional curve package
 supplies that dependency. The lockfile records the working graph; the minimal
 upstream install example alone was insufficient in this environment.
 
+See the PR #10
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation)
+for dependency compatibility evidence and disposition. This evaluation does not
+approve production crypto.
+
 ## Remaining gates
 
 | ID | Required before production selection |

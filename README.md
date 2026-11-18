@@ -18,7 +18,10 @@ an isolated [verifier experiment](experiments/Enrollment/README.md), plus
 [device persistence foundations](docs/security/device-persistence.md).
 [Internal ceremony transactions](docs/security/ceremony-transactions.md) add durable
 challenge/attempt/replay handling. The isolated [verifier bridge](docs/security/enrollment-verifier.md)
-connects signed WebAuthn proofs to those transactions; application execution remains disabled.
+connects signed WebAuthn proofs to those transactions.
+[Validated-principal and execution-role integration](docs/security/enrollment-authority.md)
+adds internal OIDC mapping and scoped execute-only database access; no application
+host registers enrollment.
 Live device enrollment,
 policy mutation, message delivery, production encryption, a web client and
 production deployment are not implemented.

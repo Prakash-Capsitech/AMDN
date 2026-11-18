@@ -8,7 +8,8 @@ specifies intended ceremony behavior, not deployed enrollment endpoints. The
 metadata reads. [Internal ceremony transactions](ceremony-transactions.md) now
 record trusted verifier projections. The [isolated verifier bridge](enrollment-verifier.md)
 now connects cryptographic verification to those transactions; authenticated
-application execution remains pending.
+application HTTP execution remains pending; the [principal/role bridge](enrollment-authority.md)
+now supplies internal signed-token and scoped-role integration.
 
 ## Credential and authority
 
@@ -184,5 +185,7 @@ proofs, interrupted responses, audit failure and parallel ceremonies.
 Credential choice and ceremony responsibilities are specified here. E02-D1
 implementation/security acceptance, E02-D2 verification UX, E02-D3 distribution,
 E02-D4 messaging binding, E01/E06 independent review, native N01/N02 and full
-production P01–P03 remain pending. Dependabot #10 remains deferred. No sandbox,
-hook, PR or CI gate is weakened by this design or experiment.
+production P01–P03 remain pending. Dependabot #10 was separately evaluated and
+closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+No sandbox, hook, PR or CI gate is weakened by this design or experiment.

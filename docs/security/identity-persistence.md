@@ -67,7 +67,8 @@ HTTP test traverses real JWT validation before the actual persistence adapter.
 `IdentityDatabase` creates bounded Npgsql pools with reset-on-close, no multiplexing
 or ambient transaction enlistment, and no parameter/error-detail logging. Each new
 physical connection checks group membership, dangerous role attributes and relation
-ownership within the identity schema; a runtime pool rejects provisioning/migration credentials. Transactions
+ownership within the identity schema. Both identity pools reject enrollment/executor
+membership; a runtime pool also rejects provisioning/migration credentials. Transactions
 set context locally, and disposal rolls back on denial, exceptions or cancellation.
 Credential rotation or database privilege changes require pool replacement. Grant
 management remains an administrator trust boundary, not continuous drift detection.
@@ -75,7 +76,7 @@ management remains an administrator trust boundary, not continuous drift detecti
 ## Applying migrations
 
 A database administrator reviews and runs
-[roles.sql](../../src/Infrastructure/Identity/Migrations/roles.sql) once, then creates
+[roles.sql](../../src/Infrastructure/Identity/Migrations/roles.sql), then creates
 separate secret-managed logins. Runtime/provisioner logins inherit only their
 respective group and cannot SET ROLE to the owner. The migration login may SET ROLE
 to the owner and is never given to the Gateway. Grant the owner CREATE on the target
@@ -87,14 +88,17 @@ A trusted deployment host explicitly invokes `IdentityMigrations.ApplyAsync` wit
 the migration connection string. It takes an advisory transaction lock, assumes the
 owner locally, and applies each pending embedded migration plus SHA-256 ledger entries in
 one transaction. F1.3 adds migration 002, [device storage](device-persistence.md) adds 003, and
-[ceremony transactions](ceremony-transactions.md) add 004; applied migrations are unchanged. Reapplying the same version is a no-op; a changed applied checksum
+[ceremony transactions](ceremony-transactions.md) add 004. Migration 005 adds the
+[enrollment execution boundary](enrollment-authority.md#pool-and-deployment); follow
+that guide's administrator bootstrap and separate credential requirements before
+applying it. Applied migrations remain unchanged. Reapplying the same version is a no-op; a changed applied checksum
 fails. Later schema changes need new versioned migrations, not edits to applied SQL.
 There is no automatic Gateway migration or deployment CLI. F1.3 adds explicit
 provisioning APIs; production rollout remains pending.
 
-The disposable harness creates all three separate logins with generated secrets,
-bootstraps group membership, and invokes this same migration code before tests.
-It never passes the PostgreSQL administrator password to the .NET tests.
+The disposable harness bootstraps group membership and invokes this same migration
+code before tests. Its [credential lifecycle](../../tests/Harness/README.md#lifecycle-credentials-and-failures)
+owns the disposable login setup and administrator-password isolation.
 
 ## Evidence and remaining work
 
@@ -111,5 +115,7 @@ It is not a deployed operation policy or owner API.
 pending: F1.2 supplies a subset of P01 identity persistence evidence, not application
 API/worker/routing integration, device revocation, multi-node failover or recovery
 objectives. [Native N01/N02](agent-safety.md#pending-native-checks), F0 approvals,
-Proposed ADRs, and crypto/contract review gates remain open. Dependabot #10 remains
-deferred and crypto pins are unchanged.
+Proposed ADRs, and crypto/contract review gates remain open. Dependabot #10 was
+separately evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Crypto pins are unchanged.

@@ -3,33 +3,36 @@
 F1.4 now connects **Fido2 4.3.3** to migration 004's committed ceremony
 reservations in `src/Enrollment`. This is an internal library, not a live
 enrollment service. Gateway, Provisioning and Workers do not reference or register
-it. No SQL migration, role, EXECUTE grant, application credential or endpoint is
-added. The real PostgreSQL harness invokes it with synthetic actor projections
-and in-memory WebAuthn fixture keys through the existing migration-owner boundary.
+it. The subsequent [principal/role integration](enrollment-authority.md) adds migration
+005 and scoped entry functions, without installing an application login or endpoint.
+The harness exercises both synthetic lower-layer projections and signed OIDC
+principals with in-memory WebAuthn keys and a separate disposable execution login.
 
 ## Calling boundary and transactions
 
-`CeremonyVerifier.CompleteAsync` receives a trusted `CeremonyActor`, the ceremony
+The internal `CeremonyVerifier.CompleteAsync` receives a trusted `CeremonyActor`, the ceremony
 UUID, stage, idempotency key and exact UTF-8 command bytes. The actor is **not an
-authentication result**: a future validated-principal bridge must construct it
-from verified OIDC evidence and current tenant selection. Never bind it directly
+authentication result**: the [validated-principal bridge](enrollment-authority.md#principal-mapping) constructs it
+from immutable successful OIDC evidence and a checked tenant selection. Never bind it directly
 from HTTP JSON or give an application the migration credential. The constructor's
 connection factory is trusted infrastructure, not a request parameter; it must
-return a fresh open connection without an existing transaction. No role switch
-occurs in this library. Runtime/provisioning credentials still cannot execute the
-SQL primitives. A narrow execution role and reviewed pool integration remain next.
+return a fresh open connection without an existing transaction. No client-side role switch
+occurs in this library; the entry functions use a scoped non-login executor. Runtime/provisioning credentials still cannot execute the
+core SQL primitives. The dedicated enrollment role calls only the four scoped
+entry functions; see the [role and pool boundary](enrollment-authority.md).
 
 1. Copy the bounded request once and reject malformed proof projections, JSON or
    projection-field base64url encodings with `invalid_request` before opening a
    database connection.
-2. Call `ceremony_reserve` in an explicit transaction. If newly reserved, capture
-   its database snapshot and operation, then **commit and dispose the connection**.
+2. Call `amdn_enrollment.reserve` in an explicit transaction. If newly reserved,
+   capture its database snapshot and next-challenge decision, then **commit and
+   dispose the connection**.
    Replay and denials return without another verification job.
 3. Verify the request against the snapshot, outside database locks. Compare the
    exact-byte SHA-256 digest with the stored reservation digest. No caller can
    supply a successful verifier projection to this API.
-4. In a separate transaction, call `ceremony_finish` with only the verified public
-   projection, or `ceremony_fail` for a generic `invalid_proof` result after bounded
+4. In a separate transaction, call `amdn_enrollment.finish` with only the verified public
+   projection, or `amdn_enrollment.fail` for a generic `invalid_proof` result after bounded
    CBOR, profile or cryptographic rejection, including out-of-range COSE integers.
    These failures consume the durable attempt budget. The existing SQL rechecks
    authorization, lifecycle versions, counter/BE, stage, digest, deadlines and
@@ -106,12 +109,15 @@ Its upstream MIT license and dependency notices still require the separate
 redistribution review before binary distribution. Advisory checks remain enabled;
 successful restore is not a security audit or independent crypto approval.
 
-**Live enrollment remains pending**: no authenticated HTTP bridge, browser adapter,
-grant/configuration administration, narrow execution role, application budgets or
-production rollout is provided. Browser/authenticator compatibility, real OIDC
+**Live enrollment remains pending**: no deployed HTTP adapter, browser adapter,
+grant/configuration administration, application budgets or production rollout is
+provided. Principal and role integration now have test-probe evidence in the
+[authority guide](enrollment-authority.md). Browser/authenticator compatibility, real OIDC
 assurance and integrated API races require later validation. One active logical
 device is not a non-copyable key guarantee. Messaging readiness/key binding and
 independent peer verification remain separate requirements. E02 and ADR approvals,
 [native N01/N02](agent-safety.md#pending-native-checks) and full
 [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain pending.
-Dependabot #10 stays deferred; security hooks and PR/CI gates remain intact.
+Dependabot #10 was separately evaluated and closed without merging; see the
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+Security hooks and PR/CI gates remain intact.

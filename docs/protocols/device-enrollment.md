@@ -5,7 +5,9 @@ boundary after the [credential design](../security/enrollment-credential-design.
 No enrollment/revocation endpoint, grant administration or browser adapter is
 implemented. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
-now implement durable stage effects; authenticated verifier/API integration is pending. ADR 0011 remains Proposed. The former single-step
+now implement durable stage effects; see the [principal/role bridge](../security/enrollment-authority.md)
+for internal authenticated integration. Public API integration remains pending.
+ADR 0011 remains Proposed. The former single-step
 `POST /v1/devices`, `DeviceRequest` and `Device` schemas are removed from the draft;
 Git history retains their blueprint provenance. There is no compatibility fallback.
 
@@ -184,7 +186,9 @@ Errors and logs must not contain tokens, raw proofs, private keys or hidden owne
 The [isolated verifier bridge](../security/enrollment-verifier.md) now validates
 this bounded proof projection against committed SQL reservations using real
 WebAuthn signatures. It returns internal SQL results, not the public response DTOs.
-No HTTP transport, authenticated principal bridge or enrollment route is enabled.
+The [principal/role bridge](../security/enrollment-authority.md) now validates OIDC
+evidence and scoped execution in test probes. No public HTTP transport or
+enrollment route is enabled.
 
 `make contracts-test` validates OpenAPI, all synthetic examples, encoding bounds,
 closed object shapes, proof-stage response alternatives and terminal transition
@@ -193,12 +197,13 @@ The separate [verifier experiment](../../experiments/Enrollment/README.md) tests
 synthetic cryptographic inputs; neither suite proves browser UX, database replay,
 RLS, concurrent replacement or actual grant enforcement.
 
-Next integrate the verifier/transaction bridge with validated principals, a narrow
-application role, explicit grant administration and an opt-in API adapter, with real
+Next integrate the principal/verifier/transaction bridge with explicit grant
+administration and an opt-in API adapter, with real
 HTTP/role/pool negative and race tests. Enrollment can only create `credential_active` with `messaging_ready: false`
 and no `key_id`. Message-key binding and device execution credentials remain
 separate designs; independently verify peer keys before any first send and after
 replacement. E01/E02/E06, F0 review gates, [native N01/N02](../security/agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope)
-remain pending. Dependabot #10 stays deferred; no security gate or dependency pin
-is changed here.
+remain pending. Dependabot #10 was separately evaluated and closed without merging;
+see the [compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation).
+No security gate or dependency pin is changed here.

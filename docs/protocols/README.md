@@ -32,5 +32,7 @@ The original [blueprint](../../AMDN_Foundation_Phase_Implementation_Plan.docx)
 sections 4–11 and 17–20 are the source. See [traceability](../plan/source-map.md),
 [threat model](../security/threat-model.md), and
 [encryption gates](../security/encryption-feasibility.md#remaining-gates).
-PR #10 remains deferred because ts-mls 1.6.4 requires curves 2.0.1; this work changes
-no crypto dependency or native hook trust setting.
+See the PR #10
+[compatibility evaluation](../../clients/crypto/README.md#pr-10-compatibility-evaluation)
+for crypto dependency status.
+This work changes no crypto dependency or native hook trust setting.
