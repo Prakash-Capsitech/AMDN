@@ -3,7 +3,8 @@
 Status: Proposed, OpenAPI `0.2.0-draft`. This specifies the next F1.4 implementation
 boundary after the [credential design](../security/enrollment-credential-design.md).
 The [opt-in Gateway adapter](../security/enrollment-http.md) implements the six
-routes, disabled by default; browser and production enrollment remain pending.
+routes, disabled by default. The [browser adapter](../../clients/web/README.md)
+implements proof projection and retry; full UX/qualification and production remain pending.
 [Trusted SQL administration](../security/enrollment-administration.md) provides
 configuration and grant commands. The [device storage foundation](../security/device-persistence.md)
 adds records and metadata reads. [Internal ceremony transactions](../security/ceremony-transactions.md)
@@ -72,7 +73,7 @@ owns verifier, RLS, uniqueness and lock/revalidation requirements.
 ## Browser projection and bounds
 
 The AMDN request objects are deliberately smaller than WebAuthn's browser
-`toJSON()` objects. The future client adapter copies `id`, `rawId`, `type` and
+`toJSON()` objects. The [client adapter](../../clients/web/README.md) copies `id`, `rawId`, `type` and
 `clientExtensionResults`; registration copies only `clientDataJSON` and
 `attestationObject` from `response`; assertion copies `clientDataJSON`,
 `authenticatorData`, `signature` and optional `userHandle`. Encode raw ArrayBuffers

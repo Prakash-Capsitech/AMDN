@@ -7,12 +7,15 @@ versioned hooks and restores locked dependencies. `make verify` builds, runs the
 bootstrap HTTP, OIDC authentication, hook, synthetic crypto and contract tests, verifies formatting, and checks
 local Markdown file links. It does not certify F0's security or delivery gates.
 It also runs the isolated [enrollment verifier experiment](experiments/Enrollment/README.md).
+`make web-test` covers the dependency-free [browser enrollment module](clients/web/README.md)
+and runs as part of `make verify`; no web package restore is needed.
 
 Run `make harness-test` separately before submission using the
 [harness prerequisites](README.md#start-locally). See the
 [harness guide](tests/Harness/README.md) for execution, evidence, cleanup recovery
-and production-integration limitations. Docker is
-not required by `make verify`, but the separate hosted harness job must pass.
+and production-integration limitations. The harness requires Chrome (or CHROME_BIN)
+for browser enrollment with disposable authenticators and a fixture-certificate pin.
+Docker is not required by `make verify`, but the separate hosted harness job must pass.
 For harness dependency changes regenerate its lock file with
 `dotnet restore tests/Harness/AMDN.Harness.Tests.csproj --force-evaluate`.
 

@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test enrollment-experiment
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test enrollment-experiment web-test
 
 setup:
 	bash scripts/install-hooks.sh
@@ -15,6 +15,7 @@ test: build
 	python3 -m unittest discover -s tests/Repository -v
 	$(MAKE) crypto-test
 	$(MAKE) contracts-test
+	$(MAKE) web-test
 	dotnet run --project experiments/Enrollment/AMDN.EnrollmentExperiment.csproj --no-build --configuration Release
 
 lint: restore
@@ -47,6 +48,9 @@ crypto-spike:
 
 crypto-browser:
 	python3 clients/crypto/browser-smoke.py
+
+web-test:
+	node --test clients/web/enrollment.test.mjs
 
 contracts-restore:
 	python3 -m venv .tools/contracts

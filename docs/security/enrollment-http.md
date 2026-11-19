@@ -3,7 +3,8 @@
 Gateway registers the six [staged commands](../protocols/device-enrollment.md)
 only when `EnrollmentApi:Enabled` is explicitly true. The default host exposes
 none of them. This is a synthetic integration boundary, not production enrollment
-approval, a browser client or messaging-key activation.
+approval or messaging-key activation. The [browser adapter](../../clients/web/README.md)
+is a separate first-party module with virtual-authenticator evidence.
 
 ## Configuration and deployment
 
@@ -109,8 +110,9 @@ The earlier transaction/verifier/role suites retain expiry, concurrency, crash,
 rollback and privilege-denial coverage.
 
 These tests do not qualify browser/authenticator UX, production TLS/OIDC/storage,
-distributed quotas or first-contact/replacement peer verification. No web client
-or production deployment is supplied. Independent E02/security review, Proposed
+distributed quotas or first-contact/replacement peer verification. The separate
+[browser module](../../clients/web/README.md) and its Chrome test do not supply a
+full account UI or production deployment. Independent E02/security review, Proposed
 ADRs, messaging-key binding, [native N01/N02](agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope)
 remain pending.

@@ -5,6 +5,10 @@ Run `make harness-test` from the repository root with the
 use a local Unix socket. The runner needs
 permission to create disposable containers; it does not alter Docker permissions
 or agent sandboxes. A missing prerequisite fails the command, never skips tests.
+Chrome is also required for browser enrollment (google-chrome on PATH or CHROME_BIN).
+It runs in a fresh disposable profile with its sandbox enabled and trust pinned
+only to the fixture certificate. There is no existing-user browser attachment,
+system certificate installation or private-key export.
 
 The runner restores locked NuGet dependencies, builds and verifies formatting of
 the standalone test project, then runs xUnit against real PostgreSQL and NATS
@@ -80,6 +84,11 @@ signed disposable OIDC tokens and synthetic signed WebAuthn proofs. They exercis
 public response shapes, replay, current lifecycle, generic problems, strict bodies,
 current authority and process-local request/proof budgets. Browser/client and
 production deployment evidence remains separate.
+The [browser adapter](../../clients/web/README.md) adds actual Chrome WebAuthn
+create/get with two virtual authenticators through a test-only HTTPS proxy to
+Gateway. It checks initial/replacement/revocation effects and cancellation, plus
+an intentionally lost successful response followed by byte-identical replay and
+one durable attempt. It does not qualify physical devices or other browsers.
 
 The following acceptance evidence remains pending:
 
