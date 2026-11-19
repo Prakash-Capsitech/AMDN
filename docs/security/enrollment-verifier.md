@@ -118,8 +118,10 @@ successful restore is not a security audit or independent crypto approval.
 [Trusted SQL administration](enrollment-administration.md) now supplies configuration
 and grant commands. Principal and role integration have test-probe evidence in the
 [authority guide](enrollment-authority.md); the [HTTP guide](enrollment-http.md#evidence-and-remaining-work)
-owns route and admission-budget evidence and its limits. Browser/authenticator
-compatibility, real OIDC assurance and production rollout require later validation.
+owns route and admission-budget evidence and its limits. The
+[browser qualification guide](browser-enrollment-qualification.md) owns
+browser/authenticator compatibility evidence and remaining checks. Real OIDC
+assurance and production rollout require later validation.
 One active logical device is not a non-copyable key guarantee. Messaging readiness/key binding and
 independent peer verification remain separate requirements. E02 and ADR approvals,
 [native N01/N02](agent-safety.md#pending-native-checks) and full

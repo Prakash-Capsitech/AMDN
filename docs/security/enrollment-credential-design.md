@@ -40,9 +40,9 @@ remain authoritative for the standard checks. Do not implement a local signature
 COSE or attestation verifier from this prose or copy the synthetic test generator
 into application code. Unsupported authenticators fail clearly; no weaker fallback.
 The [first client adapter](../../clients/web/README.md) targets first-party browser
-WebAuthn `create`/`get` with this profile and has a Chrome virtual-authenticator
-harness. Chrome physical-authenticator, Firefox, Safari and mobile versions still
-need qualification; virtual authenticators do not establish physical-device UX.
+WebAuthn `create`/`get` with this profile. The
+[browser qualification guide](browser-enrollment-qualification.md) owns its
+compatibility evidence and remaining browser/physical-device checks.
 Native clients and embedded/cross-origin ceremonies are outside this first profile.
 
 Credential operations require the validated OIDC issuer/subject, exact

@@ -52,16 +52,18 @@ Creation/assertion options decode bounded canonical base64url; ES256, required
 UV, no attestation and the selected credential list cannot be downgraded.
 Browser timeout is capped by the server's challenge/ceremony deadlines.
 
-Every method accepts an optional `{ signal }`. Cancelling browser collection
-leaves the prior options available and sends no proof. Cancelling after dispatch
-can leave a committed request: it is uncertain, never a claim of rollback.
+`beginEnrollment` and `beginRevocation` accept `{ signal }` as their optional
+second argument; `prove` and `retry` accept it as their optional first argument.
+Cancelling browser collection leaves the prior options available and sends no
+proof. Cancelling after dispatch can leave a committed request: it is uncertain,
+never a claim of rollback.
 The calling application should provide a request deadline and a cancel control.
 `dispose()` aborts the active operation and drops snapshots and pending bytes;
 late responses cannot restore state. Disposing cannot undo a server commit.
 
-An uncertain network/503/429 outcome retains **the exact serialized request
-bytes and Idempotency-Key in memory**. Call `retry()` explicitly: it gets a fresh
-token and resends the same bytes/key, without another WebAuthn prompt or signature.
+An uncertain network failure or HTTP 429/5xx outcome retains **the exact serialized
+request bytes and Idempotency-Key in memory**. Call `retry()` explicitly: it gets
+a fresh token and resends the same bytes/key, without another WebAuthn prompt or signature.
 It does not schedule retries or ignore Retry-After. A definitive HTTP
 400/401/403/404/409/413/415 clears the pending command and reports the generic
 status; the caller must resolve the error before an explicit next action.

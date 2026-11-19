@@ -11,5 +11,7 @@ Gateway exposes six staged routes only with explicit
 [EnrollmentApi configuration](../../docs/security/enrollment-http.md). Deploy roles
 and migrations through 007 explicitly; never give an application owner/executor
 membership. Build with `make verify`; run the actual HTTPS/signed-proof/database
-cases with `make harness-test`. Browser and production enrollment, native N01/N02
+cases with `make harness-test`. See the
+[browser qualification guide](../../docs/security/browser-enrollment-qualification.md)
+for client evidence and remaining checks. Production enrollment, native N01/N02
 and full production P01–P03 remain pending.
