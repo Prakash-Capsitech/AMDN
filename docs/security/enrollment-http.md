@@ -67,7 +67,12 @@ as the only explicit charset. Duplicate charset parameters, duplicate JSON membe
 (including escaped names), unknown fields, noncanonical encodings and invalid
 proof structure fail before reservation. Bounded proof-field overflow returns 413.
 Decoded client data requires string type/origin, a canonical base64url challenge
-of exactly 32 bytes and an optional boolean crossOrigin, with no other members.
+of exactly 32 bytes and an optional boolean crossOrigin. The only other permitted
+member is the optional Chromium `other_keys_can_be_added_here` string with exactly
+`do not compare clientDataJSON against a template. See https://goo.gl/yabPex`
+(75 ASCII characters). It is non-authoritative metadata; all other values, types,
+duplicates and unknown members are rejected. The existing 8,192-byte decoded
+client-data bound still applies, and signed bytes are never stripped or reserialized.
 These structural checks apply to all four proof stages; an oversized challenge
 returns 413 before reservation. Stored challenge, origin and stage comparisons,
 cross-origin rejection and cryptographic verification follow reservation.

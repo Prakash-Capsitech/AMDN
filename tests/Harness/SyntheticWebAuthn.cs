@@ -14,7 +14,7 @@ internal sealed class SyntheticWebAuthn : IDisposable
     internal byte[] Id { get; private set; } = RandomNumberGenerator.GetBytes(32);
     internal void RotateId() => Id = RandomNumberGenerator.GetBytes(32);
 
-    internal byte[] Response(byte[] challenge, bool registration, byte[]? handle = null, string scenario = "valid", uint counter = 0)
+    internal byte[] Response(byte[] challenge, bool registration, byte[]? handle = null, string scenario = "valid", uint counter = 0, bool chromiumMetadata = false)
     {
         var client = JsonSerializer.SerializeToUtf8Bytes(new
         {
@@ -26,6 +26,13 @@ internal sealed class SyntheticWebAuthn : IDisposable
         if (scenario == "top-origin")
         {
             var json = JsonNode.Parse(client)!; json["topOrigin"] = "https://ceremony.invalid";
+            client = JsonSerializer.SerializeToUtf8Bytes(json);
+        }
+        if (chromiumMetadata)
+        {
+            // Published Chromium client_data_json.cc value, independent of the verifier.
+            var json = JsonNode.Parse(client)!;
+            json["other_keys_can_be_added_here"] = "do not compare clientDataJSON against a template. See https://goo.gl/yabPex";
             client = JsonSerializer.SerializeToUtf8Bytes(json);
         }
         byte flags = 0x05;

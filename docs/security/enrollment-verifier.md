@@ -69,9 +69,14 @@ metadata, verifies attestation certificates or negotiates a weaker algorithm.
   base64url. The [contract limits](../protocols/device-enrollment.md#browser-projection-and-bounds)
   apply before Fido2 parsing; registration authenticator data is bounded during
   CBOR preflight after reservation.
-- Client data permits only type, challenge, origin and optional `crossOrigin:
-  false`. No topOrigin, tokenBinding or unknown client-data fields are accepted in
-  this first profile. Origin comparison is exact, even where library URL
+- Client data permits type, challenge, origin, optional `crossOrigin: false`,
+  and the optional non-authoritative Chromium `other_keys_can_be_added_here`
+  string, restricted to the exact 75-character published value documented in the
+  [HTTP boundary](enrollment-http.md). This compatibility exception follows
+  [Chromium's pinned implementation](https://chromium.googlesource.com/chromium/src/+/f207f132b656e084dc8ae12c7b4f0f54043aefdd/content/browser/webauth/client_data_json.cc).
+  Unknown values, types and other fields (including topOrigin and tokenBinding)
+  remain forbidden. The original signed client-data bytes reach Fido2 unchanged.
+  Origin comparison is exact, even where library URL
   normalization would accept an equivalent spelling. Configured origin must be
   canonical HTTPS and its host within the configured RP's DNS suffix.
 - Registration preflights a definite CBOR map with exactly `fmt: none`, empty
