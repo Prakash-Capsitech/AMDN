@@ -43,7 +43,7 @@ test('same-origin transport omits cookies, disallows redirects and obtains token
   await client.beginEnrollment({ expectedIdentityVersion: 1 })
   const request = requests[0]
   assert.equal(request.url, `https://amdn.invalid/v1/device-enrollments?tenant_id=${TENANT}`)
-  for (const [key, value] of Object.entries({ mode: 'same-origin', credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer' })) assert.equal(request.options[key], value)
+  for (const [key, value] of Object.entries({ mode: 'cors', credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer' })) assert.equal(request.options[key], value)
   assert.equal(request.options.headers.Authorization, 'Bearer synthetic-1')
   assert.equal(request.options.headers.Origin, undefined)
   answer = fixture('EnrollmentCandidateOptions')
@@ -192,4 +192,12 @@ test('rejects insecure, framed and unavailable browser environments', () => {
   assert.throws(() => new EnrollmentClient(config()), { code: 'unsupported' })
   globalThis.top = globalThis; globalThis.PublicKeyCredential = undefined
   assert.throws(() => new EnrollmentClient(config()), { code: 'unsupported' })
+})
+
+test('origin remains pinned even when current page context changes during token acquisition', async () => {
+  const client = new EnrollmentClient({ ...config(), getAccessToken: async () => {
+    globalThis.location = new URL('https://foreign.invalid'); return 'synthetic-token'
+  } })
+  await assert.rejects(client.beginEnrollment({ expectedIdentityVersion: 1 }), { code: 'invalid_state' })
+  assert.equal(requests.length, 0)
 })

@@ -20,12 +20,21 @@ public sealed class BrowserEnrollmentTests(OidcFixture issuer) : IClassFixture<O
     private readonly RunState _state = RunState.Load();
 
     [Fact]
-    public async Task ChromeWebAuthnCompletesEnrollmentReplacementRevocationAndExactProofRetry()
+    public async Task BrowserWebAuthnCompletesLifecycleAndExactProofRetry()
     {
         using var tls = RSA.Create(2048);
+        using var authorityKey = RSA.Create(2048);
+        var authorityRequest = new CertificateRequest("CN=AMDN disposable browser test authority", authorityKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        authorityRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        authorityRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
+        using var authority = authorityRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
         var certificateRequest = new CertificateRequest("CN=AMDN disposable browser fixture", tls, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var names = new SubjectAlternativeNameBuilder(); names.AddDnsName("localhost"); certificateRequest.CertificateExtensions.Add(names.Build());
-        using var certificate = certificateRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
+        certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+        certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+        certificateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new("1.3.6.1.5.5.7.3.1") }, true));
+        using var publicCertificate = certificateRequest.Create(authority, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(50), RandomNumberGenerator.GetBytes(16));
+        using var certificate = publicCertificate.CopyWithPrivateKey(tls);
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" }); builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(server => server.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
         await using var proxy = builder.Build();
@@ -85,8 +94,8 @@ public sealed class BrowserEnrollmentTests(OidcFixture issuer) : IClassFixture<O
         });
         using var client = issuer.Client(gateway); upstream = client;
         var pin = Convert.ToBase64String(SHA256.HashData(tls.ExportSubjectPublicKeyInfo()));
-        await using var chrome = await BrowserProbe.Start(pin);
-        var authenticator = await AddAuthenticator(chrome);
+        var firefox = Environment.GetEnvironmentVariable("AMDN_NATIVE_BROWSER") == "firefox";
+        await using IEnrollmentBrowser chrome = firefox ? await FirefoxProbe.Start(authority) : await BrowserProbe.Start(pin);
         await chrome.Call("Page.navigate", new { url = address + "/__browser/" });
         for (var attempt = 0; attempt < 50; attempt++)
         {
@@ -94,6 +103,7 @@ public sealed class BrowserEnrollmentTests(OidcFixture issuer) : IClassFixture<O
             await Task.Delay(100);
         }
         Assert.True((await chrome.Evaluate("Boolean(window.browserReady)")).GetBoolean());
+        var authenticator = await AddAuthenticator(chrome);
         var accessToken = issuer.Token(payload =>
         {
             payload["sub"] = subject; payload["scope"] = "device.manage"; payload["acr"] = "urn:amdn:test:strong";
@@ -126,6 +136,20 @@ public sealed class BrowserEnrollmentTests(OidcFixture issuer) : IClassFixture<O
         Assert.Equal(2, retries.Length); Assert.Equal(retries[0].Key, retries[1].Key); Assert.Equal(retries[0].Digest, retries[1].Digest);
         Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE tenant_id=@tenant AND stage='candidate'", ("tenant", member.TenantId)));
 
+        if (firefox)
+        {
+            // WebDriver cannot toggle consent/presence on an existing authenticator.
+            // Do not export/import private keys to imitate the two-authenticator CDP case.
+            Assert.Equal("awaiting_revocation_proof", await State(chrome, "await (window.revocation=makeClient()).beginRevocation({expectedIdentityVersion:2,deviceId:first.state.snapshot.device_id})"));
+            Assert.Equal("cancelled", (await chrome.Evaluate("(async()=>{const abort=new AbortController();abort.abort();try{await revocation.prove({signal:abort.signal});return 'unexpected'}catch(e){return e.code}})()")).GetString());
+            Assert.Equal(0L, await Sql(owner, "SELECT count(*) FROM amdn_identity.device_commands WHERE tenant_id=@tenant AND stage='revocation'", ("tenant", member.TenantId)));
+            Assert.Equal("completed", await State(chrome, "await revocation.prove()"));
+            Assert.False((await chrome.Evaluate("revocation.state.snapshot.messaging_ready")).GetBoolean());
+            Assert.Equal(3L, await Sql(owner, "SELECT identity_version FROM amdn_identity.users WHERE tenant_id=@tenant", ("tenant", member.TenantId)));
+            Assert.Equal(1L, await Sql(owner, "SELECT count(*) FROM amdn_identity.devices WHERE tenant_id=@tenant AND status='revoked'", ("tenant", member.TenantId)));
+            return;
+        }
+
         await Presence(chrome, authenticator, false); var candidate = await AddAuthenticator(chrome);
         Assert.Equal("awaiting_registration", await State(chrome, "await (window.replacement=makeClient()).beginEnrollment({expectedIdentityVersion:2,replaceDeviceId:first.state.snapshot.device_id})"));
         Assert.Equal("awaiting_candidate_proof", await State(chrome, "await replacement.prove()"));
@@ -144,13 +168,13 @@ public sealed class BrowserEnrollmentTests(OidcFixture issuer) : IClassFixture<O
         Assert.Equal("revoked", await Sql(owner, "SELECT status FROM amdn_identity.devices WHERE tenant_id=@tenant AND device_id=@device", ("tenant", member.TenantId), ("device", firstDevice)));
     }
 
-    private static async Task<string?> State(BrowserProbe chrome, string operation) =>
+    private static async Task<string?> State(IEnrollmentBrowser chrome, string operation) =>
         (await chrome.Evaluate($"(async()=>{{try{{return ({operation}).state}}catch(e){{return 'error:'+e.code}}}})()")).GetString();
-    private static async Task<string> AddAuthenticator(BrowserProbe chrome) => (await chrome.Call("WebAuthn.addVirtualAuthenticator", new
+    private static async Task<string> AddAuthenticator(IEnrollmentBrowser chrome) => (await chrome.Call("WebAuthn.addVirtualAuthenticator", new
     {
         options = new { protocol = "ctap2", transport = "usb", hasResidentKey = false, hasUserVerification = true, isUserVerified = true, automaticPresenceSimulation = true }
     })).GetProperty("authenticatorId").GetString()!;
-    private static Task Presence(BrowserProbe chrome, string authenticatorId, bool enabled) =>
+    private static Task Presence(IEnrollmentBrowser chrome, string authenticatorId, bool enabled) =>
         chrome.Call("WebAuthn.setAutomaticPresenceSimulation", new { authenticatorId, enabled });
     private static async Task<object?> Sql(NpgsqlConnection connection, string text, params (string, object)[] values)
     {

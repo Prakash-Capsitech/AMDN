@@ -1,4 +1,4 @@
-.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test enrollment-experiment web-test
+.PHONY: setup restore build test lint format verify security-tools security crypto-restore crypto-test crypto-spike crypto-browser contracts-restore contracts-test harness-test enrollment-experiment web-test web-browser-restore web-browser-test web-browser-native-test
 
 setup:
 	bash scripts/install-hooks.sh
@@ -51,6 +51,16 @@ crypto-browser:
 
 web-test:
 	node --test clients/web/enrollment.test.mjs
+
+web-browser-restore:
+	npm ci --prefix clients/web --ignore-scripts --no-fund --no-audit
+	python3 scripts/install-browser-test-tools.py
+
+web-browser-test:
+	node clients/web/browser-matrix.mjs
+
+web-browser-native-test:
+	python3 tests/Harness/browser-run.py
 
 contracts-restore:
 	python3 -m venv .tools/contracts

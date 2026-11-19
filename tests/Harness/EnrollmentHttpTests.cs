@@ -21,9 +21,10 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
     private sealed record Member(Guid Tenant, Guid User, Guid Postman, Guid Config, string Subject);
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ClientDataMetadataCompletesLifecycleWithExactReplay(bool chromiumMetadata)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ClientDataMetadataCompletesLifecycleWithExactReplay(bool chromiumMetadata, bool edgeMetadata)
     {
         var member = await Setup();
         await using var app = App(member); using var client = issuer.Client(app);
@@ -41,7 +42,7 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
         var id = begin.GetProperty("ceremony_id").GetGuid();
         var candidate = await Prove(begin, "registration", first);
         Shape(candidate, "EnrollmentCandidateOptions"); Allowed(candidate, first.Id);
-        var proof = first.Response(Challenge(candidate), false, chromiumMetadata: chromiumMetadata); var proofKey = Key();
+        var proof = first.Response(Challenge(candidate), false, chromiumMetadata: chromiumMetadata, edgeMetadata: edgeMetadata); var proofKey = Key();
         var completed = await Ok(client, member, $"/v1/device-enrollments/{id}/candidate-proof", proof, key: proofKey);
         Shape(completed, "EnrollmentCompleted"); Assert.Equal(2, completed.GetProperty("committed_identity_version").GetInt64());
         Assert.False(completed.GetProperty("messaging_ready").GetBoolean());
@@ -77,7 +78,7 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
             var ceremony = options.GetProperty("ceremony_id").GetGuid();
             var path = stage == "revocation" ? $"/v1/device-revocations/{ceremony}/proof"
                 : $"/v1/device-enrollments/{ceremony}/" + (stage == "registration" ? stage : stage + "-proof");
-            var body = credential.Response(Challenge(options), stage == "registration", chromiumMetadata: chromiumMetadata);
+            var body = credential.Response(Challenge(options), stage == "registration", chromiumMetadata: chromiumMetadata, edgeMetadata: edgeMetadata);
             if (chromiumMetadata && stage != "registration")
             {
                 // Removing signed metadata without resigning must fail verification.

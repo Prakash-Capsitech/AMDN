@@ -8,7 +8,13 @@ namespace AMDN.Harness.Tests;
 
 // Disposable test browser only. It never attaches to a user's browser/profile,
 // exports authenticator keys, disables Chrome's sandbox or trusts arbitrary TLS.
-internal sealed class BrowserProbe : IAsyncDisposable
+internal interface IEnrollmentBrowser : IAsyncDisposable
+{
+    Task<JsonElement> Call(string method, object? parameters = null);
+    Task<JsonElement> Evaluate(string expression);
+}
+
+internal sealed class BrowserProbe : IEnrollmentBrowser
 {
     private readonly string _profile = Path.Combine(Path.GetTempPath(), "amdn-browser-" + Guid.NewGuid().ToString("N"));
     private Process? _chrome;

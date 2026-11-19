@@ -88,7 +88,14 @@ The [browser adapter](../../clients/web/README.md) adds actual Chrome WebAuthn
 create/get with two virtual authenticators through a test-only HTTPS proxy to
 Gateway. It checks initial/replacement/revocation effects and cancellation, plus
 an intentionally lost successful response followed by byte-identical replay and
-one durable attempt. It does not qualify physical devices or other browsers.
+one durable attempt. `make web-browser-native-test` runs the full suite with
+Chrome and repeats the native case three times each in Edge and Chromium. It
+also repeats a narrower Firefox enrollment/retry/revocation case three times;
+Firefox replacement remains pending. The Firefox fixture uses WebDriver and a
+disposable NSS profile trusting only the public fixture authority, with
+`acceptInsecureCerts: false`. No authenticator private keys are exported.
+See the [browser matrix](../../docs/security/browser-enrollment-qualification.md)
+for local prerequisites, adapter-only checks and physical-device gaps.
 
 The following acceptance evidence remains pending:
 

@@ -9,6 +9,11 @@ local Markdown file links. It does not certify F0's security or delivery gates.
 It also runs the isolated [enrollment verifier experiment](experiments/Enrollment/README.md).
 `make web-test` covers the dependency-free [browser enrollment module](clients/web/README.md)
 and runs as part of `make verify`; no web package restore is needed.
+For the expanded local [browser matrix](docs/security/browser-enrollment-qualification.md),
+run `make web-browser-restore web-browser-test web-browser-native-test` using
+Node from `.nvmrc`, Ubuntu 24.04 x86_64, installed Chrome, Firefox/geckodriver and
+the existing Chromium sandbox helper. These heavier checks are separate from
+`make verify`; no additional GitHub Actions matrix is introduced.
 
 Run `make harness-test` separately before submission using the
 [harness prerequisites](README.md#start-locally). See the

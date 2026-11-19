@@ -216,10 +216,14 @@ export class EnrollmentClient {
     catch { throw new EnrollmentError(signal.aborted ? 'cancelled' : 'authentication_required') }
     require(!signal.aborted, 'cancelled')
     require(typeof bearer === 'string' && bearer.length > 0 && bearer.length <= 16384 && /^[!-~]+$/.test(bearer), 'authentication_required')
+    const target = new URL(`${this.#origin}${pending.path}?tenant_id=${this.#tenant}`)
+    require(target.origin === this.#origin && globalThis.location.origin === this.#origin, 'invalid_state')
     let response
     try {
-      response = await this.#fetch(`${this.#origin}${pending.path}?tenant_id=${this.#tenant}`, {
-        method: 'POST', mode: 'same-origin', credentials: 'omit', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', signal,
+      // CORS request mode preserves Origin with no-referrer in Firefox/WebKit.
+      // The URL stays pinned to this page's origin; redirects remain forbidden.
+      response = await this.#fetch(target.href, {
+        method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', signal,
         headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json', Accept: 'application/json', 'Idempotency-Key': pending.key }, body: pending.bytes
       })
     } catch { throw new EnrollmentError(signal.aborted ? 'cancelled' : 'unavailable') }

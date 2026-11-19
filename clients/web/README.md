@@ -73,7 +73,11 @@ the in-memory retry material; there is no durable browser recovery store.
 `EnrollmentError` exposes a fixed code/message plus optional HTTP `status` and
 numeric `retryAfter`. Raw token, browser, transport and server diagnostic messages
 are not propagated. The adapter omits cookies, uses no-store and no-referrer,
-rejects redirects and cross-origin fetches, and lets the browser supply Origin.
+pins the destination URL to the page's origin, rejects redirects, and lets the
+browser supply Origin. Request mode is `cors`: with `no-referrer`, Firefox and
+WebKit otherwise send `Origin: null` in `same-origin` mode. This does not enable
+cross-origin endpoints; the pinned URL and unchanged exact server Origin check
+remain mandatory.
 Do not inject request/response logging around proof or authorization headers.
 
 The proof projection copies only raw signed bytes and profile fields. It does
@@ -96,8 +100,13 @@ exported. Profile, process and owned service resources are removed at teardown.
 This covers initial enrollment, both replacement credentials, revocation,
 cancellation before dispatch and byte-identical retry after losing a successful
 proof response, with durable version/attempt assertions. It qualifies a synthetic
-Chrome path, not physical authenticators, Firefox/Safari/mobile, synced-passkey
-UX, production OIDC/TLS, client distribution or accessibility.
+Chrome path. The separate [browser qualification matrix](../../docs/security/browser-enrollment-qualification.md)
+adds Edge/Chromium native cases, a narrower native Firefox case and seven adapter
+runtime configurations. Run `make web-browser-restore`, `make web-browser-test`
+and `make web-browser-native-test` on the documented local toolchain. Playwright
+is a pinned development dependency only; the shipped adapter has no dependencies.
+Real Safari, physical mobile/authenticators, synced-passkey UX, production
+OIDC/TLS, client distribution and accessibility remain unqualified.
 
 The adapter provides **no messaging key binding, peer fingerprint/verification,
 delivery acknowledgment credential or messaging activation**. A completed

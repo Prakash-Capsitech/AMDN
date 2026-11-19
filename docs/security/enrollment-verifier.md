@@ -71,7 +71,7 @@ metadata, verifies attestation certificates or negotiates a weaker algorithm.
   CBOR preflight after reservation.
 - Client data permits type, challenge, origin, optional `crossOrigin: false`,
   and the optional non-authoritative Chromium `other_keys_can_be_added_here`
-  string, restricted to the exact 75-character published value documented in the
+  string, restricted to the two exact Chrome/Chromium and Edge values documented in the
   [HTTP boundary](enrollment-http.md). This compatibility exception follows
   [Chromium's pinned implementation](https://chromium.googlesource.com/chromium/src/+/f207f132b656e084dc8ae12c7b4f0f54043aefdd/content/browser/webauth/client_data_json.cc).
   Unknown values, types and other fields (including topOrigin and tokenBinding)

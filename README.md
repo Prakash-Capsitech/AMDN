@@ -26,7 +26,8 @@ adds explicit migration-owner SQL commands for configuration and management gran
 [Opt-in enrollment HTTP](docs/security/enrollment-http.md) connects the six staged
 commands to Gateway, disabled by default and exercised with synthetic signed proofs.
 [Browser enrollment adapter](clients/web/README.md) adds bounded WebAuthn options,
-proof projection and explicit retry, with a Chrome virtual-authenticator harness.
+proof projection and explicit retry, with a [local browser matrix](docs/security/browser-enrollment-qualification.md)
+and native virtual-authenticator harness.
 Full enrollment UI, policy-mutation APIs, message delivery, production encryption, a complete web application and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and

@@ -27,11 +27,12 @@ internal sealed record ProofRequest(byte[] Credential, byte[] ClientData, byte[]
             using var clientJson = StrictJson(client);
             var data = clientJson.RootElement;
             Fields(data, ["type", "challenge", "origin"], ["crossOrigin", "other_keys_can_be_added_here"]);
-            // Chromium's optional compatibility marker is non-authoritative. Accept
-            // only its published value; keep the original bytes for signature checks.
+            // Chromium-based browsers' optional marker is non-authoritative. Accept
+            // only the observed Chrome/Edge constants; preserve all signed bytes.
             if (data.TryGetProperty("other_keys_can_be_added_here", out var metadata))
                 Require(metadata.ValueKind == JsonValueKind.String
-                    && metadata.GetString() == "do not compare clientDataJSON against a template. See https://goo.gl/yabPex");
+                    && metadata.GetString() is "do not compare clientDataJSON against a template. See https://goo.gl/yabPex"
+                        or "do not compare clientDataJSON against a template. See https://permanently-removed.invalid/yabPex");
             Require(data.GetProperty("type").ValueKind == JsonValueKind.String
                 && data.GetProperty("origin").ValueKind == JsonValueKind.String);
             Require(Decode(data.GetProperty("challenge"), 32).Length == 32);
