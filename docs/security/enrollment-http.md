@@ -3,7 +3,8 @@
 Gateway registers the six [staged commands](../protocols/device-enrollment.md)
 only when `EnrollmentApi:Enabled` is explicitly true. The default host exposes
 none of them. This is a synthetic integration boundary, not production enrollment
-approval, a browser client or messaging-key activation.
+approval or messaging-key activation. The [browser adapter](../../clients/web/README.md)
+is a separate first-party module with virtual-authenticator evidence.
 
 ## Configuration and deployment
 
@@ -66,7 +67,16 @@ as the only explicit charset. Duplicate charset parameters, duplicate JSON membe
 (including escaped names), unknown fields, noncanonical encodings and invalid
 proof structure fail before reservation. Bounded proof-field overflow returns 413.
 Decoded client data requires string type/origin, a canonical base64url challenge
-of exactly 32 bytes and an optional boolean crossOrigin, with no other members.
+of exactly 32 bytes and an optional boolean crossOrigin. The only other permitted
+member is the optional Chromium-family `other_keys_can_be_added_here` string with
+one of these two exact values observed in the local native browser tests:
+
+- Chrome/Chromium: `do not compare clientDataJSON against a template. See https://goo.gl/yabPex`
+- Edge: `do not compare clientDataJSON against a template. See https://permanently-removed.invalid/yabPex`
+
+These strings are non-authoritative metadata, never fetched URLs. All other values, types,
+duplicates and unknown members are rejected. The existing 8,192-byte decoded
+client-data bound still applies, and signed bytes are never stripped or reserialized.
 These structural checks apply to all four proof stages; an oversized challenge
 returns 413 before reservation. Stored challenge, origin and stage comparisons,
 cross-origin rejection and cryptographic verification follow reservation.
@@ -109,8 +119,9 @@ The earlier transaction/verifier/role suites retain expiry, concurrency, crash,
 rollback and privilege-denial coverage.
 
 These tests do not qualify browser/authenticator UX, production TLS/OIDC/storage,
-distributed quotas or first-contact/replacement peer verification. No web client
-or production deployment is supplied. Independent E02/security review, Proposed
+distributed quotas or first-contact/replacement peer verification. The separate
+[browser module](../../clients/web/README.md) and its [local browser matrix](browser-enrollment-qualification.md) do not supply a
+full account UI or production deployment. Independent E02/security review, Proposed
 ADRs, messaging-key binding, [native N01/N02](agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope)
 remain pending.

@@ -25,7 +25,10 @@ adds OIDC mapping and scoped execute-only database access.
 adds explicit migration-owner SQL commands for configuration and management grants.
 [Opt-in enrollment HTTP](docs/security/enrollment-http.md) connects the six staged
 commands to Gateway, disabled by default and exercised with synthetic signed proofs.
-Browser enrollment, policy-mutation APIs, message delivery, production encryption, a web client and
+[Browser enrollment adapter](clients/web/README.md) adds bounded WebAuthn options,
+proof projection and explicit retry, with a [local browser matrix](docs/security/browser-enrollment-qualification.md)
+and native virtual-authenticator harness.
+Full enrollment UI, policy-mutation APIs, message delivery, production encryption, a complete web application and
 production deployment are not implemented.
 An isolated synthetic [MLS experiment](clients/crypto/README.md) runs in Node and
 Chrome; it is not an application encryption adapter. The separate
@@ -37,7 +40,8 @@ API coverage and pending production integration checks.
 ## Start locally
 
 Prerequisites: the .NET SDK selected by global.json, Node from .nvmrc, Python 3.12 with venv support,
-Git and GNU Make. Chrome is needed for the separate browser smoke check.
+Git and GNU Make. Chrome is needed for the separate browser smoke check and the
+enrollment browser case in `make harness-test`; CHROME_BIN can select its executable.
 GitHub CLI and no-mistakes are needed to submit changes, not to build.
 The separate required CI harness uses Linux, local Docker Engine and the Docker
 Compose plugin (`docker compose`);
@@ -80,7 +84,7 @@ It has no delivery handlers yet.
 | src/Contracts | Shared reviewed contracts |
 | src/Provisioning | Separate operator-only provisioning service and credential boundary |
 | src/Workers | Separate delivery and outbox process host |
-| clients/web and clients/crypto | Reserved web client and isolated MLS feasibility experiment |
+| clients/web and clients/crypto | Browser enrollment adapter and isolated MLS feasibility experiment |
 | tests | Integration, unit, isolation, reliability, performance and hook checks |
 | deploy | Future local integration and deployment manifests |
 | docs | Architecture, decisions, security, protocols and F0 acceptance |

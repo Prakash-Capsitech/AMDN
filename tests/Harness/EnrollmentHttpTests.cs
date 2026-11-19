@@ -20,8 +20,11 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
     private readonly RunState _state = RunState.Load();
     private sealed record Member(Guid Tenant, Guid User, Guid Postman, Guid Config, string Subject);
 
-    [Fact]
-    public async Task PublicHttpsRoutesCompleteInitialReplacementAndRevocationWithHistoricalReplay()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ClientDataMetadataCompletesLifecycleWithExactReplay(bool chromiumMetadata, bool edgeMetadata)
     {
         var member = await Setup();
         await using var app = App(member); using var client = issuer.Client(app);
@@ -37,10 +40,9 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
         Assert.Equal(begin.GetRawText(), (await Ok(client, member, "/v1/device-enrollments", beginBody, key: beginKey)).GetRawText());
         await Error(client, member, "/v1/device-enrollments", Begin(2), 409, key: beginKey);
         var id = begin.GetProperty("ceremony_id").GetGuid();
-        var registration = first.Response(Challenge(begin), true);
-        var candidate = await Ok(client, member, $"/v1/device-enrollments/{id}/registration", registration);
+        var candidate = await Prove(begin, "registration", first);
         Shape(candidate, "EnrollmentCandidateOptions"); Allowed(candidate, first.Id);
-        var proof = first.Response(Challenge(candidate), false); var proofKey = Key();
+        var proof = first.Response(Challenge(candidate), false, chromiumMetadata: chromiumMetadata, edgeMetadata: edgeMetadata); var proofKey = Key();
         var completed = await Ok(client, member, $"/v1/device-enrollments/{id}/candidate-proof", proof, key: proofKey);
         Shape(completed, "EnrollmentCompleted"); Assert.Equal(2, completed.GetProperty("committed_identity_version").GetInt64());
         Assert.False(completed.GetProperty("messaging_ready").GetBoolean());
@@ -48,12 +50,11 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
 
         var replacement = await Ok(client, member, "/v1/device-enrollments", Begin(2, originalDevice));
         Assert.Equal(SyntheticWebAuthn.Encode(first.Id), replacement.GetProperty("public_key").GetProperty("excludeCredentials")[0].GetProperty("id").GetString());
-        var replacementId = replacement.GetProperty("ceremony_id").GetGuid();
-        var replacementCandidate = await Ok(client, member, $"/v1/device-enrollments/{replacementId}/registration", second.Response(Challenge(replacement), true));
+        var replacementCandidate = await Prove(replacement, "registration", second);
         Allowed(replacementCandidate, second.Id);
-        var current = await Ok(client, member, $"/v1/device-enrollments/{replacementId}/candidate-proof", second.Response(Challenge(replacementCandidate), false));
+        var current = await Prove(replacementCandidate, "candidate", second);
         Shape(current, "EnrollmentCurrentOptions"); Allowed(current, first.Id);
-        var replaced = await Ok(client, member, $"/v1/device-enrollments/{replacementId}/current-proof", first.Response(Challenge(current), false));
+        var replaced = await Prove(current, "current", first);
         Assert.Equal(3, replaced.GetProperty("committed_identity_version").GetInt64());
 
         var history = await Ok(client, member, $"/v1/device-enrollments/{id}/candidate-proof", proof, key: proofKey);
@@ -65,13 +66,42 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
         var device = replaced.GetProperty("device_id").GetGuid();
         var revoke = await Ok(client, member, $"/v1/devices/{device}/revocations", JsonSerializer.SerializeToUtf8Bytes(new { profile = Profile, expected_identity_version = 3 }));
         Shape(revoke, "RevocationOptions"); Allowed(revoke, second.Id);
-        var revokeId = revoke.GetProperty("ceremony_id").GetGuid();
-        var revoked = await Ok(client, member, $"/v1/device-revocations/{revokeId}/proof", second.Response(Challenge(revoke), false));
+        var revoked = await Prove(revoke, "revocation", second);
         Shape(revoked, "RevocationCompleted");
         Assert.Equal(4, revoked.GetProperty("committed_identity_version").GetInt64());
         Assert.Equal("revoked", revoked.GetProperty("current_lifecycle").GetProperty("status").GetString());
         await using var owner = await Owner();
         Assert.Equal(0L, await Sql(owner, "SELECT count(*) FROM amdn_identity.devices WHERE tenant_id=@tenant AND status='credential_active'", ("tenant", member.Tenant)));
+
+        async Task<JsonElement> Prove(JsonElement options, string stage, SyntheticWebAuthn credential)
+        {
+            var ceremony = options.GetProperty("ceremony_id").GetGuid();
+            var path = stage == "revocation" ? $"/v1/device-revocations/{ceremony}/proof"
+                : $"/v1/device-enrollments/{ceremony}/" + (stage == "registration" ? stage : stage + "-proof");
+            var body = credential.Response(Challenge(options), stage == "registration", chromiumMetadata: chromiumMetadata, edgeMetadata: edgeMetadata);
+            if (chromiumMetadata && stage != "registration")
+            {
+                // Removing signed metadata without resigning must fail verification.
+                var tampered = JsonNode.Parse(body)!;
+                var data = JsonNode.Parse(Decode(tampered["response"]!["clientDataJSON"]!.GetValue<string>()))!.AsObject();
+                data.Remove("other_keys_can_be_added_here");
+                tampered["response"]!["clientDataJSON"] = SyntheticWebAuthn.Encode(JsonSerializer.SerializeToUtf8Bytes(data));
+                await Error(client, member, path, JsonSerializer.SerializeToUtf8Bytes(tampered), 400);
+            }
+            var key = Key();
+            var result = await Ok(client, member, path, body, key: key);
+            var replay = await Ok(client, member, path, body, key: key);
+            var expected = JsonNode.Parse(result.GetRawText())!;
+            var actual = JsonNode.Parse(replay.GetRawText())!;
+            // Historical replies refresh the lifecycle observation time by contract.
+            expected["current_lifecycle"]?.AsObject().Remove("observed_at");
+            actual["current_lifecycle"]?.AsObject().Remove("observed_at");
+            Assert.True(JsonNode.DeepEquals(expected, actual));
+            await Error(client, member, path, [.. body, 32], 409, key: key);
+            await using var connection = await Owner();
+            Assert.Equal(1L, await Sql(connection, "SELECT count(*) FROM amdn_identity.device_commands WHERE ceremony_id=@id AND stage=@stage AND state='succeeded'", ("id", ceremony), ("stage", stage)));
+            return result;
+        }
     }
 
     [Theory]
@@ -190,7 +220,16 @@ public sealed class EnrollmentHttpTests(OidcFixture issuer) : IClassFixture<Oidc
             }
             var unknown = data.DeepClone(); unknown["topOrigin"] = "https://ceremony.invalid";
             await Reject(JsonSerializer.SerializeToUtf8Bytes(unknown), 400);
+            unknown = data.DeepClone(); unknown["unrecognized_metadata"] = "ignored?";
+            await Reject(JsonSerializer.SerializeToUtf8Bytes(unknown), 400);
+            foreach (var value in new[] { "null", "1", "true", "{}", "[]", "\"unknown value\"", "\"" + new string('x', 1024) + "\"" })
+            {
+                var malformed = data.DeepClone(); malformed["other_keys_can_be_added_here"] = JsonNode.Parse(value);
+                await Reject(JsonSerializer.SerializeToUtf8Bytes(malformed), 400);
+            }
             var text = Encoding.UTF8.GetString(clientBytes);
+            foreach (var name in new[] { "other_keys_can_be_added_here", "other_keys_can_be_added_her\\u0065" })
+                await Reject(Encoding.UTF8.GetBytes("{\"other_keys_can_be_added_here\":\"do not compare clientDataJSON against a template. See https://goo.gl/yabPex\",\"" + name + "\":\"duplicate\"," + text[1..]), 400);
             await Reject(Encoding.UTF8.GetBytes("{\"type\":\"webauthn.create\"," + text[1..]), 400);
             await Reject(Encoding.UTF8.GetBytes("{\"t\\u0079pe\":\"webauthn.create\"," + text[1..]), 400);
             foreach (var challenge in new[] { "", "!", "AA=", new string('A', 42) + "B", SyntheticWebAuthn.Encode(new byte[31]) })

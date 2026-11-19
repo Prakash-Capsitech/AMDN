@@ -119,12 +119,13 @@ challenge/attempt/replay/audit storage and lifecycle effects with checks after
 waits. See the [authority guide](enrollment-authority.md) for subsequent application
 execution authority and the [verifier guide](enrollment-verifier.md#evidence-and-remaining-work) for proof integration
 and remaining application work. See [enrollment administration](enrollment-administration.md)
-for trusted grant/configuration commands. Browser interoperability and messaging-key
-binding remain open.
+for trusted grant/configuration commands, and the
+[browser qualification guide](browser-enrollment-qualification.md) for client
+compatibility evidence and gaps. Messaging-key binding remains open.
 One active logical device makes no physical-device or key non-copyability claim;
 independent peer verification is still required before first send and replacement.
 
-Browser and production enrollment validation remain pending. [Native N01/N02](agent-safety.md#pending-native-checks)
+Production enrollment validation remains pending. [Native N01/N02](agent-safety.md#pending-native-checks)
 and full [production P01–P03](../../tests/Harness/README.md#evidence-and-scope) remain
 pending despite this storage evidence. ADRs remain Proposed; no F0 or independent
 crypto review is declared complete. Dependabot #10 was separately evaluated and

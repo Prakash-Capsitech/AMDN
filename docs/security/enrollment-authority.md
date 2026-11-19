@@ -5,7 +5,8 @@ adds an execute-only application credential boundary in migration 005.
 [Migration 007 and the opt-in HTTP adapter](enrollment-http.md) connect six staged
 Gateway routes, disabled by default. The harness uses disposable roles and actual
 HTTPS routes as well as internal probes. Production deployment, public
-administration APIs and browser enrollment remain pending.
+administration APIs and full browser enrollment UX remain pending; the
+[browser module](../../clients/web/README.md) has separate virtual-authenticator evidence.
 
 ## Principal mapping
 
